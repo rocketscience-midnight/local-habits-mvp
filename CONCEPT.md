@@ -1,4 +1,4 @@
-# Habits Garden – Konzept v1
+# Local Habits MVP – Konzept v1
 
 ## Vision
 Eine PWA, die Habit-Tracking mit einem virtuellen Garten verbindet. Jede erledigte Gewohnheit lässt eine Pflanze wachsen. Konsistenz wird belohnt, Vernachlässigung sichtbar. Alles offline-fähig, keine Accounts, keine Cloud – deine Daten bleiben auf deinem Gerät.
@@ -85,22 +85,26 @@ Eine PWA, die Habit-Tracking mit einem virtuellen Garten verbindet. Jede erledig
 ## 4. Technische Architektur
 
 ### Stack
-- **Framework:** Vue 3 (Composition API) + Vite
-  - Lightweight, schnell, gute PWA-Unterstützung
-  - Reactive State perfekt für UI-Updates
-- **Styling:** CSS Custom Properties + Scoped Styles
-  - Kein UI-Framework (zu heavy) → eigenes minimal Design System
-- **Daten:** IndexedDB via Dexie.js
+- **Framework:** Vanilla HTML/CSS/JS (ES Modules)
+  - Kein Build-Step, kein Bundler
+  - Push to GitHub = live auf Pages
+  - Volle Kontrolle, leicht verständlich
+- **Styling:** CSS Custom Properties + separate CSS-Dateien
+  - Eigenes minimal Design System
+  - Pastell-Farbpalette "Dreamgarden"
+- **Daten:** IndexedDB via Dexie.js (CDN import)
   - Strukturierte Daten (Habits, Completions, Garden State)
-  - Performant auch bei vielen Einträgen
-  - Besser als localStorage für komplexe Queries
-- **Garten-Rendering:** SVG-basiert
-  - Skalierbar, animierbar, lightweight
-  - Jede Pflanze = SVG-Component mit Wachstumsstufen
-- **PWA:** Vite PWA Plugin (vite-plugin-pwa)
-  - Service Worker (Workbox)
-  - Web App Manifest
-  - Offline-first
+  - Repository Pattern: habitRepo.js abstrahiert Datenzugriff
+  - Später austauschbar gegen REST API / WebSocket
+- **Garten-Rendering:** Canvas oder DOM-basiert
+  - Isometrische Perspektive (Stardew Valley Style)
+  - Pixel-Art Sprites (PNG) für Pflanzen in 5 Wachstumsstufen
+- **PWA:** Manuell
+  - manifest.json (App-Name, Icons, Theme)
+  - service-worker.js (Offline-Cache)
+  - Kein Plugin nötig
+- **Hosting:** GitHub Pages (static, deploy from branch)
+  - URL: https://rocketscience-midnight.github.io/local-habits-mvp/
 
 ### Datenmodell
 ```
@@ -151,16 +155,7 @@ Achievement {
 - Sanfte Animationen (kein Overload)
 - Mobile-first Design
 
-### Farbpalette – Option A: "Naturalist" (realistisch/bunt)
-- Background: #E8DCC8 (Sand)
-- Gras: #5B8C3E (sattes Gras-Grün)
-- Erde: #8B6914 (warmes Braun)
-- Blumen: #E04040 (Rot), #F4A020 (Orange), #3A7BD5 (Kornblume)
-- Himmel: #87CEEB (Hellblau)
-- Holz/UI: #6B4226 (Dunkelholz)
-- Text: #2D2D2D
-
-### Farbpalette – Option B: "Dreamgarden" (pastell/bunt)
+### Farbpalette "Dreamgarden" (pastell/bunt) ✅
 - Background: #FFF8F0 (cremiges Weiß)
 - Gras: #A8D8A8 (Mintgrün)
 - Erde: #D4A574 (helles Terracotta)
@@ -168,6 +163,7 @@ Achievement {
 - Himmel: #C8E0F4 (Babyblau)
 - Holz/UI: #9B7B5B (helles Holz)
 - Text: #4A4A4A
+- Pflanzen/Sprites: ebenfalls Pastell-Töne passend zur Palette
 
 ### Typography
 - Clean Sans-Serif (z.B. Inter oder System Font Stack)
@@ -200,12 +196,38 @@ Achievement {
 
 ---
 
-## Offene Fragen für Susanne
+## Entscheidungen
+- ✅ Pixel-Art Stil (charmant, Stardew Valley inspired)
+- ✅ Isometrische Garten-Perspektive
+- ✅ Pastell-Farbpalette "Dreamgarden"
+- ✅ Mobile-first
+- ✅ Vanilla HTML/CSS/JS (kein Framework, kein Build-Step)
+- ✅ GitHub Pages Hosting
+- ✅ Repository Pattern für spätere Erweiterbarkeit (Kollaboration v2)
 
-1. **Pflanzen-Stil:** Eher Pixel-Art (retro, charmant) oder illustrierte SVGs (modern, clean)? Oder hast du ein visuelles Vorbild?
-
-2. **Garten-Perspektive:** Top-Down (einfacher, übersichtlich) oder isometrisch (hübscher, aufwändiger)?
-
-3. **Farben:** Gefällt dir die warme Erdton-Palette, oder schwebt dir was anderes vor?
-
-4. **Zielgerät:** Primär Handy, oder auch Desktop wichtig?
+## Dateistruktur
+```
+/
+├── index.html
+├── manifest.json
+├── service-worker.js
+├── css/
+│   ├── main.css
+│   └── garden.css
+├── js/
+│   ├── app.js
+│   ├── router.js
+│   ├── repo/
+│   │   └── habitRepo.js
+│   ├── views/
+│   │   ├── today.js
+│   │   ├── garden.js
+│   │   └── stats.js
+│   ├── components/
+│   │   ├── habitCard.js
+│   │   └── plantSprite.js
+│   └── utils/
+│       └── dates.js
+└── assets/
+    └── sprites/
+```
