@@ -38,6 +38,39 @@ function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
 }
 
+/** Shift hue of a hex color by degrees (-180 to 180) while keeping it pastel */
+function shiftHue(hex, degrees) {
+  let [r, g, b] = hexToRgb(hex).map(v => v / 255);
+  // RGB to HSL
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  // Shift hue
+  h = ((h * 360 + degrees) % 360 + 360) % 360 / 360;
+  // HSL to RGB
+  function hue2rgb(p, q, t) {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  }
+  if (s === 0) { r = g = b = l; } else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return rgbToHex(r * 255, g * 255, b * 255);
+}
+
 // ============================================================
 // Isometric projection
 // ============================================================
@@ -92,9 +125,15 @@ function drawTile(ctx, cx, cy, fillColor, strokeColor) {
 // Plant drawing functions (pixel art, 5 stages)
 // ============================================================
 
-function drawPlant(ctx, cx, cy, plantType, stage, animOffset, pixelSize = PIXEL) {
+function drawPlant(ctx, cx, cy, plantType, stage, animOffset, pixelSize = PIXEL, col = 0, row = 0) {
   const pal = PLANT_PALETTES[plantType] || PLANT_PALETTES.bush;
-  const { stem, leaf, bloom1: b1, bloom2: b2, bloom3: b3 } = pal;
+  // Randomize bloom colors slightly per plant instance (seeded by grid position for consistency)
+  const seed = (col ?? 0) * 7 + (row ?? 0) * 13;
+  const hueShift = ((seed * 37 + 17) % 60) - 30; // -30 to +30 degree shift
+  const { stem, leaf } = pal;
+  const b1 = shiftHue(pal.bloom1, hueShift);
+  const b2 = shiftHue(pal.bloom2, hueShift);
+  const b3 = shiftHue(pal.bloom3, hueShift);
   const soil = '#8B7355';
   const health = 'thriving'; // placed plants are always healthy
 
@@ -360,7 +399,7 @@ export async function renderGarden(container) {
           const stage = plant.growthStage ?? RARITY_TO_STAGE[plant.rarity] ?? 2;
           // Legendary plants get slightly bigger pixels
           const pxSize = plant.rarity === 'legendary' ? PIXEL + 1 : PIXEL;
-          drawPlant(ctx, x, y - TILE_H / 4, plant.plantType, stage, animOff, pxSize);
+          drawPlant(ctx, x, y - TILE_H / 4, plant.plantType, stage, animOff, pxSize, c, r);
         } else {
           const deco = decoMap[`${c},${r}`];
           if (deco !== undefined && !placementMode) {
