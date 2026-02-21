@@ -145,8 +145,8 @@ function drawPlant(ctx, cx, cy, plantType, stage, animOffset, pixelSize = PIXEL,
   const by = cy;
 
   // Shadow
-  const shadowW = p * (2 + stage * 1.5);
-  const shadowH = p * (1 + stage * 0.5);
+  const shadowW = p * (1.2 + stage * 0.8);
+  const shadowH = p * (0.6 + stage * 0.3);
   ctx.save();
   ctx.globalAlpha = 0.18;
   ctx.fillStyle = '#2D2D2D';
