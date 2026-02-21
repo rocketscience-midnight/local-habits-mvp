@@ -37,6 +37,19 @@ db.version(3).stores({
   });
 });
 
+// v4: add plantType field for garden visualization
+const PLANT_TYPES = ['tulip', 'sunflower', 'bush', 'cherry', 'mushroom'];
+db.version(4).stores({
+  habits: 'id, name, order, createdAt',
+  completions: 'id, habitId, date, [habitId+date]'
+}).upgrade(tx => {
+  return tx.table('habits').toCollection().modify(habit => {
+    if (!habit.plantType) {
+      habit.plantType = PLANT_TYPES[Math.floor(Math.random() * PLANT_TYPES.length)];
+    }
+  });
+});
+
 function uuid() {
   return crypto.randomUUID?.() ||
     'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -63,6 +76,10 @@ const habitRepo = {
     }
     if (!habit.targetPerDay) habit.targetPerDay = 1;
     if (!habit.timeOfDay) habit.timeOfDay = 'anytime';
+    if (!habit.plantType) {
+      const types = ['tulip', 'sunflower', 'bush', 'cherry', 'mushroom'];
+      habit.plantType = types[Math.floor(Math.random() * types.length)];
+    }
     await db.habits.put(habit);
     return habit;
   },
