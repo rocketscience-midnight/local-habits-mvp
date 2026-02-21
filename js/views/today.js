@@ -210,6 +210,19 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       burstConfetti(cx, cy, result.completed ? 'big' : 'small');
+
+      // Check if ALL habits for today are now completed → MEGA burst!
+      if (result.completed) {
+        const _today = todayString();
+        const _allHabits = (await habitRepo.getAll()).filter(h => isHabitDueToday(h, _today));
+        const _comps = await habitRepo.getCompletionsForDate(_today);
+        const _counts = {};
+        for (const c of _comps) _counts[c.habitId] = (_counts[c.habitId] || 0) + 1;
+        const allDone = _allHabits.every(h => (_counts[h.id] || 0) >= (h.targetPerDay || 1));
+        if (allDone && _allHabits.length > 1) {
+          setTimeout(() => burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 'mega'), 400);
+        }
+      }
     }
 
     if (result.completed && result.count > 0) {
