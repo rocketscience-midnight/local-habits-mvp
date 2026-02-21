@@ -442,11 +442,15 @@ export async function renderGarden(container) {
       ? Math.floor((todayMs - new Date(lastDate + 'T12:00:00').getTime()) / 86400000)
       : 999;
 
+    // Check for debug stage override
+    const debugOverrides = JSON.parse(localStorage.getItem('gardenDebugStages') || '{}');
+    const debugStage = debugOverrides[h.id];
+
     habitData.push({
       habit: h,
       streak,
-      stage: getGrowthStage(streak),
-      health: getHealth(daysSince),
+      stage: debugStage !== undefined ? debugStage : getGrowthStage(streak),
+      health: debugStage !== undefined ? 'thriving' : getHealth(daysSince),
       plantType: h.plantType || 'bush',
     });
   }
@@ -576,11 +580,28 @@ export async function renderGarden(container) {
           <div class="garden-tooltip-name">${hd.habit.name}</div>
           <div class="garden-tooltip-streak">🔥 ${hd.streak} Tage Streak</div>
           <div class="garden-tooltip-stage">${STAGE_NAMES[hd.stage]}</div>
+          <div class="garden-debug-controls" style="display:flex;gap:4px;margin-top:6px;justify-content:center;">
+            ${STAGE_NAMES.map((name, i) => `<button data-stage="${i}" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid #8B5CF6;background:${i===hd.stage?'#8B5CF6':'#FFF8F0'};color:${i===hd.stage?'#fff':'#4A4A4A'};cursor:pointer;">${i+1}</button>`).join('')}
+          </div>
         `;
+        // Debug: change growth stage on button click
+        tip.querySelectorAll('.garden-debug-controls button').forEach(btn => {
+          btn.addEventListener('click', async (ev) => {
+            ev.stopPropagation();
+            const newStage = parseInt(btn.dataset.stage);
+            // Store debug override in localStorage
+            const overrides = JSON.parse(localStorage.getItem('gardenDebugStages') || '{}');
+            overrides[hd.habit.id] = newStage;
+            localStorage.setItem('gardenDebugStages', JSON.stringify(overrides));
+            tip.remove();
+            // Re-render garden
+            await renderGarden(container);
+          });
+        });
         wrap.appendChild(tip);
 
-        // Auto-hide after 3s
-        setTimeout(() => tip.remove(), 3000);
+        // Auto-hide after 8s (longer for debug)
+        setTimeout(() => tip.remove(), 8000);
       }
     }
   });
