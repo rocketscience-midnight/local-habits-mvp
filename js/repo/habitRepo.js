@@ -62,6 +62,14 @@ db.version(5).stores({
   });
 });
 
+// v6: add weeklyFocus table
+db.version(6).stores({
+  habits: 'id, name, order, createdAt',
+  completions: 'id, habitId, date, [habitId+date]',
+  gardenPlants: 'id, habitId, weekEarned, placed, [habitId+weekEarned]',
+  weeklyFocus: 'id, weekKey'
+});
+
 function uuid() {
   return crypto.randomUUID?.() ||
     'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -198,6 +206,21 @@ const habitRepo = {
 
   async getPlantByHabitAndWeek(habitId, weekEarned) {
     return db.gardenPlants.where({ habitId, weekEarned }).first();
+  },
+
+  // === Weekly Focus methods ===
+
+  async getWeeklyFocus(weekKey) {
+    return db.weeklyFocus.where('weekKey').equals(weekKey).first();
+  },
+
+  async saveWeeklyFocus(weekKey, text) {
+    const existing = await db.weeklyFocus.where('weekKey').equals(weekKey).first();
+    if (existing) {
+      await db.weeklyFocus.update(existing.id, { text });
+    } else {
+      await db.weeklyFocus.put({ id: uuid(), weekKey, text });
+    }
   },
 
   async exportData() {

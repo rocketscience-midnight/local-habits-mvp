@@ -6,6 +6,7 @@
 import habitRepo from '../repo/habitRepo.js';
 import { todayString, isHabitDueToday, isWeeklyHabit, getWeeklyCompletionCount } from '../utils/dates.js';
 import { showHabitForm } from './habitForm.js';
+import { burstConfetti } from '../utils/confetti.js';
 
 /** Time-of-day categories in display order */
 const TIME_CATEGORIES = [
@@ -42,6 +43,9 @@ export async function renderToday(container) {
     <p class="today-date">${dayName}, ${dateStr}</p>
   `;
   container.appendChild(header);
+
+  // Weekly Focus section
+  await renderWeeklyFocus(container);
 
   if (dueToday.length === 0) {
     const empty = document.createElement('div');
@@ -189,6 +193,14 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
 
     const result = await habitRepo.incrementCompletion(habit.id);
 
+    // Confetti on completion
+    if (result.count > 0) {
+      const rect = card.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      burstConfetti(cx, cy, result.completed ? 'big' : 'small');
+    }
+
     if (result.completed && result.count > 0) {
       card.classList.add('completed', 'just-completed');
       setTimeout(() => card.classList.remove('just-completed'), 600);
@@ -242,6 +254,71 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
   });
 
   return card;
+}
+
+/**
+ * Get ISO week key string (e.g. "2026-W08")
+ */
+function getISOWeekKey(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const dayNum = d.getDay() || 7;
+  d.setDate(d.getDate() + 4 - dayNum);
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+/**
+ * Render the Wochenfokus card
+ */
+async function renderWeeklyFocus(container) {
+  const weekKey = getISOWeekKey(todayString());
+  const weekNum = weekKey.split('-W')[1];
+  const focus = await habitRepo.getWeeklyFocus(weekKey);
+  const text = focus?.text || '';
+
+  const section = document.createElement('div');
+  section.className = 'weekly-focus-card';
+  section.innerHTML = `
+    <span class="weekly-focus-week">KW ${parseInt(weekNum)}</span>
+    <span class="weekly-focus-text">${text || 'Tippe hier um deinen Wochenfokus zu setzen ✨'}</span>
+  `;
+  if (!text) section.classList.add('placeholder');
+
+  section.addEventListener('click', () => showWeeklyFocusModal(weekKey, text, container));
+  container.appendChild(section);
+}
+
+/**
+ * Show modal to edit weekly focus
+ */
+function showWeeklyFocusModal(weekKey, currentText, mainContainer) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal weekly-focus-modal">
+      <h3>Wochenfokus</h3>
+      <textarea class="weekly-focus-input" rows="3" placeholder="Was ist dein Fokus diese Woche?">${currentText}</textarea>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" data-action="cancel">Abbrechen</button>
+        <button class="btn btn-primary" data-action="save">Speichern</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const input = overlay.querySelector('.weekly-focus-input');
+  input.focus();
+
+  overlay.querySelector('[data-action="cancel"]').addEventListener('click', () => overlay.remove());
+  overlay.querySelector('[data-action="save"]').addEventListener('click', async () => {
+    await habitRepo.saveWeeklyFocus(weekKey, input.value.trim());
+    overlay.remove();
+    rerender(mainContainer);
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
 }
 
 /**

@@ -1002,3 +1002,48 @@ body {
 .heatmap-level-2 {
   background: var(--deep-purple);
 }
+
+/* === Weekly Focus Card === */
+.weekly-focus-card {
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(184, 160, 216, 0.12), rgba(200, 224, 244, 0.12));
+  border-left: 3px solid var(--deep-purple, #8B5CF6);
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: transform 0.15s;
+}
+.weekly-focus-card:active { transform: scale(0.98); }
+.weekly-focus-week {
+  font-size: 0.7rem;
+  color: var(--deep-purple, #8B5CF6);
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+.weekly-focus-text {
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--text-color, #333);
+  flex: 1;
+}
+.weekly-focus-card.placeholder .weekly-focus-text {
+  opacity: 0.5;
+}
+
+/* Weekly Focus Modal */
+.weekly-focus-modal { max-width: 360px; }
+.weekly-focus-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: none;
+  margin: 0.75rem 0;
+  box-sizing: border-box;
+}
