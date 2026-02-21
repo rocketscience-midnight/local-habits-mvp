@@ -584,19 +584,20 @@ export async function renderGarden(container) {
             ${STAGE_NAMES.map((name, i) => `<button data-stage="${i}" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid #8B5CF6;background:${i===hd.stage?'#8B5CF6':'#FFF8F0'};color:${i===hd.stage?'#fff':'#4A4A4A'};cursor:pointer;">${i+1}</button>`).join('')}
           </div>
         `;
-        // Debug: change growth stage on button click
+        // Debug: change growth stage on button click (touch + click)
         tip.querySelectorAll('.garden-debug-controls button').forEach(btn => {
-          btn.addEventListener('click', async (ev) => {
+          const handler = async (ev) => {
             ev.stopPropagation();
+            ev.preventDefault();
             const newStage = parseInt(btn.dataset.stage);
-            // Store debug override in localStorage
             const overrides = JSON.parse(localStorage.getItem('gardenDebugStages') || '{}');
             overrides[hd.habit.id] = newStage;
             localStorage.setItem('gardenDebugStages', JSON.stringify(overrides));
             tip.remove();
-            // Re-render garden
             await renderGarden(container);
-          });
+          };
+          btn.addEventListener('touchend', handler);
+          btn.addEventListener('click', handler);
         });
         wrap.appendChild(tip);
 
