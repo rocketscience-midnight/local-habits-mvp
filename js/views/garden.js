@@ -345,11 +345,54 @@ export async function renderGarden(container) {
 
   const ctx = canvas.getContext('2d');
 
-  // Seeded random for deco
+  // Seeded random for deco and grass
   function seededRand(seed) {
     let s = seed;
     return () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; };
   }
+
+  // Grass tile color variation (seeded by position)
+  const GRASS_GREENS = ['#A8D8A8', '#96CC96', '#B4E0B4'];
+  const GRASS_DARK = ['#8EC08E', '#82B882'];
+  const grassColorMap = {};
+  const grassTuftMap = {};
+  {
+    const gr = seededRand(77);
+    for (let r = 0; r < gridRows; r++) {
+      for (let c = 0; c < gridCols; c++) {
+        const k = `${c},${r}`;
+        grassColorMap[k] = GRASS_GREENS[Math.floor(gr() * GRASS_GREENS.length)];
+        // ~40% of tiles get a grass tuft (1-2 darker pixels)
+        if (gr() < 0.4) {
+          grassTuftMap[k] = {
+            ox: Math.floor(gr() * 20) - 10,
+            oy: Math.floor(gr() * 8) - 4,
+            color: GRASS_DARK[Math.floor(gr() * GRASS_DARK.length)]
+          };
+        }
+      }
+    }
+  }
+
+  // Ground details on empty tiles (~30%)
+  const groundDetailMap = {};
+  {
+    const dr = seededRand(123);
+    for (let r = 0; r < gridRows; r++) {
+      for (let c = 0; c < gridCols; c++) {
+        if (dr() < 0.3) {
+          const type = dr() < 0.33 ? 'stone' : dr() < 0.66 ? 'tuft' : 'flower';
+          groundDetailMap[`${c},${r}`] = {
+            type,
+            ox: Math.floor(dr() * 16) - 8,
+            oy: Math.floor(dr() * 6) - 3,
+            flowerColor: ['#E8B8D0', '#D0B8E8', '#F0E0A0'][Math.floor(dr() * 3)]
+          };
+        }
+      }
+    }
+  }
+
   const rand = seededRand(42);
   const decoMap = {};
   for (let r = 0; r < gridRows; r++) {
@@ -360,12 +403,176 @@ export async function renderGarden(container) {
     }
   }
 
+  // Butterflies
+  const butterflies = [];
+  const BUTTERFLY_COLORS = ['#F4A0C0', '#D0B8E8', '#F0E0A0'];
+  for (let i = 0; i < 2; i++) {
+    butterflies.push({
+      x: Math.random() * canvasW,
+      y: skyH + Math.random() * (canvasH - skyH) * 0.5,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.2,
+      color: BUTTERFLY_COLORS[i % BUTTERFLY_COLORS.length],
+      phase: Math.random() * Math.PI * 2,
+      wanderTimer: 0
+    });
+  }
+
+  function drawButterfly(ctx, bf, time) {
+    const wingOpen = Math.sin(time * 5 + bf.phase) > 0;
+    const p = 2;
+    const bx = Math.round(bf.x);
+    const by = Math.round(bf.y);
+    // Body
+    ctx.fillStyle = '#6B5B3B';
+    ctx.fillRect(bx, by, p, p * 3);
+    // Wings
+    ctx.fillStyle = bf.color;
+    if (wingOpen) {
+      ctx.fillRect(bx - p * 2, by, p * 2, p * 2);
+      ctx.fillRect(bx + p, by, p * 2, p * 2);
+      ctx.fillRect(bx - p, by + p * 2, p, p);
+      ctx.fillRect(bx + p, by + p * 2, p, p);
+    } else {
+      ctx.fillRect(bx - p, by, p, p * 2);
+      ctx.fillRect(bx + p, by, p, p * 2);
+    }
+  }
+
+  function updateButterfly(bf, dt) {
+    bf.wanderTimer -= dt;
+    if (bf.wanderTimer <= 0) {
+      bf.vx += (Math.random() - 0.5) * 0.3;
+      bf.vy += (Math.random() - 0.5) * 0.15;
+      bf.vx = Math.max(-0.5, Math.min(0.5, bf.vx));
+      bf.vy = Math.max(-0.3, Math.min(0.3, bf.vy));
+      bf.wanderTimer = 1 + Math.random() * 2;
+    }
+    bf.x += bf.vx;
+    bf.y += bf.vy;
+    // Respawn if out of bounds
+    if (bf.x < -20 || bf.x > canvasW + 20 || bf.y < skyH - 20 || bf.y > canvasH + 20) {
+      bf.x = Math.random() * canvasW;
+      bf.y = skyH + Math.random() * (canvasH - skyH) * 0.4;
+      bf.vx = (Math.random() - 0.5) * 0.4;
+      bf.vy = (Math.random() - 0.5) * 0.2;
+    }
+  }
+
+  // Fence drawing
+  function drawFence(ctx) {
+    const WOOD = '#9B7B5B';
+    const WOOD_DARK = '#7B5B3B';
+    const postW = 6;
+    const postH = 20;
+    const railH = 3;
+
+    // Get corner screen positions (with some padding)
+    const pad = 8;
+    const corners = [
+      isoToScreen(0, 0, originX, originY),            // top
+      isoToScreen(gridCols, 0, originX, originY),      // right
+      isoToScreen(gridCols, gridRows, originX, originY), // bottom
+      isoToScreen(0, gridRows, originX, originY),      // left
+    ];
+
+    // Draw fence along each edge
+    const edges = [
+      [corners[0], corners[1]], // top-right edge
+      [corners[1], corners[2]], // bottom-right edge
+      [corners[2], corners[3]], // bottom-left edge
+      [corners[3], corners[0]], // top-left edge
+    ];
+
+    const gateEdge = 2; // bottom-left edge has gate
+    const gateCenter = 0.5;
+    const gateWidth = 0.12;
+
+    for (let ei = 0; ei < edges.length; ei++) {
+      const [from, to] = edges[ei];
+      const segments = 8;
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        // Skip gate area
+        if (ei === gateEdge && Math.abs(t - gateCenter) < gateWidth) continue;
+
+        const px = from.x + (to.x - from.x) * t;
+        const py = from.y + (to.y - from.y) * t;
+
+        // Posts every other segment point
+        if (i % 2 === 0) {
+          ctx.fillStyle = WOOD_DARK;
+          ctx.fillRect(Math.round(px - postW / 2), Math.round(py - postH), postW, postH + 2);
+          ctx.fillStyle = WOOD;
+          ctx.fillRect(Math.round(px - postW / 2 + 1), Math.round(py - postH), postW - 2, postH);
+          // Post cap
+          ctx.fillStyle = WOOD_DARK;
+          ctx.fillRect(Math.round(px - postW / 2), Math.round(py - postH - 2), postW, 2);
+        }
+      }
+
+      // Rails between posts
+      for (let i = 0; i < segments; i += 2) {
+        const t1 = i / segments;
+        const t2 = Math.min((i + 2) / segments, 1);
+        // Skip gate
+        if (ei === gateEdge) {
+          if (t1 < gateCenter + gateWidth && t2 > gateCenter - gateWidth) continue;
+        }
+        const x1 = from.x + (to.x - from.x) * t1;
+        const y1 = from.y + (to.y - from.y) * t1;
+        const x2 = from.x + (to.x - from.x) * t2;
+        const y2 = from.y + (to.y - from.y) * t2;
+
+        for (const railOff of [-14, -7]) {
+          ctx.strokeStyle = WOOD;
+          ctx.lineWidth = railH;
+          ctx.beginPath();
+          ctx.moveTo(Math.round(x1), Math.round(y1 + railOff));
+          ctx.lineTo(Math.round(x2), Math.round(y2 + railOff));
+          ctx.stroke();
+          // Dark underline for depth
+          ctx.strokeStyle = WOOD_DARK;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(Math.round(x1), Math.round(y1 + railOff + railH / 2));
+          ctx.lineTo(Math.round(x2), Math.round(y2 + railOff + railH / 2));
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function drawGroundDetail(ctx, cx, cy, detail) {
+    const p = 2;
+    switch (detail.type) {
+      case 'stone':
+        ctx.fillStyle = '#B0A898';
+        ctx.fillRect(cx + detail.ox, cy + detail.oy, p * 2, p);
+        ctx.fillStyle = '#C8C0B0';
+        ctx.fillRect(cx + detail.ox + p, cy + detail.oy - p, p, p);
+        break;
+      case 'tuft':
+        ctx.fillStyle = '#7AAC7A';
+        ctx.fillRect(cx + detail.ox, cy + detail.oy, p, p);
+        ctx.fillRect(cx + detail.ox + p, cy + detail.oy - p, p, p);
+        break;
+      case 'flower':
+        ctx.fillStyle = detail.flowerColor;
+        ctx.fillRect(cx + detail.ox, cy + detail.oy, p, p);
+        break;
+    }
+  }
+
   // Animation
   let animFrame;
   const startTime = performance.now();
+  let lastTime = startTime;
 
   function draw(time) {
     const elapsed = (time - startTime) / 1000;
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
     ctx.clearRect(0, 0, canvasW, canvasH);
 
     // Sky gradient
@@ -379,34 +586,55 @@ export async function renderGarden(container) {
     ctx.fillStyle = '#C8E8C0';
     ctx.fillRect(0, skyH, canvasW, canvasH - skyH);
 
+    // Draw fence (behind tiles)
+    drawFence(ctx);
+
     // Draw tiles (back-to-front)
     for (let r = 0; r < gridRows; r++) {
       for (let c = 0; c < gridCols; c++) {
         const { x, y } = isoToScreen(c, r, originX, originY);
-        const plant = plantGrid[`${c},${r}`];
+        const key = `${c},${r}`;
+        const plant = plantGrid[key];
         const isEmpty = !plant;
 
-        // Tile color: highlight empty tiles in placement mode
-        let tileColor = plant ? '#A8D8A8' : '#B8E0B0';
+        // Grass variation tile color
+        let tileColor = grassColorMap[key] || '#A8D8A8';
         if (placementMode && isEmpty) {
-          tileColor = '#D0F0D0'; // lighter highlight for placeable tiles
+          tileColor = '#D0F0D0';
         }
 
         drawTile(ctx, x, y, tileColor, '#98C898');
 
+        // Grass tufts (tiny darker spots)
+        const tuft = grassTuftMap[key];
+        if (tuft) {
+          ctx.fillStyle = tuft.color;
+          ctx.fillRect(x + tuft.ox, y + tuft.oy, 2, 2);
+        }
+
         if (plant) {
           const animOff = elapsed * 1.5 + r * 0.7 + c * 1.1;
           const stage = plant.growthStage ?? RARITY_TO_STAGE[plant.rarity] ?? 2;
-          // Legendary plants get slightly bigger pixels
           const pxSize = plant.rarity === 'legendary' ? PIXEL + 1 : PIXEL;
           drawPlant(ctx, x, y - TILE_H / 4, plant.plantType, stage, animOff, pxSize, c, r);
         } else {
-          const deco = decoMap[`${c},${r}`];
+          // Ground details on empty tiles
+          const detail = groundDetailMap[key];
+          if (detail && !placementMode) {
+            drawGroundDetail(ctx, x, y - 2, detail);
+          }
+          const deco = decoMap[key];
           if (deco !== undefined && !placementMode) {
             drawDeco(ctx, x, y - 2, deco);
           }
         }
       }
+    }
+
+    // Butterflies
+    for (const bf of butterflies) {
+      updateButterfly(bf, dt);
+      drawButterfly(ctx, bf, elapsed);
     }
 
     animFrame = requestAnimationFrame(draw);
