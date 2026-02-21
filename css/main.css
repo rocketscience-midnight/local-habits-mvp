@@ -585,3 +585,196 @@ body {
 .modal-actions .btn {
   flex: 1;
 }
+
+/* ========== Floating Action Button ========== */
+.fab {
+  position: fixed;
+  bottom: calc(var(--nav-height) + var(--safe-bottom) + 16px);
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: var(--white);
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  z-index: 150;
+  transition: transform 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fab:active {
+  transform: scale(0.92);
+  background: var(--primary-dark);
+}
+
+/* ========== Time-of-Day Sections ========== */
+.time-section {
+  margin-bottom: 16px;
+}
+
+.time-section-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 4px 6px;
+}
+
+/* ========== Multi-Completion Progress ========== */
+.habit-card-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.habit-multi-progress {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 1px;
+}
+
+/* Circular progress ring for multi-completion */
+.habit-progress-ring {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+
+.progress-ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+  fill: none;
+  stroke: #E0D8D0;
+  stroke-width: 3;
+}
+
+.progress-ring-fill {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 3;
+  stroke-dasharray: 100;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.progress-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ========== Edit Button on Habit Card ========== */
+.habit-edit-btn {
+  font-size: 16px !important;
+  width: 36px !important;
+  height: 36px !important;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.habit-edit-btn:active {
+  opacity: 1;
+}
+
+/* ========== Emoji Picker Categories ========== */
+.emoji-picker-categories {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 2px solid #E0D8D0;
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  background: var(--white);
+}
+
+.emoji-cat {
+  margin-bottom: 8px;
+}
+
+.emoji-cat:last-child {
+  margin-bottom: 0;
+}
+
+.emoji-cat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.emoji-cat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ========== Time Picker ========== */
+.time-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.time-btn {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  min-height: 40px;
+  font-size: 13px;
+  background: var(--white);
+  border: 2px solid #E0D8D0;
+  color: var(--text-light);
+}
+
+.time-btn.active {
+  background: var(--accent-purple);
+  border-color: var(--accent-purple);
+  color: var(--white);
+}
+
+/* ========== Target Per Day Picker ========== */
+.target-picker {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.target-value {
+  font-size: 24px;
+  font-weight: 700;
+  min-width: 48px;
+  text-align: center;
+}
+
+.target-dec, .target-inc {
+  font-size: 24px !important;
+  width: 48px !important;
+  height: 48px !important;
+  border: 2px solid #E0D8D0 !important;
+  border-radius: 50% !important;
+  background: var(--white) !important;
+}
+
+/* ========== Danger Button ========== */
+.btn-danger {
+  background: var(--accent-pink);
+  color: var(--white);
+}
+
+.btn-danger:active {
+  opacity: 0.8;
+}

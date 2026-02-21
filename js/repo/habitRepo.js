@@ -1,22 +1,31 @@
 /**
  * Habit Repository - Data access layer using Dexie.js (IndexedDB)
- * Repository pattern allows swapping storage later (e.g. REST API)
+ * v2: added targetPerDay, timeOfDay fields
  */
 
 import Dexie from 'https://unpkg.com/dexie/dist/dexie.mjs';
 import { todayString, calculateStreak, calculateBestStreak } from '../utils/dates.js';
 
-// Initialize database
 const db = new Dexie('LocalHabitsDB');
 
+// v1 original schema
 db.version(1).stores({
   habits: 'id, name, order, createdAt',
   completions: 'id, habitId, date, [habitId+date]'
 });
 
-/**
- * Generate a simple UUID
- */
+// v2: add targetPerDay and timeOfDay (no index changes needed, just bump version for migration)
+db.version(2).stores({
+  habits: 'id, name, order, createdAt',
+  completions: 'id, habitId, date, [habitId+date]'
+}).upgrade(tx => {
+  // Set defaults for existing habits
+  return tx.table('habits').toCollection().modify(habit => {
+    if (!habit.targetPerDay) habit.targetPerDay = 1;
+    if (!habit.timeOfDay) habit.timeOfDay = 'anytime';
+  });
+});
+
 function uuid() {
   return crypto.randomUUID?.() ||
     'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -26,111 +35,100 @@ function uuid() {
 }
 
 const habitRepo = {
-  /**
-   * Get all habits ordered by 'order' field
-   */
   async getAll() {
     return db.habits.orderBy('order').toArray();
   },
 
-  /**
-   * Get a single habit by ID
-   */
   async getById(id) {
     return db.habits.get(id);
   },
 
-  /**
-   * Save (create or update) a habit
-   */
   async save(habit) {
     if (!habit.id) {
       habit.id = uuid();
       habit.createdAt = new Date().toISOString();
-      // Set order to end of list
       const count = await db.habits.count();
       habit.order = count;
     }
+    // Ensure defaults
+    if (!habit.targetPerDay) habit.targetPerDay = 1;
+    if (!habit.timeOfDay) habit.timeOfDay = 'anytime';
     await db.habits.put(habit);
     return habit;
   },
 
-  /**
-   * Delete a habit and all its completions
-   */
   async delete(id) {
     await db.completions.where('habitId').equals(id).delete();
     await db.habits.delete(id);
   },
 
-  /**
-   * Get all completions for a specific date
-   */
   async getCompletionsForDate(date = todayString()) {
     return db.completions.where('date').equals(date).toArray();
   },
 
   /**
-   * Toggle completion for a habit on a given date
-   * Returns { completed: boolean }
+   * Increment completion count for a habit on a date.
+   * For multi-completion habits, adds one completion each call.
+   * Returns { count, target, completed }
    */
-  async toggleCompletion(habitId, date = todayString()) {
+  async incrementCompletion(habitId, date = todayString()) {
+    const habit = await db.habits.get(habitId);
+    const target = habit?.targetPerDay || 1;
     const existing = await db.completions
       .where({ habitId, date })
-      .first();
+      .toArray();
 
-    if (existing) {
-      await db.completions.delete(existing.id);
-      return { completed: false };
-    } else {
-      await db.completions.put({
-        id: uuid(),
-        habitId,
-        date,
-        completedAt: new Date().toISOString()
-      });
-      return { completed: true };
+    if (existing.length >= target) {
+      // Already at target — reset (delete all for this day)
+      for (const c of existing) {
+        await db.completions.delete(c.id);
+      }
+      return { count: 0, target, completed: false };
     }
+
+    // Add one completion
+    await db.completions.put({
+      id: uuid(),
+      habitId,
+      date,
+      completedAt: new Date().toISOString()
+    });
+
+    const newCount = existing.length + 1;
+    return { count: newCount, target, completed: newCount >= target };
   },
 
   /**
-   * Get current streak for a habit
+   * Get completion count for a habit on a date
    */
+  async getCompletionCount(habitId, date = todayString()) {
+    return db.completions.where({ habitId, date }).count();
+  },
+
   async getStreak(habitId) {
     const habit = await db.habits.get(habitId);
     if (!habit) return 0;
     const completions = await db.completions
-      .where('habitId').equals(habitId)
-      .toArray();
+      .where('habitId').equals(habitId).toArray();
     const dates = completions.map(c => c.date);
     return calculateStreak(dates, habit);
   },
 
-  /**
-   * Get best (all-time) streak for a habit
-   */
   async getBestStreak(habitId) {
     const habit = await db.habits.get(habitId);
     if (!habit) return 0;
     const completions = await db.completions
-      .where('habitId').equals(habitId)
-      .toArray();
+      .where('habitId').equals(habitId).toArray();
     const dates = completions.map(c => c.date);
     return calculateBestStreak(dates, habit);
   },
 
-  /**
-   * Export all data as JSON
-   */
   async exportData() {
     const habits = await db.habits.toArray();
     const completions = await db.completions.toArray();
     return JSON.stringify({ habits, completions }, null, 2);
   },
 
-  /**
-   * Import data from JSON string (replaces all data)
-   */
   async importData(jsonString) {
     const data = JSON.parse(jsonString);
     await db.transaction('rw', db.habits, db.completions, async () => {
