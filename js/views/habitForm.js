@@ -1,10 +1,11 @@
 /**
  * Habit Form - Bottom sheet modal for creating/editing habits
- * Features: emoji picker with categories, time-of-day, multi-completion target
+ * Features: emoji picker with categories, time-of-day, multi-completion target,
+ * flexible weekly frequency (X mal pro Woche)
  */
 
 import habitRepo from '../repo/habitRepo.js';
-import { WEEKDAYS_MONDAY, mondayIndexToIso } from '../utils/dates.js';
+import { isWeeklyHabit } from '../utils/dates.js';
 
 /** Curated emoji grid organized by category */
 const EMOJI_CATEGORIES = [
@@ -27,8 +28,6 @@ const TIME_OPTIONS = [
 
 /**
  * Show the habit creation/edit form as a bottom sheet modal
- * @param {string|null} editId - Habit ID to edit, or null for new
- * @param {Function} onDone - Callback after save/delete
  */
 export async function showHabitForm(editId = null, onDone = () => {}) {
   let habit = { name: '', emoji: '✨', frequency: 'daily', targetPerDay: 1, timeOfDay: 'anytime' };
@@ -36,10 +35,8 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
     habit = await habitRepo.getById(editId) || habit;
   }
 
-  // Convert old Sunday-based frequency arrays to ISO (Mon=1..Sun=7)
-  // (old format: 0=Sun..6=Sat; new: 1=Mon..7=Sun)
-  const isWeekly = Array.isArray(habit.frequency);
-  const selectedDays = isWeekly ? new Set(habit.frequency) : new Set();
+  const isWeekly = isWeeklyHabit(habit);
+  const timesPerWeek = isWeekly ? habit.frequency.timesPerWeek : 3;
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -82,13 +79,15 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
       <label class="form-label">Frequenz</label>
       <div class="freq-toggle">
         <button type="button" class="btn freq-btn ${!isWeekly ? 'active' : ''}" data-freq="daily">Täglich</button>
-        <button type="button" class="btn freq-btn ${isWeekly ? 'active' : ''}" data-freq="weekly">Bestimmte Tage</button>
+        <button type="button" class="btn freq-btn ${isWeekly ? 'active' : ''}" data-freq="weekly">Wöchentlich</button>
       </div>
-      <div class="weekday-picker ${isWeekly ? '' : 'hidden'}" id="weekday-picker">
-        ${WEEKDAYS_MONDAY.map((d, i) => {
-          const isoDay = mondayIndexToIso(i);
-          return `<button type="button" class="weekday-btn ${selectedDays.has(isoDay) ? 'selected' : ''}" data-day="${isoDay}">${d}</button>`;
-        }).join('')}
+      <div class="weekly-picker ${isWeekly ? '' : 'hidden'}" id="weekly-picker">
+        <label class="form-label" style="margin-top:8px">Mal pro Woche</label>
+        <div class="target-picker">
+          <button type="button" class="btn-icon weekly-dec" aria-label="Weniger">−</button>
+          <span class="target-value" id="weekly-value">${timesPerWeek}×</span>
+          <button type="button" class="btn-icon weekly-inc" aria-label="Mehr">+</button>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -104,7 +103,7 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
   // State
   let currentEmoji = habit.emoji;
   let freqMode = isWeekly ? 'weekly' : 'daily';
-  let days = new Set(selectedDays);
+  let currentTimesPerWeek = timesPerWeek;
   let targetPerDay = habit.targetPerDay || 1;
   let timeOfDay = habit.timeOfDay || 'anytime';
 
@@ -148,22 +147,27 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
     }
   });
 
+  // Weekly times picker
+  overlay.querySelector('.weekly-dec').addEventListener('click', () => {
+    if (currentTimesPerWeek > 1) {
+      currentTimesPerWeek--;
+      overlay.querySelector('#weekly-value').textContent = currentTimesPerWeek + '×';
+    }
+  });
+  overlay.querySelector('.weekly-inc').addEventListener('click', () => {
+    if (currentTimesPerWeek < 7) {
+      currentTimesPerWeek++;
+      overlay.querySelector('#weekly-value').textContent = currentTimesPerWeek + '×';
+    }
+  });
+
   // Frequency toggle
   overlay.querySelectorAll('.freq-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       freqMode = btn.dataset.freq;
       overlay.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      overlay.querySelector('#weekday-picker').classList.toggle('hidden', freqMode === 'daily');
-    });
-  });
-
-  // Weekday picker
-  overlay.querySelectorAll('.weekday-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const day = parseInt(btn.dataset.day);
-      if (days.has(day)) { days.delete(day); btn.classList.remove('selected'); }
-      else { days.add(day); btn.classList.add('selected'); }
+      overlay.querySelector('#weekly-picker').classList.toggle('hidden', freqMode === 'daily');
     });
   });
 
@@ -187,16 +191,11 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
     const name = overlay.querySelector('#habit-name').value.trim();
     if (!name) { overlay.querySelector('#habit-name').focus(); return; }
 
-    if (freqMode === 'weekly' && days.size === 0) {
-      alert('Bitte wähle mindestens einen Tag aus.');
-      return;
-    }
-
     const toSave = {
       ...habit,
       name,
       emoji: currentEmoji,
-      frequency: freqMode === 'daily' ? 'daily' : [...days].sort(),
+      frequency: freqMode === 'daily' ? 'daily' : { type: 'weekly', timesPerWeek: currentTimesPerWeek },
       targetPerDay,
       timeOfDay,
     };

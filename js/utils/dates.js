@@ -31,25 +31,51 @@ export function mondayIndexToIso(idx) {
 }
 
 /**
- * Check if a habit is due on a given date
- * frequency can be 'daily' or an array of ISO day numbers (1=Mon..7=Sun)
+ * Get the ISO week start (Monday) for a given date string
+ */
+export function getWeekStart(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const day = d.getDay(); // 0=Sun
+  const diff = day === 0 ? 6 : day - 1; // days since Monday
+  d.setDate(d.getDate() - diff);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Check if a habit is due on a given date.
+ * Weekly habits (timesPerWeek) are always shown — they're due every day.
  */
 export function isHabitDueToday(habit, dateStr = todayString()) {
-  if (habit.frequency === 'daily') return true;
-  if (Array.isArray(habit.frequency)) {
+  const freq = habit.frequency;
+  if (freq === 'daily') return true;
+  // New weekly model: { type: 'weekly', timesPerWeek: N }
+  if (freq && typeof freq === 'object' && freq.type === 'weekly') return true;
+  // Legacy: array of ISO day numbers
+  if (Array.isArray(freq)) {
     const day = getDayOfWeek(dateStr);
-    return habit.frequency.includes(day);
+    return freq.includes(day);
   }
   return true;
 }
 
 /**
- * Calculate current streak for a habit given its completions
- * For multi-completion habits, a day counts as complete only if
- * the number of completions >= targetPerDay
+ * Check if habit uses the weekly frequency model
+ */
+export function isWeeklyHabit(habit) {
+  const freq = habit.frequency;
+  return freq && typeof freq === 'object' && freq.type === 'weekly';
+}
+
+/**
+ * Calculate current streak for a habit given its completions.
+ * For weekly habits, streak counts complete weeks.
  */
 export function calculateStreak(completionDates, habit) {
   if (!completionDates.length) return 0;
+
+  if (isWeeklyHabit(habit)) {
+    return calculateWeeklyStreak(completionDates, habit, false);
+  }
 
   const target = habit.targetPerDay || 1;
   const dateCount = countByDate(completionDates);
@@ -57,7 +83,6 @@ export function calculateStreak(completionDates, habit) {
   let streak = 0;
   let checkDate = new Date(today + 'T12:00:00');
 
-  // If today isn't fully completed, start from yesterday
   if ((dateCount[today] || 0) < target) {
     checkDate.setDate(checkDate.getDate() - 1);
   }
@@ -86,6 +111,10 @@ export function calculateStreak(completionDates, habit) {
 export function calculateBestStreak(completionDates, habit) {
   if (!completionDates.length) return 0;
 
+  if (isWeeklyHabit(habit)) {
+    return calculateWeeklyStreak(completionDates, habit, true);
+  }
+
   const target = habit.targetPerDay || 1;
   const sorted = [...new Set(completionDates)].sort();
   const dateCount = countByDate(completionDates);
@@ -113,11 +142,87 @@ export function calculateBestStreak(completionDates, habit) {
   return best;
 }
 
+/**
+ * Calculate weekly streak (in weeks).
+ * A week is "complete" if completions in that week >= timesPerWeek.
+ */
+function calculateWeeklyStreak(completionDates, habit, findBest) {
+  const target = habit.frequency.timesPerWeek || 1;
+  const weekCounts = {};
+  for (const d of completionDates) {
+    const ws = getWeekStart(d);
+    weekCounts[ws] = (weekCounts[ws] || 0) + 1;
+  }
+
+  const today = todayString();
+  const currentWeekStart = getWeekStart(today);
+
+  // Get all week starts sorted descending
+  const allWeeks = [];
+  const d = new Date(currentWeekStart + 'T12:00:00');
+  // go back up to 200 weeks
+  for (let i = 0; i < 200; i++) {
+    allWeeks.push(d.toISOString().slice(0, 10));
+    d.setDate(d.getDate() - 7);
+  }
+
+  if (findBest) {
+    let best = 0, current = 0;
+    // reverse to go chronologically
+    for (const ws of [...allWeeks].reverse()) {
+      if ((weekCounts[ws] || 0) >= target) {
+        current++;
+        if (current > best) best = current;
+      } else {
+        current = 0;
+      }
+    }
+    return best;
+  }
+
+  // Current streak
+  let streak = 0;
+  let startIdx = 0;
+  // If current week isn't complete yet, skip it (still in progress)
+  if ((weekCounts[currentWeekStart] || 0) < target) {
+    startIdx = 1;
+  }
+  for (let i = startIdx; i < allWeeks.length; i++) {
+    if ((weekCounts[allWeeks[i]] || 0) >= target) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+/**
+ * Get weekly completion count for a habit in the current week
+ */
+export function getWeeklyCompletionCount(completionDates, dateStr = todayString()) {
+  const weekStart = getWeekStart(dateStr);
+  let count = 0;
+  for (const d of completionDates) {
+    if (getWeekStart(d) === weekStart) count++;
+  }
+  return count;
+}
+
 /** Count occurrences per date string */
-function countByDate(dates) {
+export function countByDate(dates) {
   const map = {};
   for (const d of dates) {
     map[d] = (map[d] || 0) + 1;
   }
   return map;
+}
+
+/**
+ * Get date string N days ago
+ */
+export function daysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
 }

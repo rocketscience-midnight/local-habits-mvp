@@ -778,3 +778,220 @@ body {
 .btn-danger:active {
   opacity: 0.8;
 }
+
+/* ========== Weekly Progress Label ========== */
+.habit-weekly-progress {
+  font-size: 11px;
+  color: var(--accent-purple);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+/* ========== Stats Screen ========== */
+.stats-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.stats-section {
+  margin-bottom: 24px;
+}
+
+.stats-section-header {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+  padding: 4px 0;
+}
+
+/* Overview Grid */
+.stats-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stats-overview-card {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.stats-overview-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.stats-overview-label {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+/* Streaks */
+.stats-streaks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats-streak-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.stats-streak-emoji {
+  font-size: 28px;
+}
+
+.stats-streak-info {
+  flex: 1;
+}
+
+.stats-streak-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.stats-streak-numbers {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+/* Completion Rates */
+.stats-rates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stats-rate-card {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.stats-rate-header {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.stats-rate-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.stats-rate-label {
+  font-size: 12px;
+  color: var(--text-light);
+  min-width: 52px;
+}
+
+.stats-rate-bar {
+  flex: 1;
+  height: 8px;
+  background: #E8E0D8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stats-rate-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.stats-rate-fill-30 {
+  background: var(--accent-purple);
+}
+
+.stats-rate-pct {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 36px;
+  text-align: right;
+  color: var(--text);
+}
+
+/* Heatmap */
+.stats-heatmap-card {
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+  margin-bottom: 10px;
+}
+
+.stats-heatmap-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: 6px;
+}
+
+.heatmap-labels {
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.heatmap-label {
+  font-size: 10px;
+  color: var(--text-light);
+  height: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.heatmap-cells {
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  grid-auto-flow: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.heatmap-cell {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: #E8E0D8;
+}
+
+.heatmap-future {
+  background: transparent;
+}
+
+.heatmap-level-0 {
+  background: #E8E0D8;
+}
+
+.heatmap-level-1 {
+  background: #C8EAC8;
+}
+
+.heatmap-level-2 {
+  background: var(--primary-dark);
+}

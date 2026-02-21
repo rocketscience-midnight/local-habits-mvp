@@ -4,7 +4,7 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
-import { todayString, isHabitDueToday } from '../utils/dates.js';
+import { todayString, isHabitDueToday, isWeeklyHabit, getWeeklyCompletionCount } from '../utils/dates.js';
 import { showHabitForm } from './habitForm.js';
 
 /** Time-of-day categories in display order */
@@ -95,7 +95,13 @@ export async function renderToday(container) {
       const count = completionCounts[habit.id] || 0;
       const target = habit.targetPerDay || 1;
       const streak = await habitRepo.getStreak(habit.id);
-      const card = createHabitCard(habit, count, target, streak, container);
+      let weeklyInfo = null;
+      if (isWeeklyHabit(habit)) {
+        const allCompletions = await habitRepo.getCompletionsForHabit(habit.id);
+        const weeklyCount = getWeeklyCompletionCount(allCompletions.map(c => c.date));
+        weeklyInfo = { count: weeklyCount, target: habit.frequency.timesPerWeek };
+      }
+      const card = createHabitCard(habit, count, target, streak, container, weeklyInfo);
       list.appendChild(card);
     }
     section.appendChild(list);
@@ -142,7 +148,7 @@ async function rerender(container) {
 /**
  * Create a single habit card with multi-completion and edit support
  */
-function createHabitCard(habit, count, target, streak, mainContainer) {
+function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo = null) {
   const isCompleted = count >= target;
   const isMulti = target > 1;
 
@@ -155,6 +161,7 @@ function createHabitCard(habit, count, target, streak, mainContainer) {
       <div class="habit-card-info">
         <span class="habit-name">${habit.name}</span>
         ${isMulti ? `<span class="habit-multi-progress">${count} / ${target}</span>` : ''}
+        ${weeklyInfo ? `<span class="habit-weekly-progress">${weeklyInfo.count}/${weeklyInfo.target} diese Woche</span>` : ''}
       </div>
     </div>
     <div class="habit-card-right">

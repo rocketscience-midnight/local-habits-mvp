@@ -1,6 +1,6 @@
 /**
  * Habit Repository - Data access layer using Dexie.js (IndexedDB)
- * v2: added targetPerDay, timeOfDay fields
+ * v3: weekly frequency model { type: 'weekly', timesPerWeek: N }
  */
 
 import Dexie from 'https://unpkg.com/dexie/dist/dexie.mjs';
@@ -14,15 +14,26 @@ db.version(1).stores({
   completions: 'id, habitId, date, [habitId+date]'
 });
 
-// v2: add targetPerDay and timeOfDay (no index changes needed, just bump version for migration)
+// v2: add targetPerDay and timeOfDay
 db.version(2).stores({
   habits: 'id, name, order, createdAt',
   completions: 'id, habitId, date, [habitId+date]'
 }).upgrade(tx => {
-  // Set defaults for existing habits
   return tx.table('habits').toCollection().modify(habit => {
     if (!habit.targetPerDay) habit.targetPerDay = 1;
     if (!habit.timeOfDay) habit.timeOfDay = 'anytime';
+  });
+});
+
+// v3: migrate frequency arrays to { type: 'weekly', timesPerWeek: N }
+db.version(3).stores({
+  habits: 'id, name, order, createdAt',
+  completions: 'id, habitId, date, [habitId+date]'
+}).upgrade(tx => {
+  return tx.table('habits').toCollection().modify(habit => {
+    if (Array.isArray(habit.frequency)) {
+      habit.frequency = { type: 'weekly', timesPerWeek: habit.frequency.length || 3 };
+    }
   });
 });
 
@@ -50,7 +61,6 @@ const habitRepo = {
       const count = await db.habits.count();
       habit.order = count;
     }
-    // Ensure defaults
     if (!habit.targetPerDay) habit.targetPerDay = 1;
     if (!habit.timeOfDay) habit.timeOfDay = 'anytime';
     await db.habits.put(habit);
@@ -66,11 +76,6 @@ const habitRepo = {
     return db.completions.where('date').equals(date).toArray();
   },
 
-  /**
-   * Increment completion count for a habit on a date.
-   * For multi-completion habits, adds one completion each call.
-   * Returns { count, target, completed }
-   */
   async incrementCompletion(habitId, date = todayString()) {
     const habit = await db.habits.get(habitId);
     const target = habit?.targetPerDay || 1;
@@ -79,14 +84,12 @@ const habitRepo = {
       .toArray();
 
     if (existing.length >= target) {
-      // Already at target — reset (delete all for this day)
       for (const c of existing) {
         await db.completions.delete(c.id);
       }
       return { count: 0, target, completed: false };
     }
 
-    // Add one completion
     await db.completions.put({
       id: uuid(),
       habitId,
@@ -98,11 +101,16 @@ const habitRepo = {
     return { count: newCount, target, completed: newCount >= target };
   },
 
-  /**
-   * Get completion count for a habit on a date
-   */
   async getCompletionCount(habitId, date = todayString()) {
     return db.completions.where({ habitId, date }).count();
+  },
+
+  async getCompletionsForHabit(habitId) {
+    return db.completions.where('habitId').equals(habitId).toArray();
+  },
+
+  async getAllCompletions() {
+    return db.completions.toArray();
   },
 
   async getStreak(habitId) {
