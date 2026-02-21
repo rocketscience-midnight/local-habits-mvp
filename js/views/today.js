@@ -94,10 +94,22 @@ export async function renderToday(container) {
     grouped[key].push(h);
   }
 
-  // Render each category that has habits
+  // Render each category that has habits, with divider banners
+  let lastRenderedKey = null;
   for (const cat of TIME_CATEGORIES) {
     const habitsInCat = grouped[cat.key];
     if (!habitsInCat || habitsInCat.length === 0) continue;
+
+    // Insert banner between morning/midday and afternoon/evening sections
+    if (lastRenderedKey && 
+        ['morning', 'midday'].includes(lastRenderedKey) && 
+        ['afternoon', 'evening'].includes(cat.key)) {
+      const banner = document.createElement('div');
+      banner.className = 'time-divider-banner';
+      banner.innerHTML = `<span>☀️ → 🌆</span> <span class="divider-text">Feierabend!</span>`;
+      container.appendChild(banner);
+    }
+    lastRenderedKey = cat.key;
 
     const section = document.createElement('div');
     section.className = 'time-section';

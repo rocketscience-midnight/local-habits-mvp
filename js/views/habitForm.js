@@ -44,10 +44,7 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
     <div class="modal">
       <h2>${editId ? 'Gewohnheit bearbeiten' : 'Neue Gewohnheit'}</h2>
 
-      <label class="form-label">Name</label>
-      <input type="text" class="form-input" id="habit-name" value="${habit.name}" placeholder="z.B. Meditation" maxlength="50">
-
-      <label class="form-label">Emoji</label>
+      <label class="form-label">Emoji wählen</label>
       <div class="emoji-picker-categories" id="emoji-picker">
         ${EMOJI_CATEGORIES.map(cat => `
           <div class="emoji-cat">
@@ -61,6 +58,9 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
         `).join('')}
       </div>
       <input type="text" class="form-input emoji-custom" id="habit-emoji" value="${habit.emoji}" placeholder="Oder eigenes Emoji eingeben" maxlength="4">
+
+      <label class="form-label">Name</label>
+      <input type="text" class="form-input" id="habit-name" value="${habit.name}" placeholder="z.B. Meditation" maxlength="50">
 
       <label class="form-label">Tageszeit</label>
       <div class="time-picker">
@@ -114,6 +114,8 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
       btn.classList.add('selected');
       currentEmoji = btn.dataset.emoji;
       overlay.querySelector('#habit-emoji').value = currentEmoji;
+      // Auto-focus name field after emoji selection
+      overlay.querySelector('#habit-name').focus();
     });
   });
 
@@ -205,5 +207,5 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
     onDone();
   });
 
-  setTimeout(() => overlay.querySelector('#habit-name').focus(), 100);
+  // Don't auto-focus name - user should pick emoji first
 }

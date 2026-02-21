@@ -223,6 +223,10 @@ const habitRepo = {
     }
   },
 
+  async getAllWeeklyFocus() {
+    return db.weeklyFocus.toArray();
+  },
+
   async exportData() {
     const habits = await db.habits.toArray();
     const completions = await db.completions.toArray();

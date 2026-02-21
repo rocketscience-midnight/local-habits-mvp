@@ -134,9 +134,38 @@ export async function renderStats(container) {
       <div class="stats-section-header">🗓️ Aktivität (12 Wochen)</div>
       ${habitStats.map(s => renderHeatmap(s)).join('')}
     </div>
+
+    <div class="stats-section" id="focus-archive">
+      <div class="stats-section-header">🎯 Wochenfokus-Archiv</div>
+      <div class="focus-archive-list" id="focus-archive-list">
+        <p style="color:#8A8A8A;text-align:center;">Laden...</p>
+      </div>
+    </div>
   `;
 
   container.innerHTML = html;
+
+  // Load weekly focus archive
+  await renderFocusArchive(container.querySelector('#focus-archive-list'));
+}
+
+/**
+ * Render weekly focus archive
+ */
+async function renderFocusArchive(container) {
+  const allFocus = await habitRepo.getAllWeeklyFocus();
+  if (!allFocus || allFocus.length === 0) {
+    container.innerHTML = '<p style="color:#8A8A8A;text-align:center;font-style:italic;">Noch keine Wochenmottos gespeichert</p>';
+    return;
+  }
+  // Sort newest first
+  const sorted = allFocus.sort((a, b) => b.weekKey.localeCompare(a.weekKey));
+  container.innerHTML = sorted.map(f => `
+    <div class="focus-archive-item">
+      <span class="focus-archive-week">${f.weekKey}</span>
+      <span class="focus-archive-text">"${f.text}"</span>
+    </div>
+  `).join('');
 }
 
 /**

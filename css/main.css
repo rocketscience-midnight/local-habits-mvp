@@ -633,6 +633,26 @@ body {
   padding: 8px 4px 6px;
 }
 
+.time-divider-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #F8D480 0%, #FF6B35 50%, #8B5CF6 100%);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+}
+
+.time-divider-banner .divider-text {
+  font-style: italic;
+}
+
 /* ========== Multi-Completion Progress ========== */
 .habit-card-info {
   display: flex;
@@ -1046,4 +1066,34 @@ body {
   resize: none;
   margin: 0.75rem 0;
   box-sizing: border-box;
+}
+
+/* ========== Focus Archive ========== */
+.focus-archive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.focus-archive-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: 10px;
+  border-left: 3px solid var(--rich-purple, #8B5CF6);
+}
+
+.focus-archive-week {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--deep-purple, #6B2FA0);
+  white-space: nowrap;
+}
+
+.focus-archive-text {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text);
 }
