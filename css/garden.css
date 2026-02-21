@@ -1,6 +1,6 @@
 /**
  * Garden View Styles
- * Isometric pixel-art garden visualization
+ * Isometric pixel-art garden with collect & place mechanic
  */
 
 .garden-screen {
@@ -15,8 +15,27 @@
 .garden-title {
   font-size: 28px;
   font-weight: 700;
-  padding: 20px 16px 12px;
+  padding: 20px 16px 8px;
   align-self: flex-start;
+}
+
+.garden-debug-btn {
+  align-self: flex-end;
+  margin: 0 16px 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 2px solid #8B5CF6;
+  background: #FFF8F0;
+  color: #8B5CF6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.garden-debug-btn:active {
+  background: #8B5CF6;
+  color: white;
 }
 
 .garden-canvas-wrap {
@@ -35,7 +54,39 @@
   image-rendering: crisp-edges;
 }
 
-/* Plant tooltip popup */
+/* Placement mode indicator */
+.garden-placement-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(139, 92, 246, 0.12);
+  border-top: 2px solid #8B5CF6;
+}
+
+.garden-placement-indicator.hidden {
+  display: none;
+}
+
+.placement-text {
+  font-size: 13px;
+  color: #8B5CF6;
+  font-weight: 600;
+}
+
+.placement-cancel-btn {
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid #E84545;
+  background: white;
+  color: #E84545;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Plant tooltip */
 .garden-tooltip {
   position: absolute;
   background: rgba(255, 248, 240, 0.96);
@@ -47,7 +98,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   transform: translate(-50%, -100%);
   margin-top: -12px;
-  min-width: 140px;
+  min-width: 160px;
   text-align: center;
   animation: tooltipIn 0.2s ease;
 }
@@ -57,29 +108,33 @@
   to { opacity: 1; transform: translate(-50%, -100%) scale(1); }
 }
 
-.garden-tooltip-emoji {
-  font-size: 28px;
-  display: block;
-  margin-bottom: 4px;
-}
-
 .garden-tooltip-name {
   font-size: 15px;
   font-weight: 700;
   color: #4A4A4A;
 }
 
-.garden-tooltip-streak {
+.garden-tooltip-rarity {
   font-size: 13px;
-  color: #FF6B35;
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 2px;
 }
 
-.garden-tooltip-stage {
+.garden-tooltip-detail {
   font-size: 12px;
   color: #8A8A8A;
   margin-top: 2px;
+}
+
+.garden-tooltip-remove-btn {
+  margin-top: 8px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid #E84545;
+  background: white;
+  color: #E84545;
+  font-size: 11px;
+  cursor: pointer;
 }
 
 .garden-empty {
@@ -91,4 +146,122 @@
 .garden-empty-emoji {
   font-size: 64px;
   margin-bottom: 16px;
+}
+
+/* Inventory bar */
+.garden-inventory {
+  width: 100%;
+  max-width: 600px;
+  padding: 12px 16px;
+  background: rgba(255, 248, 240, 0.95);
+  border-top: 2px solid #A8D8A8;
+}
+
+.garden-inventory-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4A4A4A;
+  margin-bottom: 8px;
+}
+
+.garden-inventory-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+.inventory-empty {
+  font-size: 13px;
+  color: #8A8A8A;
+  padding: 8px 0;
+}
+
+.inventory-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background: #F0F8F0;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.inventory-item:active,
+.inventory-item.selected {
+  border-color: #8B5CF6;
+  background: #EDE5FF;
+}
+
+.inventory-icon-canvas {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.inventory-item-label {
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Reward popup */
+.reward-popup {
+  text-align: center;
+}
+
+.reward-popup-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4A4A4A;
+  margin-bottom: 16px;
+}
+
+.reward-popup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #F0F8F0;
+  border-radius: 12px;
+}
+
+.reward-emoji {
+  font-size: 28px;
+}
+
+.reward-info {
+  text-align: left;
+}
+
+.reward-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #4A4A4A;
+}
+
+.reward-rarity {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reward-habit {
+  font-size: 12px;
+  color: #8A8A8A;
+}
+
+.reward-close-btn {
+  width: 100%;
 }

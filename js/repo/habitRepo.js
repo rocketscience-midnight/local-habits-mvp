@@ -1,6 +1,6 @@
 /**
  * Habit Repository - Data access layer using Dexie.js (IndexedDB)
- * v3: weekly frequency model { type: 'weekly', timesPerWeek: N }
+ * v5: garden plants as collectible rewards (collect & place model)
  */
 
 import Dexie from 'https://unpkg.com/dexie/dist/dexie.mjs';
@@ -37,16 +37,28 @@ db.version(3).stores({
   });
 });
 
-// v4: add plantType field for garden visualization
-const PLANT_TYPES = ['tulip', 'sunflower', 'bush', 'cherry', 'mushroom'];
+// v4: add plantType field (legacy, now unused)
 db.version(4).stores({
   habits: 'id, name, order, createdAt',
   completions: 'id, habitId, date, [habitId+date]'
 }).upgrade(tx => {
   return tx.table('habits').toCollection().modify(habit => {
     if (!habit.plantType) {
-      habit.plantType = PLANT_TYPES[Math.floor(Math.random() * PLANT_TYPES.length)];
+      const types = ['tulip', 'sunflower', 'bush', 'cherry', 'mushroom'];
+      habit.plantType = types[Math.floor(Math.random() * types.length)];
     }
+  });
+});
+
+// v5: add gardenPlants table, remove plantType from habits
+db.version(5).stores({
+  habits: 'id, name, order, createdAt',
+  completions: 'id, habitId, date, [habitId+date]',
+  gardenPlants: 'id, habitId, weekEarned, placed, [habitId+weekEarned]'
+}).upgrade(tx => {
+  // Remove plantType from habits (Dexie keeps extra props, just clean up)
+  return tx.table('habits').toCollection().modify(habit => {
+    delete habit.plantType;
   });
 });
 
@@ -59,6 +71,9 @@ function uuid() {
 }
 
 const habitRepo = {
+  /** Direct access to gardenPlants table */
+  gardenPlants: db.gardenPlants,
+
   async getAll() {
     return db.habits.orderBy('order').toArray();
   },
@@ -76,10 +91,7 @@ const habitRepo = {
     }
     if (!habit.targetPerDay) habit.targetPerDay = 1;
     if (!habit.timeOfDay) habit.timeOfDay = 'anytime';
-    if (!habit.plantType) {
-      const types = ['tulip', 'sunflower', 'bush', 'cherry', 'mushroom'];
-      habit.plantType = types[Math.floor(Math.random() * types.length)];
-    }
+    // No more plantType assignment
     await db.habits.put(habit);
     return habit;
   },
@@ -148,19 +160,62 @@ const habitRepo = {
     return calculateBestStreak(dates, habit);
   },
 
+  // === Garden Plant methods ===
+
+  async getAllGardenPlants() {
+    return db.gardenPlants.toArray();
+  },
+
+  async getUnplacedPlants() {
+    return db.gardenPlants.where('placed').equals(0).toArray();
+  },
+
+  async getPlacedPlants() {
+    return db.gardenPlants.where('placed').equals(1).toArray();
+  },
+
+  async addGardenPlant(plant) {
+    plant.id = uuid();
+    await db.gardenPlants.put(plant);
+    return plant;
+  },
+
+  async placePlant(plantId, gridCol, gridRow) {
+    await db.gardenPlants.update(plantId, {
+      placed: 1,
+      gridCol,
+      gridRow
+    });
+  },
+
+  async unplacePlant(plantId) {
+    await db.gardenPlants.update(plantId, {
+      placed: 0,
+      gridCol: null,
+      gridRow: null
+    });
+  },
+
+  async getPlantByHabitAndWeek(habitId, weekEarned) {
+    return db.gardenPlants.where({ habitId, weekEarned }).first();
+  },
+
   async exportData() {
     const habits = await db.habits.toArray();
     const completions = await db.completions.toArray();
-    return JSON.stringify({ habits, completions }, null, 2);
+    const gardenPlants = await db.gardenPlants.toArray();
+    return JSON.stringify({ habits, completions, gardenPlants }, null, 2);
   },
 
   async importData(jsonString) {
     const data = JSON.parse(jsonString);
-    await db.transaction('rw', db.habits, db.completions, async () => {
+    await db.transaction('rw', db.habits, db.completions, db.gardenPlants, async () => {
       await db.habits.clear();
       await db.completions.clear();
+      await db.gardenPlants.clear();
       if (data.habits) await db.habits.bulkPut(data.habits);
       if (data.completions) await db.completions.bulkPut(data.completions);
+      if (data.gardenPlants) await db.gardenPlants.bulkPut(data.gardenPlants);
     });
   }
 };
