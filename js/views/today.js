@@ -75,6 +75,17 @@ export async function renderToday(container) {
   `;
   container.appendChild(progress);
 
+  // Debug: Mega confetti test button
+  const confettiTest = document.createElement('button');
+  confettiTest.textContent = '🎊 Mega Konfetti!';
+  confettiTest.style.cssText = 'display:block;margin:8px auto;padding:8px 16px;border-radius:8px;border:2px dashed #8B5CF6;background:#FFF8F0;color:#8B5CF6;font-size:14px;font-weight:600;cursor:pointer;';
+  confettiTest.addEventListener('click', () => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    burstConfetti(cx, cy, 'mega');
+  });
+  container.appendChild(confettiTest);
+
   // Group habits by timeOfDay
   const grouped = {};
   for (const h of dueToday) {

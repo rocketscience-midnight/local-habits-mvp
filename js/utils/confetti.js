@@ -12,7 +12,7 @@ const COLORS = ['#F4A0B0', '#B8A0D8', '#F8D480', '#A8D8A8', '#C8E0F4', '#FF6B35'
  * @param {'small'|'big'} intensity - small = 20 particles, big = 50
  */
 export function burstConfetti(x, y, intensity = 'small') {
-  const count = intensity === 'big' ? 50 : 20;
+  const count = intensity === 'mega' ? 150 : intensity === 'big' ? 80 : 25;
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999';
   canvas.width = window.innerWidth;
@@ -23,9 +23,9 @@ export function burstConfetti(x, y, intensity = 'small') {
   // Create particles
   const particles = Array.from({ length: count }, () => ({
     x, y,
-    vx: (Math.random() - 0.5) * (intensity === 'big' ? 16 : 10),
-    vy: (Math.random() * -8) - 2,
-    size: Math.random() * 6 + 3,
+    vx: (Math.random() - 0.5) * (intensity === 'mega' ? 24 : intensity === 'big' ? 16 : 10),
+    vy: (Math.random() * (intensity === 'mega' ? -14 : -8)) - 2,
+    size: Math.random() * (intensity === 'mega' ? 10 : 6) + 3,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
     rotation: Math.random() * 360,
     rotSpeed: (Math.random() - 0.5) * 12,
