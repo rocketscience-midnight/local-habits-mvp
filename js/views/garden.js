@@ -14,7 +14,7 @@ import { todayString } from '../utils/dates.js';
 
 const TILE_W = 64;           // isometric tile width (in canvas pixels)
 const TILE_H = 32;           // isometric tile height
-const PIXEL = 3;             // size of one "pixel art pixel"
+const PIXEL = 5;             // size of one "pixel art pixel" (bigger = more visible)
 const COLS = 6;
 const ROWS = 4;
 
@@ -150,6 +150,17 @@ function drawPlant(ctx, cx, cy, plantType, stage, health, animOffset) {
   // Base Y is bottom of the plant area (center of tile)
   const bx = cx + sway;
   const by = cy;
+
+  // Draw shadow under plant (ellipse, scales with growth stage)
+  const shadowW = p * (2 + stage * 1.5);
+  const shadowH = p * (1 + stage * 0.5);
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#2D2D2D';
+  ctx.beginPath();
+  ctx.ellipse(bx + p / 2, by + p, shadowW, shadowH, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
   switch (plantType) {
     case 'tulip': drawTulip(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
