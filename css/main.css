@@ -633,11 +633,13 @@ body {
 }
 
 .time-divider-banner {
-  margin: 12px 0;
-  padding: 6px 0;
-  border-top: 1px solid rgba(139, 92, 246, 0.15);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
-  background: rgba(139, 92, 246, 0.04);
+  margin: 16px 0;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(248,212,128,0.5) 0%, rgba(255,107,53,0.4) 50%, rgba(139,92,246,0.5) 100%);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
 }
 
 /* ========== Multi-Completion Progress ========== */
