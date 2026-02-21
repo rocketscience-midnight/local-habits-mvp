@@ -133,30 +133,28 @@ body {
 .today-progress {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   margin-bottom: 20px;
 }
 
-.progress-bar {
-  flex: 1;
-  height: 8px;
-  background: #E8E0D8;
-  border-radius: 4px;
-  overflow: hidden;
+.today-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
 }
 
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #8B5CF6, #FF6B35);
-  border-radius: 4px;
-  transition: width 0.4s ease;
+.today-checkbox {
+  font-size: 28px;
+  line-height: 1;
+  color: #CCC4BB;
+  transition: color 0.3s ease, transform 0.2s ease;
+  cursor: default;
 }
 
-.progress-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-light);
-  white-space: nowrap;
+.today-checkbox.done {
+  color: var(--rich-purple, #8B5CF6);
+  transform: scale(1.1);
 }
 
 /* Habit Cards */

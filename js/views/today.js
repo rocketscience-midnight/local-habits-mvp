@@ -68,10 +68,12 @@ export async function renderToday(container) {
   const progress = document.createElement('div');
   progress.className = 'today-progress';
   progress.innerHTML = `
-    <div class="progress-bar">
-      <div class="progress-fill" style="width: ${dueToday.length ? (fullyCompleted / dueToday.length * 100) : 0}%"></div>
+    <div class="today-checkboxes" id="today-checkboxes">
+      ${dueToday.map(h => {
+        const done = (completionCounts[h.id] || 0) >= (h.targetPerDay || 1);
+        return `<span class="today-checkbox ${done ? 'done' : ''}" data-habit-id="${h.id}" title="${h.emoji} ${h.name}">${done ? '☑' : '☐'}</span>`;
+      }).join('')}
     </div>
-    <span class="progress-text">${fullyCompleted} / ${dueToday.length}</span>
   `;
   container.appendChild(progress);
 
@@ -375,10 +377,14 @@ async function updateProgress(container) {
     return (completionCounts[h.id] || 0) >= t;
   }).length;
 
-  const fill = container.querySelector('.progress-fill');
-  const text = container.querySelector('.progress-text');
-  if (fill && text) {
-    fill.style.width = `${dueToday.length ? (fullyCompleted / dueToday.length * 100) : 0}%`;
-    text.textContent = `${fullyCompleted} / ${dueToday.length}`;
-  }
+  // Update checkbox indicators
+  const checkboxes = container.querySelectorAll('.today-checkbox');
+  checkboxes.forEach(cb => {
+    const hId = cb.dataset.habitId;
+    const h = dueToday.find(h => h.id === hId);
+    if (!h) return;
+    const done = (completionCounts[hId] || 0) >= (h.targetPerDay || 1);
+    cb.className = `today-checkbox ${done ? 'done' : ''}`;
+    cb.textContent = done ? '☑' : '☐';
+  });
 }
