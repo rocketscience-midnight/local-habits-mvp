@@ -628,29 +628,16 @@ body {
   font-size: 14px;
   font-weight: 700;
   color: var(--deep-purple);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   padding: 8px 4px 6px;
 }
 
 .time-divider-banner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 16px 0;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #F8D480 0%, #FF6B35 50%, #8B5CF6 100%);
-  border-radius: 12px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
-}
-
-.time-divider-banner .divider-text {
-  font-style: italic;
+  margin: 12px 0;
+  padding: 6px 0;
+  border-top: 1px solid rgba(139, 92, 246, 0.15);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  background: rgba(139, 92, 246, 0.04);
 }
 
 /* ========== Multi-Completion Progress ========== */

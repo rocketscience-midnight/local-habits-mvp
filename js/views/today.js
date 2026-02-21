@@ -106,7 +106,6 @@ export async function renderToday(container) {
         ['afternoon', 'evening'].includes(cat.key)) {
       const banner = document.createElement('div');
       banner.className = 'time-divider-banner';
-      banner.innerHTML = `<span>☀️ → 🌆</span> <span class="divider-text">Feierabend!</span>`;
       container.appendChild(banner);
     }
     lastRenderedKey = cat.key;

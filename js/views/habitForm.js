@@ -57,8 +57,6 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
           </div>
         `).join('')}
       </div>
-      <input type="text" class="form-input emoji-custom" id="habit-emoji" value="${habit.emoji}" placeholder="Oder eigenes Emoji eingeben" maxlength="4">
-
       <label class="form-label">Name</label>
       <input type="text" class="form-input" id="habit-name" value="${habit.name}" placeholder="z.B. Meditation" maxlength="50">
 
@@ -113,18 +111,13 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
       overlay.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       currentEmoji = btn.dataset.emoji;
-      overlay.querySelector('#habit-emoji').value = currentEmoji;
+      // emoji input removed, value tracked in currentEmoji
       // Auto-focus name field after emoji selection
       overlay.querySelector('#habit-name').focus();
     });
   });
 
-  overlay.querySelector('#habit-emoji').addEventListener('input', (e) => {
-    currentEmoji = e.target.value || '✨';
-    overlay.querySelectorAll('.emoji-btn').forEach(b => {
-      b.classList.toggle('selected', b.dataset.emoji === currentEmoji);
-    });
-  });
+  // Custom emoji input removed - using grid picker only
 
   // Time-of-day picker
   overlay.querySelectorAll('.time-btn').forEach(btn => {
