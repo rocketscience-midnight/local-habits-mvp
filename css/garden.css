@@ -417,3 +417,16 @@
 [data-theme="dark"] .inventory-empty {
   color: #A0A0B0;
 }
+
+[data-theme="dark"] .garden-collection-title,
+[data-theme="dark"] .garden-inventory-title {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .garden-title {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .inventory-empty {
+  color: #A0A0B0;
+}
