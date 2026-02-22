@@ -42,6 +42,19 @@ const PLANT_PALETTES = {
   orchid:    { stem: '#6BBF6B', leaf: '#8ED88E', bloom1: '#E0A0E0', bloom2: '#C878D0', bloom3: '#A050B0' },
 };
 
+const PLANT_NAMES_DE = {
+  bush: 'Busch', tulip: 'Tulpe', sunflower: 'Sonnenblume',
+  cherry: 'Kirschbaum', mushroom: 'Pilz', grass: 'Gras',
+  clover: 'Klee', fern: 'Farn', daisy: 'Gänseblümchen',
+  appletree: 'Apfelbaum', orchid: 'Orchidee'
+};
+
+const PLANT_EMOJIS = {
+  cherry: '🌸', sunflower: '🌻', tulip: '🌷', mushroom: '🍄',
+  orchid: '🪻', daisy: '🌼', appletree: '🍎', fern: '🌿',
+  bush: '🌿', grass: '🌱', clover: '🍀'
+};
+
 // ============================================================
 // Color helpers
 // ============================================================
@@ -101,7 +114,7 @@ function isoToScreen(col, row, originX, originY) {
 function screenToIso(sx, sy, originX, originY) {
   // Offset by half tile so click in visual center maps to correct cell
   const dx = sx - originX;
-  const dy = sy - originY - TILE_H / 2;
+  const dy = sy - originY + TILE_H / 2;
   const col = (dx / (TILE_W / 2) + dy / (TILE_H / 2)) / 2;
   const row = (dy / (TILE_H / 2) - dx / (TILE_W / 2)) / 2;
   return { col: Math.floor(col), row: Math.floor(row) };
@@ -821,7 +834,7 @@ export async function renderGarden(container) {
       tip.style.top = screenY + 'px';
       const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
       tip.innerHTML = `
-        <div class="garden-tooltip-name">${plant.plantType === 'cherry' ? '🌸' : plant.plantType === 'sunflower' ? '🌻' : plant.plantType === 'tulip' ? '🌷' : plant.plantType === 'mushroom' ? '🍄' : '🌿'} ${capitalize(plant.plantType)}</div>
+        <div class="garden-tooltip-name">${PLANT_EMOJIS[plant.plantType] || '🌿'} ${PLANT_NAMES_DE[plant.plantType] || plant.plantType}</div>
         <div class="garden-tooltip-rarity" style="color:${rarityColor}">${RARITY_LABELS[plant.rarity] || plant.rarity}</div>
         <div class="garden-tooltip-detail">Verdient durch: ${escapeHtml(plant.habitName)}</div>
         <div class="garden-tooltip-detail">Woche: ${plant.weekEarned}</div>
@@ -925,7 +938,7 @@ function showRewardPopup(plants, onClose) {
           return `<div class="reward-item">
             <span class="reward-emoji">${emoji}</span>
             <div class="reward-info">
-              <div class="reward-name">${capitalize(p.plantType)}</div>
+              <div class="reward-name">${PLANT_NAMES_DE[p.plantType] || p.plantType}</div>
               <div class="reward-rarity" style="color:${color}">${RARITY_LABELS[p.rarity]}</div>
               <div class="reward-habit">${escapeHtml(p.habitName)}</div>
             </div>
