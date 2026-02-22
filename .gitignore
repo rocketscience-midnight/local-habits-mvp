@@ -2,3 +2,5 @@ CONCEPT.md
 BACKLOG.md
 swatches.jpg
 swatches2.jpg
+*.json
+!manifest.json
