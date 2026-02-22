@@ -6,6 +6,7 @@ import habitRepo from '../repo/habitRepo.js';
 import { getCurrentPeriod, isTaskOverdue } from '../utils/dates.js';
 import { showTaskForm } from './taskForm.js';
 import { escapeHtml } from '../utils/sanitize.js';
+import { awardDeco } from '../utils/decoRewards.js';
 
 const FREQUENCY_GROUPS = [
   { key: 'weekly', label: 'Wöchentlich' },
@@ -129,10 +130,17 @@ function createTaskCard(task, completions, period, mainContainer, isOverdue) {
 
     if (isCompleted) {
       await habitRepo.uncompleteTask(task.id, period);
+      rerender(mainContainer);
     } else {
       await habitRepo.completeTask(task.id, period);
+      const deco = await awardDeco(task);
+      if (deco) {
+        showDecoReward(card, deco);
+        setTimeout(() => rerender(mainContainer), 1800);
+      } else {
+        rerender(mainContainer);
+      }
     }
-    rerender(mainContainer);
   });
 
   // Long press to edit
@@ -168,6 +176,21 @@ function addTaskFAB(container) {
     }
   });
   observer.observe(container, { childList: true });
+}
+
+function showDecoReward(card, deco) {
+  const rect = card.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'deco-reward-anim';
+  el.innerHTML = `
+    <div class="deco-reward-emoji">${deco.emoji}</div>
+    <div class="deco-reward-text">${deco.name}!</div>
+  `;
+  el.style.left = (rect.left + rect.width / 2) + 'px';
+  el.style.top = (rect.top + rect.height / 2) + 'px';
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('animate'));
+  setTimeout(() => el.remove(), 1800);
 }
 
 async function rerender(container) {

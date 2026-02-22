@@ -5,6 +5,7 @@
 
 import habitRepo from '../repo/habitRepo.js';
 import { checkWeeklyRewards, addTestPlant, RARITY_LABELS, RARITY_COLORS, RARITY_TO_STAGE } from '../utils/rewards.js';
+import { ALL_DECOS, DECO_NAMES, DECO_EMOJIS, DECO_DIFFICULTY } from '../utils/decoRewards.js';
 import { escapeHtml } from '../utils/sanitize.js';
 
 // ============================================================
@@ -481,6 +482,50 @@ export async function renderGarden(container) {
     collGrid.appendChild(col);
   }
   collection.appendChild(collGrid);
+
+  // Deco collection section
+  const ownedDecoSet = new Set(allPlants.filter(p => p.itemType === 'deco').map(p => p.plantType));
+  const decoTitle = document.createElement('div');
+  decoTitle.className = 'garden-collection-title';
+  decoTitle.style.marginTop = '20px';
+  const ownedDecoCount = ALL_DECOS.filter(d => ownedDecoSet.has(d.type)).length;
+  decoTitle.textContent = `Dekorationen (${ownedDecoCount}/${ALL_DECOS.length})`;
+  collection.appendChild(decoTitle);
+
+  const decoGrid = document.createElement('div');
+  decoGrid.className = 'collection-columns';
+
+  const DIFF_LABELS = { medium: 'Mittel', hard: 'Groß' };
+  const DIFF_COLORS = { medium: '#F5A623', hard: '#E84545' };
+
+  for (const diff of ['medium', 'hard']) {
+    const decos = ALL_DECOS.filter(d => DECO_DIFFICULTY[d.type] === diff);
+    const col = document.createElement('div');
+    col.className = 'collection-col';
+
+    for (const deco of decos) {
+      const owned = ownedDecoSet.has(deco.type);
+      const item = document.createElement('div');
+      item.className = `collection-item ${owned ? '' : 'locked'}`;
+      item.style.borderColor = owned ? DIFF_COLORS[diff] : '#E0D8D0';
+
+      const emojiEl = document.createElement('div');
+      emojiEl.style.cssText = 'font-size:28px;margin-bottom:4px;';
+      if (!owned) emojiEl.style.filter = 'grayscale(1) opacity(0.3)';
+      emojiEl.textContent = deco.emoji;
+
+      const label = document.createElement('div');
+      label.className = 'collection-item-label';
+      label.innerHTML = `<span style="font-size:9px;color:#8A8A8A;">${DIFF_LABELS[diff]}</span><br><span style="color:${DIFF_COLORS[diff]};font-weight:600;">${deco.name}</span>`;
+
+      item.appendChild(emojiEl);
+      item.appendChild(label);
+      col.appendChild(item);
+    }
+    decoGrid.appendChild(col);
+  }
+  collection.appendChild(decoGrid);
+
   screen.appendChild(collection);
 
   container.appendChild(screen);
