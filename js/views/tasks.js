@@ -135,6 +135,11 @@ function createTaskCard(task, completions, period, mainContainer, isOverdue) {
       rerender(mainContainer);
     } else {
       await habitRepo.completeTask(task.id, period);
+      // Instant visual feedback
+      const check = card.querySelector('.task-check');
+      if (check) { check.classList.add('checked'); check.textContent = '✓'; }
+      card.classList.add('completed');
+
       playPling(task.difficulty === 'hard' ? 'big' : 'small');
       const deco = await awardDeco(task);
       if (deco) {
