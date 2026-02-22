@@ -213,12 +213,13 @@ function drawSunflower(ctx, x, y, stage, p, stem, leaf, b1, b2, b3, soil, droop)
     drawPixelRect(ctx, x-p, y-p*12-droop, p*3, p*3, b1); drawPixelRect(ctx, x, y-p*12-droop, p, p*2, b3); drawPixel(ctx, x-p*2, y-p*11-droop, b2); drawPixel(ctx, x+p*2, y-p*11-droop, b2); drawPixel(ctx, x, y-p*13-droop, b2);
     return;
   }
-  // Stage 5: Legendary sunflower – twin blooms, taller, sparkles
-  drawPixelRect(ctx, x, y-p*13, p, p*12, stem); drawPixel(ctx, x-p, y-p*5, leaf); drawPixel(ctx, x-p*2, y-p*6, leaf); drawPixel(ctx, x+p, y-p*8, leaf); drawPixel(ctx, x+p*2, y-p*9, leaf); drawPixel(ctx, x-p, y-p*10, leaf);
-  drawPixelRect(ctx, x-p, y-p*14-droop, p*3, p*3, b1); drawPixelRect(ctx, x, y-p*14-droop, p, p*2, b3); drawPixel(ctx, x-p*2, y-p*13-droop, b2); drawPixel(ctx, x+p*2, y-p*13-droop, b2); drawPixel(ctx, x, y-p*15-droop, b2);
-  // Second bloom
-  drawPixelRect(ctx, x+p*2, y-p*11-droop, p*2, p*2, b1); drawPixel(ctx, x+p*2, y-p*12-droop, b3);
-  drawPixel(ctx, x-p, y-p*15-droop, '#FFF8E0'); drawPixel(ctx, x+p, y-p*14-droop, '#FFFDE8');
+  // Stage 5: Legendary sunflower – twin blooms + sparkles (same height as stage 4)
+  drawPixelRect(ctx, x, y-p*11, p, p*10, stem); drawPixel(ctx, x-p, y-p*4, leaf); drawPixel(ctx, x-p*2, y-p*5, leaf); drawPixel(ctx, x+p, y-p*7, leaf); drawPixel(ctx, x+p*2, y-p*8, leaf);
+  drawPixelRect(ctx, x-p, y-p*12-droop, p*3, p*3, b1); drawPixelRect(ctx, x, y-p*12-droop, p, p*2, b3); drawPixel(ctx, x-p*2, y-p*11-droop, b2); drawPixel(ctx, x+p*2, y-p*11-droop, b2); drawPixel(ctx, x, y-p*13-droop, b2);
+  // Second bloom (side branch)
+  drawPixel(ctx, x+p*2, y-p*9, stem); drawPixelRect(ctx, x+p*2, y-p*10-droop, p*2, p*2, b1); drawPixel(ctx, x+p*2, y-p*11-droop, b3);
+  // Sparkles
+  drawPixel(ctx, x-p, y-p*13-droop, '#FFF8E0'); drawPixel(ctx, x+p*3, y-p*10-droop, '#FFFDE8');
 }
 
 function drawBush(ctx, x, y, stage, p, stem, leaf, b1, b2, b3, soil, droop) {
