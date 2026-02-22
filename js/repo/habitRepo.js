@@ -194,6 +194,10 @@ const habitRepo = {
     return true;
   },
 
+  async clearAllPlants() {
+    await db.gardenPlants.clear();
+  },
+
   async unplacePlant(plantId) {
     await db.gardenPlants.update(plantId, {
       placed: 0,

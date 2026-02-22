@@ -316,6 +316,9 @@ export async function renderGarden(container) {
   screen.appendChild(title);
 
   // Debug button
+  const debugWrap = document.createElement('div');
+  debugWrap.style.cssText = 'display:flex;gap:8px;justify-content:center;margin-bottom:8px;';
+
   const debugBtn = document.createElement('button');
   debugBtn.className = 'garden-debug-btn';
   debugBtn.textContent = '🎁 Test-Pflanze';
@@ -323,7 +326,20 @@ export async function renderGarden(container) {
     await addTestPlant();
     renderGarden(container);
   });
-  screen.appendChild(debugBtn);
+  debugWrap.appendChild(debugBtn);
+
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'garden-debug-btn';
+  clearBtn.style.background = '#4A1020';
+  clearBtn.textContent = '🗑️ Alle Pflanzen löschen';
+  clearBtn.addEventListener('click', async () => {
+    if (!confirm('Wirklich ALLE Pflanzen löschen?')) return;
+    await habitRepo.clearAllPlants();
+    renderGarden(container);
+  });
+  debugWrap.appendChild(clearBtn);
+
+  screen.appendChild(debugWrap);
 
   // State
   let placementMode = null; // GardenPlant being placed, or null
