@@ -63,6 +63,16 @@ db.version(6).stores({
   weeklyFocus: 'id, weekKey'
 });
 
+// v7: add tasks and taskCompletions tables
+db.version(7).stores({
+  habits: 'id, name, order, createdAt',
+  completions: 'id, habitId, date, [habitId+date]',
+  gardenPlants: 'id, habitId, weekEarned, placed, [habitId+weekEarned]',
+  weeklyFocus: 'id, weekKey',
+  tasks: 'id, name, frequency, difficulty, order, createdAt',
+  taskCompletions: 'id, taskId, period'
+});
+
 function uuid() {
   return crypto.randomUUID?.() ||
     'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -229,25 +239,76 @@ const habitRepo = {
     return db.weeklyFocus.toArray();
   },
 
+  // === Task methods ===
+
+  async getAllTasks() {
+    return db.tasks.orderBy('order').toArray();
+  },
+
+  async saveTask(task) {
+    if (!task.id) {
+      task.id = uuid();
+      task.createdAt = new Date().toISOString();
+      const count = await db.tasks.count();
+      task.order = count;
+    }
+    await db.tasks.put(task);
+    return task;
+  },
+
+  async deleteTask(id) {
+    await db.taskCompletions.where('taskId').equals(id).delete();
+    await db.tasks.delete(id);
+  },
+
+  async getTaskCompletions(period) {
+    return db.taskCompletions.where('period').equals(period).toArray();
+  },
+
+  async completeTask(taskId, period) {
+    await db.taskCompletions.put({
+      id: uuid(),
+      taskId,
+      period,
+      completedAt: new Date().toISOString()
+    });
+  },
+
+  async uncompleteTask(taskId, period) {
+    const comps = await db.taskCompletions
+      .where('taskId').equals(taskId)
+      .filter(c => c.period === period)
+      .toArray();
+    if (comps.length > 0) {
+      await db.taskCompletions.delete(comps[comps.length - 1].id);
+    }
+  },
+
   async exportData() {
     const habits = await db.habits.toArray();
     const completions = await db.completions.toArray();
     const gardenPlants = await db.gardenPlants.toArray();
     const weeklyFocus = await db.weeklyFocus.toArray();
-    return JSON.stringify({ habits, completions, gardenPlants, weeklyFocus }, null, 2);
+    const tasks = await db.tasks.toArray();
+    const taskCompletions = await db.taskCompletions.toArray();
+    return JSON.stringify({ habits, completions, gardenPlants, weeklyFocus, tasks, taskCompletions }, null, 2);
   },
 
   async importData(jsonString) {
     const data = JSON.parse(jsonString);
-    await db.transaction('rw', db.habits, db.completions, db.gardenPlants, db.weeklyFocus, async () => {
+    await db.transaction('rw', db.habits, db.completions, db.gardenPlants, db.weeklyFocus, db.tasks, db.taskCompletions, async () => {
       await db.habits.clear();
       await db.completions.clear();
       await db.gardenPlants.clear();
       await db.weeklyFocus.clear();
+      await db.tasks.clear();
+      await db.taskCompletions.clear();
       if (data.habits) await db.habits.bulkPut(data.habits);
       if (data.completions) await db.completions.bulkPut(data.completions);
       if (data.gardenPlants) await db.gardenPlants.bulkPut(data.gardenPlants);
       if (data.weeklyFocus) await db.weeklyFocus.bulkPut(data.weeklyFocus);
+      if (data.tasks) await db.tasks.bulkPut(data.tasks);
+      if (data.taskCompletions) await db.taskCompletions.bulkPut(data.taskCompletions);
     });
   }
 };

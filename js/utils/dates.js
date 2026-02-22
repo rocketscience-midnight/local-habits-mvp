@@ -222,6 +222,66 @@ export function getISOWeekKey(dateStr) {
   return `${thu.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 }
 
+/**
+ * Get the current period key for a task frequency
+ */
+export function getCurrentPeriod(frequency) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+
+  switch (frequency) {
+    case 'weekly':
+      return getISOWeekKey(todayString());
+    case 'bimonthly':
+    case 'monthly':
+      return `${year}-${month}`;
+    case 'quarterly': {
+      const q = Math.ceil((now.getMonth() + 1) / 3);
+      return `${year}-Q${q}`;
+    }
+    default:
+      return `${year}-${month}`;
+  }
+}
+
+/**
+ * Check if a task is overdue (not completed and >50% of period elapsed)
+ */
+export function isTaskOverdue(task, completions) {
+  const period = getCurrentPeriod(task.frequency);
+  const maxCompletions = task.frequency === 'bimonthly' ? 2 : 1;
+  const periodCompletions = completions.filter(c => c.period === period).length;
+  if (periodCompletions >= maxCompletions) return false;
+
+  const now = new Date();
+  let elapsed = 0;
+
+  switch (task.frequency) {
+    case 'weekly': {
+      const dow = now.getDay();
+      const daysSinceMonday = dow === 0 ? 6 : dow - 1;
+      elapsed = (daysSinceMonday + now.getHours() / 24) / 7;
+      break;
+    }
+    case 'bimonthly':
+    case 'monthly': {
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      elapsed = (now.getDate() - 1 + now.getHours() / 24) / daysInMonth;
+      break;
+    }
+    case 'quarterly': {
+      const qStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+      const qEnd = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3 + 3, 1);
+      const totalMs = qEnd - qStart;
+      elapsed = (now - qStart) / totalMs;
+      break;
+    }
+  }
+
+  return elapsed > 0.5;
+}
+
 /** Count occurrences per date string */
 export function countByDate(dates) {
   const map = {};

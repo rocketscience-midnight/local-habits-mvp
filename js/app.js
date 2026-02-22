@@ -7,6 +7,7 @@ import { renderToday } from './views/today.js';
 import { renderGarden, cleanupGarden } from './views/garden.js';
 import { renderStats } from './views/stats.js';
 import { renderSettings } from './views/settings.js';
+import { renderTasks } from './views/tasks.js';
 import { isOnboardingDone, showOnboarding } from './views/onboarding.js';
 
 // Apply saved theme
@@ -19,6 +20,7 @@ if (savedTheme) {
 registerRoute('today', renderToday);
 registerRoute('garden', renderGarden);
 registerRoute('stats', renderStats);
+registerRoute('tasks', renderTasks);
 registerRoute('settings', renderSettings);
 
 // Register cleanup functions
