@@ -280,10 +280,22 @@
   margin-bottom: 12px;
 }
 
-.garden-collection-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.collection-group {
+  margin-bottom: 14px;
+}
+
+.collection-group-header {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.collection-group-grid {
+  display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .collection-item {

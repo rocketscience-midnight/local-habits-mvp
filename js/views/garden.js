@@ -374,30 +374,47 @@ export async function renderGarden(container) {
   collTitle.textContent = `Sammlung (${ownedCount}/${ALL_COMBOS.length})`;
   collection.appendChild(collTitle);
 
-  const collGrid = document.createElement('div');
-  collGrid.className = 'garden-collection-grid';
+  const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
-  for (const combo of ALL_COMBOS) {
-    const owned = ownedSet.has(`${combo.type}-${combo.rarity}`);
-    const item = document.createElement('div');
-    item.className = `collection-item ${owned ? '' : 'locked'}`;
+  for (const rarity of RARITY_ORDER) {
+    const combosForRarity = ALL_COMBOS.filter(c => c.rarity === rarity);
+    if (combosForRarity.length === 0) continue;
 
-    const iconCanvas = document.createElement('canvas');
-    iconCanvas.width = 48;
-    iconCanvas.height = 48;
-    const stage = RARITY_TO_STAGE[combo.rarity];
-    drawPlantIcon(iconCanvas, combo.type, stage);
-    if (!owned) iconCanvas.style.filter = 'grayscale(1) opacity(0.3)';
+    const group = document.createElement('div');
+    group.className = 'collection-group';
 
-    const label = document.createElement('div');
-    label.className = 'collection-item-label';
-    label.innerHTML = `<span style="color:${RARITY_COLORS[combo.rarity]};font-size:10px;font-weight:700;">${RARITY_LABELS[combo.rarity]}</span><br>${PLANT_NAMES[combo.type]}`;
+    const groupHeader = document.createElement('div');
+    groupHeader.className = 'collection-group-header';
+    groupHeader.style.color = RARITY_COLORS[rarity];
+    groupHeader.textContent = RARITY_LABELS[rarity];
+    group.appendChild(groupHeader);
 
-    item.appendChild(iconCanvas);
-    item.appendChild(label);
-    collGrid.appendChild(item);
+    const groupGrid = document.createElement('div');
+    groupGrid.className = 'collection-group-grid';
+
+    for (const combo of combosForRarity) {
+      const owned = ownedSet.has(`${combo.type}-${combo.rarity}`);
+      const item = document.createElement('div');
+      item.className = `collection-item ${owned ? '' : 'locked'}`;
+
+      const iconCanvas = document.createElement('canvas');
+      iconCanvas.width = 48;
+      iconCanvas.height = 48;
+      const stage = RARITY_TO_STAGE[combo.rarity];
+      drawPlantIcon(iconCanvas, combo.type, stage);
+      if (!owned) iconCanvas.style.filter = 'grayscale(1) opacity(0.3)';
+
+      const label = document.createElement('div');
+      label.className = 'collection-item-label';
+      label.textContent = PLANT_NAMES[combo.type];
+
+      item.appendChild(iconCanvas);
+      item.appendChild(label);
+      groupGrid.appendChild(item);
+    }
+    group.appendChild(groupGrid);
+    collection.appendChild(group);
   }
-  collection.appendChild(collGrid);
   screen.appendChild(collection);
 
   container.appendChild(screen);

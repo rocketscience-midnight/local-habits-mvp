@@ -31,7 +31,7 @@ export const RARITY_COLORS = {
   uncommon:  '#6BBF6B',
   rare:      '#FFD966',
   epic:      '#DDA0DD',
-  legendary: '#FFB833',
+  legendary: '#C2185B',
 };
 
 // Map rarity to visual growth stage
