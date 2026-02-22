@@ -4,3 +4,5 @@ swatches.jpg
 swatches2.jpg
 *.json
 !manifest.json
+TESTS.md
+tests.html
