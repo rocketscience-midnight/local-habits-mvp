@@ -1555,3 +1555,94 @@ body {
 .habit-card {
   touch-action: pan-x;
 }
+
+/* ========== Help Button & Modal ========== */
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.help-btn {
+  background: none;
+  border: 2px solid #D0C8E0;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.help-modal {
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  padding: 24px;
+  padding-top: 16px;
+}
+
+.help-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #8A8A8A;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-hero {
+  text-align: center;
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.help-title {
+  text-align: center;
+  color: #4A4A4A;
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+.help-content h3 {
+  color: #8B5CF6;
+  margin-top: 24px;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.help-content p {
+  color: #5A5A5A;
+  line-height: 1.65;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+[data-theme="dark"] .help-btn {
+  border-color: #4A4A6A;
+}
+
+[data-theme="dark"] .help-title {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .help-content p {
+  color: #B0B0C0;
+}
+
+[data-theme="dark"] .help-close-btn {
+  color: #B0B0C0;
+}

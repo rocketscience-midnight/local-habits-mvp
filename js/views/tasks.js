@@ -6,6 +6,7 @@ import habitRepo from '../repo/habitRepo.js';
 import { getCurrentPeriod, isTaskOverdue } from '../utils/dates.js';
 import { showTaskForm } from './taskForm.js';
 import { escapeHtml } from '../utils/sanitize.js';
+import { showHelp } from './help.js';
 import { awardDeco } from '../utils/decoRewards.js';
 
 const FREQUENCY_GROUPS = [
@@ -23,7 +24,8 @@ export async function renderTasks(container) {
   // Header
   const header = document.createElement('div');
   header.className = 'today-header';
-  header.innerHTML = `<h1 class="today-title">Aufgaben</h1>`;
+  header.innerHTML = `<div class="header-row"><h1 class="today-title">Aufgaben</h1><button class="help-btn" aria-label="Hilfe">❓</button></div>`;
+  header.querySelector('.help-btn').addEventListener('click', showHelp);
   container.appendChild(header);
 
   // Dev banner

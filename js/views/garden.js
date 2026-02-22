@@ -7,6 +7,7 @@ import habitRepo from '../repo/habitRepo.js';
 import { checkWeeklyRewards, addTestPlant, RARITY_LABELS, RARITY_COLORS, RARITY_TO_STAGE } from '../utils/rewards.js';
 import { ALL_DECOS, DECO_NAMES, DECO_EMOJIS, DECO_DIFFICULTY } from '../utils/decoRewards.js';
 import { escapeHtml } from '../utils/sanitize.js';
+import { showHelp } from './help.js';
 import {
   TILE_W, TILE_H, PIXEL, COLS, ROWS,
   PLANT_PALETTES, PLANT_NAMES_DE, PLANT_EMOJIS,
@@ -65,7 +66,8 @@ export async function renderGarden(container) {
 
   const title = document.createElement('h1');
   title.className = 'garden-title';
-  title.textContent = 'Garten';
+  title.innerHTML = '<div class="header-row"><span>Garten</span><button class="help-btn" aria-label="Hilfe">❓</button></div>';
+  title.querySelector('.help-btn').addEventListener('click', showHelp);
   screen.appendChild(title);
 
   // Debug button

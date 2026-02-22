@@ -3,13 +3,14 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
+import { showHelp } from './help.js';
 
 export async function renderSettings(container) {
   const isDark = localStorage.getItem('theme') === 'dark';
 
   container.innerHTML = `
     <div class="settings-screen">
-      <h1 class="settings-title">Einstellungen</h1>
+      <div class="header-row"><h1 class="settings-title">Einstellungen</h1><button class="help-btn" aria-label="Hilfe">❓</button></div>
 
       <section class="settings-section">
         <h2>Darstellung</h2>
@@ -32,6 +33,9 @@ export async function renderSettings(container) {
       </section>
     </div>
   `;
+
+  // Help button
+  container.querySelector('.help-btn')?.addEventListener('click', showHelp);
 
   // Dark mode toggle
   container.querySelector('#dark-mode-checkbox').addEventListener('change', (e) => {

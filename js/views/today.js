@@ -8,6 +8,7 @@ import { todayString, isHabitDueToday, isWeeklyHabit, getWeeklyCompletionCount, 
 import { showHabitForm } from './habitForm.js';
 import { burstConfetti } from '../utils/confetti.js';
 import { escapeHtml } from '../utils/sanitize.js';
+import { showHelp } from './help.js';
 
 /** Time-of-day categories in display order */
 const TIME_CATEGORIES = [
@@ -40,9 +41,10 @@ export async function renderToday(container) {
   const dayName = dateObj.toLocaleDateString('de-DE', { weekday: 'long' });
   const dateStr = dateObj.toLocaleDateString('de-DE', { day: 'numeric', month: 'long' });
   header.innerHTML = `
-    <h1 class="today-title">Heute</h1>
+    <div class="header-row"><h1 class="today-title">Heute</h1><button class="help-btn" aria-label="Hilfe">❓</button></div>
     <p class="today-date">${dayName}, ${dateStr}</p>
   `;
+  header.querySelector('.help-btn').addEventListener('click', showHelp);
   container.appendChild(header);
 
   // Weekly Focus section
