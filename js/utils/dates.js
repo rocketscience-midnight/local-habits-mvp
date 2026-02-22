@@ -209,6 +209,19 @@ export function getWeeklyCompletionCount(completionDates, dateStr = todayString(
   return count;
 }
 
+/**
+ * Get ISO week key string (e.g. "2026-W08") from a date string
+ */
+export function getISOWeekKey(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  // Thursday of current week determines year
+  const thu = new Date(d);
+  thu.setDate(thu.getDate() - ((d.getDay() + 6) % 7) + 3);
+  const yearStart = new Date(thu.getFullYear(), 0, 1);
+  const weekNo = Math.ceil(((thu - yearStart) / 86400000 + 1) / 7);
+  return `${thu.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
 /** Count occurrences per date string */
 export function countByDate(dates) {
   const map = {};

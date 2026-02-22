@@ -4,6 +4,7 @@
 
 import habitRepo from '../repo/habitRepo.js';
 import { todayString, daysAgo, getDayOfWeek, getWeekStart, isHabitDueToday, countByDate, calculateStreak, calculateBestStreak, WEEKDAYS_MONDAY } from '../utils/dates.js';
+import { escapeHtml } from '../utils/sanitize.js';
 
 export async function renderStats(container) {
   const habits = await habitRepo.getAll();
@@ -55,7 +56,7 @@ export async function renderStats(container) {
 
     if (streak > longestStreak) {
       longestStreak = streak;
-      longestStreakHabit = h.emoji + ' ' + h.name;
+      longestStreakHabit = escapeHtml(h.emoji) + ' ' + escapeHtml(h.name);
     }
 
     habitStats.push({ habit: h, streak, bestStreak, rate7, rate30, dates });
@@ -94,9 +95,9 @@ export async function renderStats(container) {
       <div class="stats-streaks-list">
         ${habitStats.map(s => `
           <div class="stats-streak-card">
-            <span class="stats-streak-emoji">${s.habit.emoji || '✨'}</span>
+            <span class="stats-streak-emoji">${escapeHtml(s.habit.emoji) || '✨'}</span>
             <div class="stats-streak-info">
-              <div class="stats-streak-name">${s.habit.name}</div>
+              <div class="stats-streak-name">${escapeHtml(s.habit.name)}</div>
               <div class="stats-streak-numbers">
                 <span>🔥 ${s.streak} aktuell</span>
                 <span>🏆 ${s.bestStreak} bester</span>
@@ -113,7 +114,7 @@ export async function renderStats(container) {
         ${habitStats.map(s => `
           <div class="stats-rate-card">
             <div class="stats-rate-header">
-              <span>${s.habit.emoji || '✨'} ${s.habit.name}</span>
+              <span>${escapeHtml(s.habit.emoji) || '✨'} ${escapeHtml(s.habit.name)}</span>
             </div>
             <div class="stats-rate-row">
               <span class="stats-rate-label">7 Tage</span>
@@ -163,7 +164,7 @@ async function renderFocusArchive(container) {
   container.innerHTML = sorted.map(f => `
     <div class="focus-archive-item">
       <span class="focus-archive-week">${f.weekKey}</span>
-      <span class="focus-archive-text">"${f.text}"</span>
+      <span class="focus-archive-text">"${escapeHtml(f.text)}"</span>
     </div>
   `).join('');
 }
@@ -224,7 +225,7 @@ function renderHeatmap(stats) {
 
   return `
     <div class="stats-heatmap-card">
-      <div class="stats-heatmap-title">${habit.emoji || '✨'} ${habit.name}</div>
+      <div class="stats-heatmap-title">${escapeHtml(habit.emoji) || '✨'} ${escapeHtml(habit.name)}</div>
       <div class="heatmap-grid">
         <div class="heatmap-labels">
           ${WEEKDAYS_MONDAY.map(d => `<div class="heatmap-label">${d}</div>`).join('')}

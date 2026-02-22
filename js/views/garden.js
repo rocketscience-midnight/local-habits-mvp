@@ -5,10 +5,21 @@
 
 import habitRepo from '../repo/habitRepo.js';
 import { checkWeeklyRewards, addTestPlant, RARITY_LABELS, RARITY_COLORS, RARITY_TO_STAGE } from '../utils/rewards.js';
+import { escapeHtml } from '../utils/sanitize.js';
 
 // ============================================================
 // Constants & Palette
 // ============================================================
+
+let gardenCleanup = null;
+
+/** Cancel all garden animation frames */
+export function cleanupGarden() {
+  if (gardenCleanup) {
+    gardenCleanup();
+    gardenCleanup = null;
+  }
+}
 
 const TILE_W = 64;
 const TILE_H = 32;
@@ -686,7 +697,7 @@ export async function renderGarden(container) {
       tip.innerHTML = `
         <div class="garden-tooltip-name">${plant.plantType === 'cherry' ? '🌸' : plant.plantType === 'sunflower' ? '🌻' : plant.plantType === 'tulip' ? '🌷' : plant.plantType === 'mushroom' ? '🍄' : '🌿'} ${capitalize(plant.plantType)}</div>
         <div class="garden-tooltip-rarity" style="color:${rarityColor}">${RARITY_LABELS[plant.rarity] || plant.rarity}</div>
-        <div class="garden-tooltip-detail">Verdient durch: ${plant.habitName}</div>
+        <div class="garden-tooltip-detail">Verdient durch: ${escapeHtml(plant.habitName)}</div>
         <div class="garden-tooltip-detail">Woche: ${plant.weekEarned}</div>
         <button class="garden-tooltip-remove-btn">↩ Entfernen</button>
       `;
@@ -764,14 +775,11 @@ export async function renderGarden(container) {
 
   refreshInventory();
 
-  // Cleanup animation on view change
-  const observer = new MutationObserver(() => {
-    if (!document.body.contains(container) || container.innerHTML === '') {
-      cancelAnimationFrame(animFrame);
-      observer.disconnect();
-    }
-  });
-  observer.observe(container, { childList: true });
+  // Store cleanup reference for router to call
+  gardenCleanup = () => {
+    cancelAnimationFrame(animFrame);
+    animFrame = null;
+  };
 }
 
 // ============================================================
@@ -793,7 +801,7 @@ function showRewardPopup(plants, onClose) {
             <div class="reward-info">
               <div class="reward-name">${capitalize(p.plantType)}</div>
               <div class="reward-rarity" style="color:${color}">${RARITY_LABELS[p.rarity]}</div>
-              <div class="reward-habit">${p.habitName}</div>
+              <div class="reward-habit">${escapeHtml(p.habitName)}</div>
             </div>
           </div>`;
         }).join('')}

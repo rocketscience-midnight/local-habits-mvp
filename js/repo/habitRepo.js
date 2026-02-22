@@ -37,17 +37,10 @@ db.version(3).stores({
   });
 });
 
-// v4: add plantType field (legacy, now unused)
+// v4: (dead migration removed - v5 deletes plantType anyway)
 db.version(4).stores({
   habits: 'id, name, order, createdAt',
   completions: 'id, habitId, date, [habitId+date]'
-}).upgrade(tx => {
-  return tx.table('habits').toCollection().modify(habit => {
-    if (!habit.plantType) {
-      const types = ['tulip', 'sunflower', 'bush', 'cherry', 'mushroom'];
-      habit.plantType = types[Math.floor(Math.random() * types.length)];
-    }
-  });
 });
 
 // v5: add gardenPlants table, remove plantType from habits
@@ -231,18 +224,21 @@ const habitRepo = {
     const habits = await db.habits.toArray();
     const completions = await db.completions.toArray();
     const gardenPlants = await db.gardenPlants.toArray();
-    return JSON.stringify({ habits, completions, gardenPlants }, null, 2);
+    const weeklyFocus = await db.weeklyFocus.toArray();
+    return JSON.stringify({ habits, completions, gardenPlants, weeklyFocus }, null, 2);
   },
 
   async importData(jsonString) {
     const data = JSON.parse(jsonString);
-    await db.transaction('rw', db.habits, db.completions, db.gardenPlants, async () => {
+    await db.transaction('rw', db.habits, db.completions, db.gardenPlants, db.weeklyFocus, async () => {
       await db.habits.clear();
       await db.completions.clear();
       await db.gardenPlants.clear();
+      await db.weeklyFocus.clear();
       if (data.habits) await db.habits.bulkPut(data.habits);
       if (data.completions) await db.completions.bulkPut(data.completions);
       if (data.gardenPlants) await db.gardenPlants.bulkPut(data.gardenPlants);
+      if (data.weeklyFocus) await db.weeklyFocus.bulkPut(data.weeklyFocus);
     });
   }
 };

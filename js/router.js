@@ -4,7 +4,15 @@
  */
 
 const routes = {};
+const cleanupFns = [];
 let currentView = null;
+
+/**
+ * Register a cleanup function to run before each view transition
+ */
+export function registerCleanup(fn) {
+  cleanupFns.push(fn);
+}
 
 /**
  * Register a route with its render function
@@ -41,6 +49,9 @@ export function initRouter() {
     document.querySelectorAll('.nav-tab').forEach(tab => {
       tab.classList.toggle('active', tab.dataset.route === hash);
     });
+
+    // Run cleanup functions before rendering new view
+    for (const fn of cleanupFns) fn();
 
     // Clear and render
     container.innerHTML = '';

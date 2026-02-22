@@ -6,6 +6,7 @@
 
 import habitRepo from '../repo/habitRepo.js';
 import { isWeeklyHabit } from '../utils/dates.js';
+import { escapeHtml } from '../utils/sanitize.js';
 
 /** Curated emoji grid organized by category */
 const EMOJI_CATEGORIES = [
@@ -58,7 +59,7 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
         `).join('')}
       </div>
       <label class="form-label">Name</label>
-      <input type="text" class="form-input" id="habit-name" value="${habit.name}" placeholder="z.B. Meditation" maxlength="50">
+      <input type="text" class="form-input" id="habit-name" value="${escapeHtml(habit.name)}" placeholder="z.B. Meditation" maxlength="50">
 
       <label class="form-label">Tageszeit</label>
       <div class="time-picker">

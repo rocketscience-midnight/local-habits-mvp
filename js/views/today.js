@@ -4,9 +4,10 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
-import { todayString, isHabitDueToday, isWeeklyHabit, getWeeklyCompletionCount } from '../utils/dates.js';
+import { todayString, isHabitDueToday, isWeeklyHabit, getWeeklyCompletionCount, getISOWeekKey } from '../utils/dates.js';
 import { showHabitForm } from './habitForm.js';
 import { burstConfetti } from '../utils/confetti.js';
+import { escapeHtml } from '../utils/sanitize.js';
 
 /** Time-of-day categories in display order */
 const TIME_CATEGORIES = [
@@ -183,9 +184,9 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
 
   card.innerHTML = `
     <div class="habit-card-left">
-      <span class="habit-emoji">${habit.emoji || '✨'}</span>
+      <span class="habit-emoji">${escapeHtml(habit.emoji) || '✨'}</span>
       <div class="habit-card-info">
-        <span class="habit-name">${habit.name}</span>
+        <span class="habit-name">${escapeHtml(habit.name)}</span>
         ${isMulti ? `<span class="habit-multi-progress">${count} / ${target}</span>` : ''}
         ${weeklyInfo ? `<span class="habit-weekly-progress">${weeklyInfo.count}/${weeklyInfo.target} diese Woche</span>` : ''}
       </div>
@@ -292,18 +293,6 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
 }
 
 /**
- * Get ISO week key string (e.g. "2026-W08")
- */
-function getISOWeekKey(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  const dayNum = d.getDay() || 7;
-  d.setDate(d.getDate() + 4 - dayNum);
-  const yearStart = new Date(d.getFullYear(), 0, 1);
-  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
-}
-
-/**
  * Render the Wochenfokus card
  */
 async function renderWeeklyFocus(container) {
@@ -316,7 +305,7 @@ async function renderWeeklyFocus(container) {
   section.className = 'weekly-focus-card';
   section.innerHTML = `
     <span class="weekly-focus-week">KW ${parseInt(weekNum)}</span>
-    <span class="weekly-focus-text">${text || 'Tippe hier um deinen Wochenfokus zu setzen ✨'}</span>
+    <span class="weekly-focus-text">${text ? escapeHtml(text) : 'Tippe hier um deinen Wochenfokus zu setzen ✨'}</span>
   `;
   if (!text) section.classList.add('placeholder');
 

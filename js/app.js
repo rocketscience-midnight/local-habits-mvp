@@ -2,9 +2,9 @@
  * App Entry Point - Initialize router, register views, setup PWA
  */
 
-import { initRouter, registerRoute } from './router.js';
+import { initRouter, registerRoute, registerCleanup } from './router.js';
 import { renderToday } from './views/today.js';
-import { renderGarden } from './views/garden.js';
+import { renderGarden, cleanupGarden } from './views/garden.js';
 import { renderStats } from './views/stats.js';
 import { renderSettings } from './views/settings.js';
 
@@ -13,6 +13,9 @@ registerRoute('today', renderToday);
 registerRoute('garden', renderGarden);
 registerRoute('stats', renderStats);
 registerRoute('settings', renderSettings);
+
+// Register cleanup functions
+registerCleanup(cleanupGarden);
 
 // Initialize router when DOM is ready
 if (document.readyState === 'loading') {

@@ -5,7 +5,7 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
-import { todayString, getWeekStart, isWeeklyHabit } from './dates.js';
+import { todayString, getWeekStart, isWeeklyHabit, getISOWeekKey } from './dates.js';
 
 // Plant types available for each rarity
 const PLANT_TYPES_BY_RARITY = {
@@ -42,19 +42,6 @@ export const RARITY_TO_STAGE = {
   epic:      4,
   legendary: 4,
 };
-
-/**
- * Get ISO week string like "2026-W08" from a date string
- */
-export function getISOWeek(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  // Thursday of current week determines year
-  const thu = new Date(d);
-  thu.setDate(thu.getDate() - ((d.getDay() + 6) % 7) + 3);
-  const yearStart = new Date(thu.getFullYear(), 0, 1);
-  const weekNo = Math.ceil(((thu - yearStart) / 86400000 + 1) / 7);
-  return `${thu.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
-}
 
 /**
  * Get the Monday of a given week, going N weeks back from reference date
@@ -146,7 +133,7 @@ export async function checkWeeklyRewards() {
   const currentWeekStart = getWeekStart(today);
   // Last week's Monday
   const lastWeekStart = getWeekStartNWeeksAgo(1, today);
-  const lastWeekISO = getISOWeek(lastWeekStart);
+  const lastWeekISO = getISOWeekKey(lastWeekStart);
 
   const habits = await habitRepo.getAll();
   const newPlants = [];
@@ -209,7 +196,7 @@ export async function addTestPlant() {
   const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
   const rarity = rarities[Math.floor(Math.random() * rarities.length)];
   const plantType = pickPlantType(rarity);
-  const weekISO = getISOWeek(todayString());
+  const weekISO = getISOWeekKey(todayString());
 
   return habitRepo.addGardenPlant({
     plantType,
