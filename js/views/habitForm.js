@@ -69,7 +69,7 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
         `).join('')}
       </div>
 
-      <label class="form-label">Ziel pro Tag</label>
+      <label class="form-label">Wie oft pro Tag?</label>
       <div class="target-picker">
         <button type="button" class="btn-icon target-dec" aria-label="Weniger">−</button>
         <span class="target-value" id="target-value">${habit.targetPerDay || 1}×</span>
