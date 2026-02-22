@@ -40,7 +40,7 @@ export const RARITY_TO_STAGE = {
   uncommon:  2,
   rare:      3,
   epic:      4,
-  legendary: 4,
+  legendary: 5,
 };
 
 /**
