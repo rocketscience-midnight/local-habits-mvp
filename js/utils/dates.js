@@ -24,13 +24,6 @@ export function getDayOfWeek(dateStr) {
 export const WEEKDAYS_MONDAY = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
 /**
- * Convert Monday-based index (0=Mo..6=So) to ISO day (1=Mon..7=Sun)
- */
-export function mondayIndexToIso(idx) {
-  return idx + 1;
-}
-
-/**
  * Get the ISO week start (Monday) for a given date string
  */
 export function getWeekStart(dateStr) {

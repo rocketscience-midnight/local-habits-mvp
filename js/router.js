@@ -5,7 +5,6 @@
 
 const routes = {};
 const cleanupFns = [];
-let currentView = null;
 
 /**
  * Register a cleanup function to run before each view transition
@@ -55,7 +54,6 @@ export function initRouter() {
 
     // Clear and render
     container.innerHTML = '';
-    currentView = hash;
     await renderFn(container);
   }
 
@@ -70,8 +68,4 @@ export function initRouter() {
 
   // Initial route
   handleRoute();
-}
-
-export function getCurrentView() {
-  return currentView;
 }

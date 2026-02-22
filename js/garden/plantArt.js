@@ -282,9 +282,8 @@ function drawDeco(ctx, cx, cy, type) {
   }
 }
 
-// Re-export constants and functions used by garden.js
-export { TILE_W, TILE_H, PIXEL, COLS, ROWS, PLANT_PALETTES, PLANT_NAMES_DE, PLANT_EMOJIS };
-export { hexToRgb, rgbToHex, shiftHue };
+// Re-export constants and functions used by garden.js and decoArt.js
+export { TILE_W, TILE_H, PIXEL, COLS, ROWS, PLANT_NAMES_DE, PLANT_EMOJIS };
 export { isoToScreen, screenToIso };
 export { drawPixel, drawPixelRect, drawTile };
 export { drawPlant, drawDeco };

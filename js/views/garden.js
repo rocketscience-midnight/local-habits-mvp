@@ -10,9 +10,9 @@ import { escapeHtml } from '../utils/sanitize.js';
 import { showHelp } from './help.js';
 import {
   TILE_W, TILE_H, PIXEL, COLS, ROWS,
-  PLANT_PALETTES, PLANT_NAMES_DE, PLANT_EMOJIS,
+  PLANT_NAMES_DE, PLANT_EMOJIS,
   isoToScreen, screenToIso,
-  drawPixel, drawPixelRect, drawTile,
+  drawTile,
   drawPlant, drawDeco
 } from '../garden/plantArt.js';
 import { drawDecoPlaced } from '../garden/decoArt.js';
@@ -129,7 +129,6 @@ export async function renderGarden(container) {
 
   // Canvas setup - grid grows when >70% full
   const totalPlants = placedPlants.length;
-  const baseSlots = COLS * ROWS;
   let gridCols = COLS;
   let gridRows = ROWS;
   while (totalPlants > gridCols * gridRows * 0.6) {
@@ -178,12 +177,6 @@ export async function renderGarden(container) {
   const allPlants = await habitRepo.getAllGardenPlants();
   const ownedSet = new Set(allPlants.map(p => `${p.plantType}-${p.rarity}`));
 
-  const PLANT_NAMES = {
-    bush: 'Busch', tulip: 'Tulpe', sunflower: 'Sonnenblume',
-    cherry: 'Kirschbaum', mushroom: 'Pilz', grass: 'Gras',
-    clover: 'Klee', fern: 'Farn', daisy: 'Gänseblümchen',
-    appletree: 'Apfelbaum', orchid: 'Orchidee'
-  };
   const ALL_COMBOS = [
     { type: 'bush', rarity: 'common' }, { type: 'mushroom', rarity: 'common' },
     { type: 'grass', rarity: 'common' }, { type: 'clover', rarity: 'common' },
@@ -203,8 +196,6 @@ export async function renderGarden(container) {
   collection.appendChild(collTitle);
 
   const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
-  // Find max items per rarity for grid row count
-  const maxPerCol = Math.max(...RARITY_ORDER.map(r => ALL_COMBOS.filter(c => c.rarity === r).length));
 
   const collGrid = document.createElement('div');
   collGrid.className = 'collection-columns';
@@ -229,7 +220,7 @@ export async function renderGarden(container) {
 
       const label = document.createElement('div');
       label.className = 'collection-item-label';
-      label.innerHTML = `<span style="color:${RARITY_COLORS[combo.rarity]};font-weight:600;">${PLANT_NAMES[combo.type]}</span><br><span style="font-size:9px;color:#8A8A8A;">${RARITY_LABELS[combo.rarity]}</span>`;
+      label.innerHTML = `<span style="color:${RARITY_COLORS[combo.rarity]};font-weight:600;">${PLANT_NAMES_DE[combo.type]}</span><br><span style="font-size:9px;color:#8A8A8A;">${RARITY_LABELS[combo.rarity]}</span>`;
 
       item.appendChild(iconCanvas);
       item.appendChild(label);
@@ -703,7 +694,8 @@ export async function renderGarden(container) {
           label.innerHTML = `<span style="color:${diffColor};font-size:10px;font-weight:700;">${DECO_NAMES[plant.plantType] || plant.plantType}</span>`;
         } else {
           const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
-          label.innerHTML = `<span style="color:${rarityColor};font-size:10px;font-weight:700;">${RARITY_LABELS[plant.rarity]}</span>`;
+          const plantName = PLANT_NAMES_DE[plant.plantType] || plant.plantType;
+          label.innerHTML = `<span style="color:${rarityColor};font-size:10px;font-weight:700;">${plantName}</span>`;
         }
 
         item.appendChild(iconCanvas);
@@ -775,6 +767,3 @@ function showRewardPopup(plants, onClose) {
   });
 }
 
-function capitalize(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
