@@ -2,7 +2,7 @@
  * Service Worker - Offline cache for all app files
  */
 
-const CACHE_NAME = 'local-habits-v14';
+const CACHE_NAME = 'local-habits-v15';
 const DEXIE_URL = 'https://unpkg.com/dexie/dist/dexie.mjs';
 const ASSETS = [
   './',
