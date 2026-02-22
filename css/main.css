@@ -1646,3 +1646,34 @@ body {
 [data-theme="dark"] .help-close-btn {
   color: #B0B0C0;
 }
+
+/* ========== Sound Style Picker ========== */
+.sound-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sound-pick-btn {
+  flex: 1;
+  min-width: 100px;
+  font-size: 13px;
+  padding: 10px 8px;
+  border: 2px solid #E0D8E8;
+  transition: all 0.2s;
+}
+
+.sound-pick-btn.active {
+  border-color: var(--rich-purple, #8B5CF6);
+  background: rgba(139, 92, 246, 0.1);
+  font-weight: 700;
+}
+
+[data-theme="dark"] .sound-pick-btn {
+  border-color: #3A3A5A;
+}
+
+[data-theme="dark"] .sound-pick-btn.active {
+  border-color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.2);
+}

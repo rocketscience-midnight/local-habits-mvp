@@ -4,6 +4,7 @@
 
 import habitRepo from '../repo/habitRepo.js';
 import { showHelp } from './help.js';
+import { playSound } from '../utils/sounds.js';
 
 export async function renderSettings(container) {
   const isDark = localStorage.getItem('theme') === 'dark';
@@ -28,6 +29,15 @@ export async function renderSettings(container) {
             <span class="toggle-slider"></span>
           </label>
         </div>
+        <div class="sound-style-picker" id="sound-style-section">
+          <span class="dark-mode-toggle-label" style="margin-bottom:8px;display:block;">🎵 Sound-Stil</span>
+          <div class="sound-btn-row">
+            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'pling') === 'pling' ? 'active' : ''}" data-style="pling">✨ Pling</button>
+            <button class="btn btn-secondary sound-pick-btn ${localStorage.getItem('soundStyle') === 'xylophon' ? 'active' : ''}" data-style="xylophon">🪵 Xylophon</button>
+            <button class="btn btn-secondary sound-pick-btn ${localStorage.getItem('soundStyle') === 'tropfen' ? 'active' : ''}" data-style="tropfen">💧 Tropfen</button>
+            <button class="btn btn-secondary sound-pick-btn ${localStorage.getItem('soundStyle') === 'glockenspiel' ? 'active' : ''}" data-style="glockenspiel">🔔 Glockenspiel</button>
+          </div>
+        </div>
       </section>
 
       <section class="settings-section">
@@ -47,6 +57,19 @@ export async function renderSettings(container) {
   // Sound toggle
   container.querySelector('#sound-checkbox').addEventListener('change', (e) => {
     localStorage.setItem('sound', e.target.checked ? 'on' : 'off');
+  });
+
+  // Sound style picker
+  container.querySelectorAll('.sound-pick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const style = btn.dataset.style;
+      localStorage.setItem('soundStyle', style);
+      container.querySelectorAll('.sound-pick-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Play preview
+      playSound(style, 'small');
+      setTimeout(() => playSound(style, 'big'), 400);
+    });
   });
 
   // Dark mode toggle
