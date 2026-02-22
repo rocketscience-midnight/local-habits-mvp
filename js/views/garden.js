@@ -375,27 +375,22 @@ export async function renderGarden(container) {
   collection.appendChild(collTitle);
 
   const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+  // Find max items per rarity for grid row count
+  const maxPerCol = Math.max(...RARITY_ORDER.map(r => ALL_COMBOS.filter(c => c.rarity === r).length));
+
+  const collGrid = document.createElement('div');
+  collGrid.className = 'collection-columns';
 
   for (const rarity of RARITY_ORDER) {
-    const combosForRarity = ALL_COMBOS.filter(c => c.rarity === rarity);
-    if (combosForRarity.length === 0) continue;
+    const combos = ALL_COMBOS.filter(c => c.rarity === rarity);
+    const col = document.createElement('div');
+    col.className = 'collection-col';
 
-    const group = document.createElement('div');
-    group.className = 'collection-group';
-
-    const groupHeader = document.createElement('div');
-    groupHeader.className = 'collection-group-header';
-    groupHeader.style.color = RARITY_COLORS[rarity];
-    groupHeader.textContent = RARITY_LABELS[rarity];
-    group.appendChild(groupHeader);
-
-    const groupGrid = document.createElement('div');
-    groupGrid.className = 'collection-group-grid';
-
-    for (const combo of combosForRarity) {
+    for (const combo of combos) {
       const owned = ownedSet.has(`${combo.type}-${combo.rarity}`);
       const item = document.createElement('div');
       item.className = `collection-item ${owned ? '' : 'locked'}`;
+      item.style.borderColor = owned ? RARITY_COLORS[combo.rarity] : '#E0D8D0';
 
       const iconCanvas = document.createElement('canvas');
       iconCanvas.width = 48;
@@ -406,15 +401,15 @@ export async function renderGarden(container) {
 
       const label = document.createElement('div');
       label.className = 'collection-item-label';
-      label.textContent = PLANT_NAMES[combo.type];
+      label.innerHTML = `${PLANT_NAMES[combo.type]}<br><span style="color:${RARITY_COLORS[combo.rarity]};font-size:9px;font-weight:700;">${RARITY_LABELS[combo.rarity]}</span>`;
 
       item.appendChild(iconCanvas);
       item.appendChild(label);
-      groupGrid.appendChild(item);
+      col.appendChild(item);
     }
-    group.appendChild(groupGrid);
-    collection.appendChild(group);
+    collGrid.appendChild(col);
   }
+  collection.appendChild(collGrid);
   screen.appendChild(collection);
 
   container.appendChild(screen);
