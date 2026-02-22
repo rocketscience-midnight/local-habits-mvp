@@ -14,6 +14,7 @@ const EMOJI_CATEGORIES = [
 ];
 
 const FREQUENCY_OPTIONS = [
+  { value: 'once', label: 'Einmalig' },
   { value: 'weekly', label: 'Wöchentlich' },
   { value: 'bimonthly', label: '2× / Monat' },
   { value: 'monthly', label: 'Monatlich' },

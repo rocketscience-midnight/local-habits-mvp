@@ -3,7 +3,7 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
-import { getCurrentPeriod, isTaskOverdue } from '../utils/dates.js';
+import { getCurrentPeriod, isTaskOverdue, getOverdueDays } from '../utils/dates.js';
 import { showTaskForm } from './taskForm.js';
 import { escapeHtml } from '../utils/sanitize.js';
 import { showHelp } from './help.js';
@@ -11,6 +11,7 @@ import { awardDeco } from '../utils/decoRewards.js';
 import { playPling } from '../utils/sounds.js';
 
 const FREQUENCY_GROUPS = [
+  { key: 'once', label: 'Einmalig' },
   { key: 'weekly', label: 'Wöchentlich' },
   { key: 'bimonthly', label: '2× im Monat' },
   { key: 'monthly', label: 'Monatlich' },
@@ -28,12 +29,6 @@ export async function renderTasks(container) {
   header.innerHTML = `<div class="header-row"><h1 class="today-title">Aufgaben</h1><button class="help-btn" aria-label="Hilfe">❓</button></div>`;
   header.querySelector('.help-btn').addEventListener('click', showHelp);
   container.appendChild(header);
-
-  // Dev banner
-  const banner = document.createElement('div');
-  banner.className = 'dev-banner';
-  banner.textContent = '🔨 In Entwicklung';
-  container.appendChild(banner);
 
   // Load completions for all relevant periods
   const periods = {};
@@ -60,35 +55,16 @@ export async function renderTasks(container) {
     return;
   }
 
-  // Split overdue and normal
-  const overdueTasks = [];
-  const normalTasks = [];
-  for (const t of tasks) {
+  // Filter out completed once-tasks
+  const visibleTasks = tasks.filter(t => {
+    if (t.frequency !== 'once') return true;
     const comps = allCompletions[t.id] || [];
-    if (isTaskOverdue(t, comps)) {
-      overdueTasks.push(t);
-    } else {
-      normalTasks.push(t);
-    }
-  }
-
-  // Render overdue section
-  if (overdueTasks.length > 0) {
-    const section = document.createElement('div');
-    section.className = 'task-section';
-    section.innerHTML = `<div class="task-section-header overdue-header">⚠️ Überfällig</div>`;
-    const list = document.createElement('div');
-    list.className = 'task-list';
-    for (const task of overdueTasks) {
-      list.appendChild(createTaskCard(task, allCompletions[task.id] || [], periods[task.frequency], container, true));
-    }
-    section.appendChild(list);
-    container.appendChild(section);
-  }
+    return comps.filter(c => c.period === 'once').length === 0;
+  });
 
   // Render by frequency group
   for (const fg of FREQUENCY_GROUPS) {
-    const groupTasks = normalTasks.filter(t => t.frequency === fg.key);
+    const groupTasks = visibleTasks.filter(t => t.frequency === fg.key);
     if (groupTasks.length === 0) continue;
 
     const section = document.createElement('div');
@@ -97,7 +73,7 @@ export async function renderTasks(container) {
     const list = document.createElement('div');
     list.className = 'task-list';
     for (const task of groupTasks) {
-      list.appendChild(createTaskCard(task, allCompletions[task.id] || [], periods[task.frequency], container, false));
+      list.appendChild(createTaskCard(task, allCompletions[task.id] || [], periods[task.frequency] || 'once', container));
     }
     section.appendChild(list);
     container.appendChild(section);
@@ -106,13 +82,16 @@ export async function renderTasks(container) {
   addTaskFAB(container);
 }
 
-function createTaskCard(task, completions, period, mainContainer, isOverdue) {
+function createTaskCard(task, completions, period, mainContainer) {
   const maxCompletions = task.frequency === 'bimonthly' ? 2 : 1;
   const completionCount = completions.filter(c => c.period === period).length;
   const isCompleted = completionCount >= maxCompletions;
+  const isOverdue = !isCompleted && task.frequency !== 'once' && isTaskOverdue(task, completions);
 
   const card = document.createElement('div');
-  card.className = `task-card ${isCompleted ? 'completed' : ''} ${isOverdue ? 'overdue' : ''}`;
+  card.className = `task-card ${isCompleted ? 'completed' : ''}`;
+
+  const overdueHint = isOverdue ? `<span class="task-overdue-hint">Offen seit ${getOverdueDays(task)} Tagen</span>` : '';
 
   card.innerHTML = `
     <div class="task-card-left">
@@ -120,6 +99,7 @@ function createTaskCard(task, completions, period, mainContainer, isOverdue) {
       <div class="task-card-info">
         <span class="task-name">${escapeHtml(task.name)}</span>
         ${task.frequency === 'bimonthly' ? `<span class="task-progress-label">${completionCount}/2 diesen Monat</span>` : ''}
+        ${overdueHint}
       </div>
     </div>
     <div class="task-card-right">

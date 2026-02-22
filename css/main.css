@@ -1677,3 +1677,15 @@ body {
   border-color: #8B5CF6;
   background: rgba(139, 92, 246, 0.2);
 }
+
+/* ========== Task Overdue Hint (sanft) ========== */
+.task-overdue-hint {
+  font-size: 11px;
+  color: #D4883A;
+  margin-top: 2px;
+  display: block;
+}
+
+[data-theme="dark"] .task-overdue-hint {
+  color: #E8A654;
+}

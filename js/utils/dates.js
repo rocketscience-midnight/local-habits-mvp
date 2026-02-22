@@ -242,8 +242,31 @@ export function getCurrentPeriod(frequency) {
       const q = Math.ceil((now.getMonth() + 1) / 3);
       return `${year}-Q${q}`;
     }
+    case 'once':
+      return 'once';
     default:
       return `${year}-${month}`;
+  }
+}
+
+/**
+ * Get how many days a task is overdue (rough estimate)
+ */
+export function getOverdueDays(task) {
+  const now = new Date();
+  switch (task.frequency) {
+    case 'weekly': {
+      const dow = now.getDay();
+      const daysSinceMonday = dow === 0 ? 6 : dow - 1;
+      return Math.max(1, Math.floor(daysSinceMonday * 0.5));
+    }
+    case 'bimonthly':
+    case 'monthly':
+      return Math.max(1, Math.floor(now.getDate() / 2));
+    case 'quarterly':
+      return Math.max(1, Math.floor((now.getMonth() % 3) * 15 + now.getDate() / 2));
+    default:
+      return 1;
   }
 }
 
