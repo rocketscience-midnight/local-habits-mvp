@@ -21,16 +21,18 @@ export async function showOnboarding() {
           Schön, dass du da bist! 💜
         </p>
         <p class="onboarding-text">
-          Hier kannst du deine <strong>Gewohnheiten</strong> tracken -
+          Hier kannst du deine <strong>Gewohnheiten</strong> tracken –
           und für jede Woche, in der du dranbleibst, 
           wächst eine neue <strong>Pflanze</strong> in deinem Garten. 🌸
         </p>
         <p class="onboarding-text">
-          Starte mit dem <strong>+</strong> Button und leg deine erste Gewohnheit an.
+          Wir haben dir schon zwei Gewohnheiten und zwei Aufgaben 
+          angelegt, damit du direkt loslegen kannst. 
+          Natürlich kannst du alles anpassen oder Neues hinzufügen.
         </p>
         <p class="onboarding-text">
-          Wir haben dir auch schon eine kleine Orchidee ins Inventar gelegt -
-          geh in den Garten und platziere sie! 🌿
+          Im Garten wartet eine kleine Orchidee auf dich – 
+          platziere sie als Erstes! 🌿
         </p>
         <button class="btn btn-primary onboarding-start" id="onboarding-go">Los geht's! 🚀</button>
       </div>
@@ -53,6 +55,36 @@ export async function showOnboarding() {
         placed: 0,
         gridCol: null,
         gridRow: null,
+      });
+
+      // Add starter habits
+      await habitRepo.save({
+        name: 'Wasser trinken',
+        emoji: '💧',
+        frequency: 'daily',
+        targetPerDay: 1,
+        timeOfDay: 'anytime',
+      });
+      await habitRepo.save({
+        name: 'Kalt duschen',
+        emoji: '🚿',
+        frequency: 'daily',
+        targetPerDay: 1,
+        timeOfDay: 'morning',
+      });
+
+      // Add starter tasks
+      await habitRepo.saveTask({
+        name: 'Staubsaugen',
+        emoji: '🧹',
+        frequency: 'weekly',
+        difficulty: 'medium',
+      });
+      await habitRepo.saveTask({
+        name: 'Die erste Pflanze in den Garten pflanzen',
+        emoji: '🌱',
+        frequency: 'weekly',
+        difficulty: 'medium',
       });
 
       localStorage.setItem(ONBOARDING_KEY, '1');
