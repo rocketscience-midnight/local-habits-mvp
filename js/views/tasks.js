@@ -8,6 +8,7 @@ import { showTaskForm } from './taskForm.js';
 import { escapeHtml } from '../utils/sanitize.js';
 import { showHelp } from './help.js';
 import { awardDeco } from '../utils/decoRewards.js';
+import { playPling } from '../utils/sounds.js';
 
 const FREQUENCY_GROUPS = [
   { key: 'weekly', label: 'Wöchentlich' },
@@ -134,6 +135,7 @@ function createTaskCard(task, completions, period, mainContainer, isOverdue) {
       rerender(mainContainer);
     } else {
       await habitRepo.completeTask(task.id, period);
+      playPling(task.difficulty === 'hard' ? 'big' : 'small');
       const deco = await awardDeco(task);
       if (deco) {
         showDecoReward(card, deco);

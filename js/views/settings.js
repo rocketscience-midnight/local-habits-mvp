@@ -21,6 +21,13 @@ export async function renderSettings(container) {
             <span class="toggle-slider"></span>
           </label>
         </div>
+        <div class="dark-mode-toggle">
+          <span class="dark-mode-toggle-label">🔊 Sound-Effekte</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="sound-checkbox" ${localStorage.getItem('sound') !== 'off' ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
       </section>
 
       <section class="settings-section">
@@ -36,6 +43,11 @@ export async function renderSettings(container) {
 
   // Help button
   container.querySelector('.help-btn')?.addEventListener('click', showHelp);
+
+  // Sound toggle
+  container.querySelector('#sound-checkbox').addEventListener('change', (e) => {
+    localStorage.setItem('sound', e.target.checked ? 'on' : 'off');
+  });
 
   // Dark mode toggle
   container.querySelector('#dark-mode-checkbox').addEventListener('change', (e) => {

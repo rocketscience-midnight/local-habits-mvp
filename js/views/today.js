@@ -9,6 +9,7 @@ import { showHabitForm } from './habitForm.js';
 import { burstConfetti } from '../utils/confetti.js';
 import { escapeHtml } from '../utils/sanitize.js';
 import { showHelp } from './help.js';
+import { playPling } from '../utils/sounds.js';
 
 /** Time-of-day categories in display order */
 const TIME_CATEGORIES = [
@@ -224,6 +225,7 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       burstConfetti(cx, cy, result.completed ? 'big' : 'small');
+      playPling(result.completed ? 'big' : 'small');
 
       // Check if ALL habits for today are now completed → MEGA burst!
       if (result.completed) {
@@ -234,7 +236,7 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
         for (const c of _comps) _counts[c.habitId] = (_counts[c.habitId] || 0) + 1;
         const allDone = _allHabits.every(h => (_counts[h.id] || 0) >= (h.targetPerDay || 1));
         if (allDone && _allHabits.length > 1) {
-          setTimeout(() => burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 'mega'), 400);
+          setTimeout(() => { burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 'mega'); playPling('mega'); }, 400);
         }
       }
     }

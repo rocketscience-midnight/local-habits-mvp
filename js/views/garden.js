@@ -229,7 +229,7 @@ export async function renderGarden(container) {
 
       const label = document.createElement('div');
       label.className = 'collection-item-label';
-      label.innerHTML = `<span style="font-size:9px;color:#8A8A8A;">${RARITY_LABELS[combo.rarity]}</span><br><span style="color:${RARITY_COLORS[combo.rarity]};font-weight:600;">${PLANT_NAMES[combo.type]}</span>`;
+      label.innerHTML = `<span style="color:${RARITY_COLORS[combo.rarity]};font-weight:600;">${PLANT_NAMES[combo.type]}</span><br><span style="font-size:9px;color:#8A8A8A;">${RARITY_LABELS[combo.rarity]}</span>`;
 
       item.appendChild(iconCanvas);
       item.appendChild(label);
@@ -273,7 +273,7 @@ export async function renderGarden(container) {
 
       const label = document.createElement('div');
       label.className = 'collection-item-label';
-      label.innerHTML = `<span style="font-size:9px;color:#8A8A8A;">${DIFF_LABELS[diff]}</span><br><span style="color:${DIFF_COLORS[diff]};font-weight:600;">${deco.name}</span>`;
+      label.innerHTML = `<span style="color:${DIFF_COLORS[diff]};font-weight:600;">${deco.name}</span><br><span style="font-size:9px;color:#8A8A8A;">${DIFF_LABELS[diff]}</span>`;
 
       item.appendChild(iconCanvas);
       item.appendChild(label);
