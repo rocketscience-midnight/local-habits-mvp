@@ -350,6 +350,56 @@ export async function renderGarden(container) {
   inventoryBar.appendChild(inventoryScroll);
   screen.appendChild(inventoryBar);
 
+  // Collection / Pokédex: all possible plant+rarity combos
+  const allPlants = await habitRepo.getAllGardenPlants();
+  const ownedSet = new Set(allPlants.map(p => `${p.plantType}-${p.rarity}`));
+
+  const PLANT_NAMES = {
+    bush: 'Busch', tulip: 'Tulpe', sunflower: 'Sonnenblume',
+    cherry: 'Kirschbaum', mushroom: 'Pilz'
+  };
+  const ALL_COMBOS = [
+    { type: 'bush', rarity: 'common' }, { type: 'mushroom', rarity: 'common' },
+    { type: 'tulip', rarity: 'uncommon' }, { type: 'mushroom', rarity: 'uncommon' },
+    { type: 'sunflower', rarity: 'rare' }, { type: 'bush', rarity: 'rare' },
+    { type: 'cherry', rarity: 'epic' },
+    { type: 'cherry', rarity: 'legendary' }, { type: 'sunflower', rarity: 'legendary' },
+  ];
+
+  const collection = document.createElement('div');
+  collection.className = 'garden-collection';
+  const collTitle = document.createElement('div');
+  collTitle.className = 'garden-collection-title';
+  const ownedCount = ALL_COMBOS.filter(c => ownedSet.has(`${c.type}-${c.rarity}`)).length;
+  collTitle.textContent = `Sammlung (${ownedCount}/${ALL_COMBOS.length})`;
+  collection.appendChild(collTitle);
+
+  const collGrid = document.createElement('div');
+  collGrid.className = 'garden-collection-grid';
+
+  for (const combo of ALL_COMBOS) {
+    const owned = ownedSet.has(`${combo.type}-${combo.rarity}`);
+    const item = document.createElement('div');
+    item.className = `collection-item ${owned ? '' : 'locked'}`;
+
+    const iconCanvas = document.createElement('canvas');
+    iconCanvas.width = 48;
+    iconCanvas.height = 48;
+    const stage = RARITY_TO_STAGE[combo.rarity];
+    drawPlantIcon(iconCanvas, combo.type, stage);
+    if (!owned) iconCanvas.style.filter = 'grayscale(1) opacity(0.3)';
+
+    const label = document.createElement('div');
+    label.className = 'collection-item-label';
+    label.innerHTML = `<span style="color:${RARITY_COLORS[combo.rarity]};font-size:10px;font-weight:700;">${RARITY_LABELS[combo.rarity]}</span><br>${PLANT_NAMES[combo.type]}`;
+
+    item.appendChild(iconCanvas);
+    item.appendChild(label);
+    collGrid.appendChild(item);
+  }
+  collection.appendChild(collGrid);
+  screen.appendChild(collection);
+
   container.appendChild(screen);
 
   // Show reward popup if new plants were earned
