@@ -38,7 +38,7 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
   }
 
   const isWeekly = isWeeklyHabit(habit);
-  const timesPerWeek = isWeekly ? habit.frequency.timesPerWeek : 3;
+  const timesPerWeek = isWeekly ? habit.frequency.timesPerWeek : (habit.timesPerWeek || 7);
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -76,18 +76,11 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
         <button type="button" class="btn-icon target-inc" aria-label="Mehr">+</button>
       </div>
 
-      <label class="form-label">Frequenz</label>
-      <div class="freq-toggle">
-        <button type="button" class="btn freq-btn ${!isWeekly ? 'active' : ''}" data-freq="daily">Täglich</button>
-        <button type="button" class="btn freq-btn ${isWeekly ? 'active' : ''}" data-freq="weekly">Wöchentlich</button>
-      </div>
-      <div class="weekly-picker ${isWeekly ? '' : 'hidden'}" id="weekly-picker">
-        <label class="form-label" style="margin-top:8px">Mal pro Woche</label>
-        <div class="target-picker">
-          <button type="button" class="btn-icon weekly-dec" aria-label="Weniger">−</button>
-          <span class="target-value" id="weekly-value">${timesPerWeek}×</span>
-          <button type="button" class="btn-icon weekly-inc" aria-label="Mehr">+</button>
-        </div>
+      <label class="form-label">Wie oft pro Woche?</label>
+      <div class="target-picker">
+        <button type="button" class="btn-icon weekly-dec" aria-label="Weniger">−</button>
+        <span class="target-value" id="weekly-value">${timesPerWeek}×</span>
+        <button type="button" class="btn-icon weekly-inc" aria-label="Mehr">+</button>
       </div>
 
       <div class="modal-actions">
@@ -102,7 +95,6 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
 
   // State
   let currentEmoji = habit.emoji;
-  let freqMode = isWeekly ? 'weekly' : 'daily';
   let currentTimesPerWeek = timesPerWeek;
   let targetPerDay = habit.targetPerDay || 1;
   let timeOfDay = habit.timeOfDay || 'anytime';
@@ -158,16 +150,6 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
     }
   });
 
-  // Frequency toggle
-  overlay.querySelectorAll('.freq-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      freqMode = btn.dataset.freq;
-      overlay.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      overlay.querySelector('#weekly-picker').classList.toggle('hidden', freqMode === 'daily');
-    });
-  });
-
   // Cancel / backdrop
   overlay.querySelector('#cancel-btn').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
@@ -192,12 +174,12 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
       ...habit,
       name,
       emoji: currentEmoji,
-      frequency: freqMode === 'daily' ? 'daily' : { type: 'weekly', timesPerWeek: currentTimesPerWeek },
+      frequency: currentTimesPerWeek >= 7 ? 'daily' : { type: 'weekly', timesPerWeek: currentTimesPerWeek },
       targetPerDay,
       timeOfDay,
     };
 
-    console.log('[HabitForm] saving:', JSON.stringify(toSave.frequency), 'freqMode:', freqMode, 'timesPerWeek:', currentTimesPerWeek, 'targetPerDay:', toSave.targetPerDay);
+    console.log('[HabitForm] saving:', JSON.stringify(toSave.frequency), 'timesPerWeek:', currentTimesPerWeek, 'targetPerDay:', toSave.targetPerDay);
     await habitRepo.save(toSave);
     overlay.remove();
     onDone();
