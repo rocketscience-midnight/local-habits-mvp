@@ -99,8 +99,9 @@ function isoToScreen(col, row, originX, originY) {
 }
 
 function screenToIso(sx, sy, originX, originY) {
+  // Offset by half tile so click in visual center maps to correct cell
   const dx = sx - originX;
-  const dy = sy - originY;
+  const dy = sy - originY - TILE_H / 2;
   const col = (dx / (TILE_W / 2) + dy / (TILE_H / 2)) / 2;
   const row = (dy / (TILE_H / 2) - dx / (TILE_W / 2)) / 2;
   return { col: Math.floor(col), row: Math.floor(row) };

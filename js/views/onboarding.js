@@ -21,13 +21,15 @@ export async function showOnboarding() {
           Schön, dass du da bist! 💜
         </p>
         <p class="onboarding-text">
-          Hier kannst du deine <strong>Gewohnheiten</strong> tracken — 
+          Hier kannst du deine <strong>Gewohnheiten</strong> tracken -
           und für jede Woche, in der du dranbleibst, 
           wächst eine neue <strong>Pflanze</strong> in deinem Garten. 🌸
         </p>
         <p class="onboarding-text">
           Starte mit dem <strong>+</strong> Button und leg deine erste Gewohnheit an.
-          Wir haben dir schon eine kleine Orchidee ins Inventar gelegt — 
+        </p>
+        <p class="onboarding-text">
+          Wir haben dir auch schon eine kleine Orchidee ins Inventar gelegt -
           geh in den Garten und platziere sie! 🌿
         </p>
         <button class="btn btn-primary onboarding-start" id="onboarding-go">Los geht's! 🚀</button>
