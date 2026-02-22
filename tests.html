@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Unit Tests – Local Habits</title>
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, system-ui, sans-serif; padding: 20px; background: #1A1A2E; color: #E8E8E8; }
+    h1 { margin-bottom: 16px; }
+    .summary { font-size: 18px; margin-bottom: 20px; padding: 12px; border-radius: 8px; }
+    .summary.pass { background: #1B4332; color: #8ED88E; }
+    .summary.fail { background: #4A1020; color: #E84545; }
+    .group { margin-bottom: 24px; }
+    .group-title { font-size: 16px; font-weight: 700; color: #8B5CF6; margin-bottom: 8px; }
+    .test { padding: 6px 12px; border-radius: 4px; margin-bottom: 4px; font-size: 14px; font-family: monospace; }
+    .test.pass { background: #0D2818; color: #8ED88E; }
+    .test.fail { background: #2D0A0A; color: #E84545; }
+    .test .label { color: #A0A0B0; margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Unit Tests</h1>
+  <div id="summary" class="summary"></div>
+  <div id="results"></div>
+
+  <script type="module">
+    // ========== Mini Test Framework ==========
+    let passed = 0, failed = 0;
+    const results = document.getElementById('results');
+    const groups = {};
+
+    function group(name) {
+      if (!groups[name]) {
+        const div = document.createElement('div');
+        div.className = 'group';
+        div.innerHTML = `<div class="group-title">${name}</div>`;
+        results.appendChild(div);
+        groups[name] = div;
+      }
+      return groups[name];
+    }
+
+    function test(groupName, name, fn) {
+      const g = group(groupName);
+      const div = document.createElement('div');
+      div.className = 'test';
+      try {
+        fn();
+        div.className = 'test pass';
+        div.innerHTML = `<span class="label">✅</span>${name}`;
+        passed++;
+      } catch (e) {
+        div.className = 'test fail';
+        div.innerHTML = `<span class="label">❌</span>${name} — ${e.message}`;
+        failed++;
+      }
+      g.appendChild(div);
+    }
+
+    function eq(actual, expected, msg = '') {
+      const a = JSON.stringify(actual);
+      const e = JSON.stringify(expected);
+      if (a !== e) throw new Error(`${msg} Expected ${e}, got ${a}`);
+    }
+
+    function ok(val, msg = '') {
+      if (!val) throw new Error(msg || 'Expected truthy');
+    }
+
+    function includes(arr, val, msg = '') {
+      if (!arr.includes(val)) throw new Error(`${msg} ${JSON.stringify(val)} not in [${arr}]`);
+    }
+
+    // ========== Import modules ==========
+    import {
+      todayString, getDayOfWeek, getWeekStart, isWeeklyHabit,
+      isHabitDueToday, calculateStreak, calculateBestStreak,
+      countByDate, getISOWeekKey, WEEKDAYS_MONDAY
+    } from './js/utils/dates.js';
+
+    import { escapeHtml } from './js/utils/sanitize.js';
+
+    import {
+      RARITY_LABELS, RARITY_COLORS, RARITY_TO_STAGE
+    } from './js/utils/rewards.js';
+
+    // ========== dates.js ==========
+
+    test('dates.js', 'todayString() returns YYYY-MM-DD format', () => {
+      const s = todayString();
+      ok(/^\d{4}-\d{2}-\d{2}$/.test(s), `Format wrong: ${s}`);
+    });
+
+    test('dates.js', 'todayString() matches local date', () => {
+      const now = new Date();
+      const expected = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
+      eq(todayString(), expected);
+    });
+
+    test('dates.js', 'getDayOfWeek("2026-02-23") = 0 (Monday)', () => {
+      eq(getDayOfWeek('2026-02-23'), 0);
+    });
+
+    test('dates.js', 'getDayOfWeek("2026-02-22") = 6 (Sunday)', () => {
+      eq(getDayOfWeek('2026-02-22'), 6);
+    });
+
+    test('dates.js', 'getDayOfWeek("2026-02-27") = 4 (Friday)', () => {
+      eq(getDayOfWeek('2026-02-27'), 4);
+    });
+
+    test('dates.js', 'getWeekStart("2026-02-25") = "2026-02-23" (Wed→Mon)', () => {
+      eq(getWeekStart('2026-02-25'), '2026-02-23');
+    });
+
+    test('dates.js', 'getWeekStart("2026-02-23") = "2026-02-23" (Mon→Mon)', () => {
+      eq(getWeekStart('2026-02-23'), '2026-02-23');
+    });
+
+    test('dates.js', 'getWeekStart("2026-03-01") = "2026-02-23" (Sun→Mon)', () => {
+      eq(getWeekStart('2026-03-01'), '2026-02-23');
+    });
+
+    test('dates.js', 'isWeeklyHabit: daily → false', () => {
+      eq(isWeeklyHabit({ frequency: 'daily' }), false);
+    });
+
+    test('dates.js', 'isWeeklyHabit: weekly object → true', () => {
+      eq(isWeeklyHabit({ frequency: { type: 'weekly', timesPerWeek: 3 } }), true);
+    });
+
+    test('dates.js', 'isWeeklyHabit: undefined → false', () => {
+      eq(isWeeklyHabit({}), false);
+    });
+
+    test('dates.js', 'countByDate groups completions correctly', () => {
+      const completions = [
+        { date: '2026-02-22', habitId: 'a' },
+        { date: '2026-02-22', habitId: 'a' },
+        { date: '2026-02-21', habitId: 'a' },
+      ];
+      const result = countByDate(completions);
+      eq(result['2026-02-22'], 2);
+      eq(result['2026-02-21'], 1);
+    });
+
+    test('dates.js', 'getISOWeekKey("2026-02-23") = "2026-W09"', () => {
+      eq(getISOWeekKey('2026-02-23'), '2026-W09');
+    });
+
+    test('dates.js', 'getISOWeekKey edge case: "2025-12-29" belongs to 2026-W01', () => {
+      eq(getISOWeekKey('2025-12-29'), '2026-W01');
+    });
+
+    test('dates.js', 'WEEKDAYS_MONDAY has 7 entries starting with Mo', () => {
+      eq(WEEKDAYS_MONDAY.length, 7);
+      eq(WEEKDAYS_MONDAY[0], 'Mo');
+      eq(WEEKDAYS_MONDAY[6], 'So');
+    });
+
+    // ========== dates.js - Streaks ==========
+
+    test('dates.js – Streaks', 'calculateStreak: daily habit, 5 consecutive days', () => {
+      const habit = { frequency: 'daily', targetPerDay: 1 };
+      const today = todayString();
+      const completions = [];
+      for (let i = 0; i < 5; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        completions.push({ date: ds, habitId: 'x' });
+      }
+      const streak = calculateStreak(habit, completions);
+      eq(streak, 5);
+    });
+
+    test('dates.js – Streaks', 'calculateStreak: no completions → 0', () => {
+      eq(calculateStreak({ frequency: 'daily', targetPerDay: 1 }, []), 0);
+    });
+
+    test('dates.js – Streaks', 'calculateStreak: gap 2 days ago → 1', () => {
+      const habit = { frequency: 'daily', targetPerDay: 1 };
+      const d0 = new Date(); 
+      const ds0 = d0.getFullYear() + '-' + String(d0.getMonth()+1).padStart(2,'0') + '-' + String(d0.getDate()).padStart(2,'0');
+      // Skip yesterday, add day before
+      const d2 = new Date(); d2.setDate(d2.getDate() - 2);
+      const ds2 = d2.getFullYear() + '-' + String(d2.getMonth()+1).padStart(2,'0') + '-' + String(d2.getDate()).padStart(2,'0');
+      const streak = calculateStreak(habit, [{ date: ds0, habitId: 'x' }, { date: ds2, habitId: 'x' }]);
+      eq(streak, 1);
+    });
+
+    test('dates.js – Streaks', 'calculateBestStreak > calculateStreak when older streak is longer', () => {
+      const habit = { frequency: 'daily', targetPerDay: 1 };
+      const completions = [];
+      // Old streak: 10 days (20-11 days ago)
+      for (let i = 11; i <= 20; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        completions.push({ date: ds, habitId: 'x' });
+      }
+      // Current streak: 2 days
+      for (let i = 0; i < 2; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        completions.push({ date: ds, habitId: 'x' });
+      }
+      const best = calculateBestStreak(habit, completions);
+      const current = calculateStreak(habit, completions);
+      ok(best >= 10, `Best should be ≥10, got ${best}`);
+      ok(best > current, `Best (${best}) should be > current (${current})`);
+    });
+
+    // ========== dates.js - isHabitDueToday ==========
+
+    test('dates.js – Due', 'daily habit, 0 completions → due', () => {
+      const habit = { frequency: 'daily', targetPerDay: 2 };
+      ok(isHabitDueToday(habit, []), 'Should be due');
+    });
+
+    test('dates.js – Due', 'daily habit, target met → not due', () => {
+      const habit = { frequency: 'daily', targetPerDay: 2 };
+      const today = todayString();
+      const completions = [{ date: today, habitId: 'x' }, { date: today, habitId: 'x' }];
+      eq(isHabitDueToday(habit, completions), false);
+    });
+
+    // ========== sanitize.js ==========
+
+    test('sanitize.js', 'escapes <script> tags', () => {
+      const result = escapeHtml('<script>alert("xss")</script>');
+      ok(!result.includes('<script>'), 'Should not contain raw script tag');
+      ok(result.includes('&lt;'), 'Should contain &lt;');
+    });
+
+    test('sanitize.js', 'escapes quotes and ampersands', () => {
+      const result = escapeHtml('"quotes\' & ampersands"');
+      ok(result.includes('&amp;'), 'Should escape &');
+      ok(result.includes('&quot;') || result.includes('&#34;'), 'Should escape "');
+    });
+
+    test('sanitize.js', 'leaves normal text unchanged', () => {
+      eq(escapeHtml('Hello World 123'), 'Hello World 123');
+    });
+
+    // ========== rewards.js ==========
+
+    test('rewards.js', 'RARITY_TO_STAGE: common=1, epic=4, legendary=5', () => {
+      eq(RARITY_TO_STAGE.common, 1);
+      eq(RARITY_TO_STAGE.uncommon, 2);
+      eq(RARITY_TO_STAGE.rare, 3);
+      eq(RARITY_TO_STAGE.epic, 4);
+      eq(RARITY_TO_STAGE.legendary, 5);
+    });
+
+    test('rewards.js', 'legendary stage differs from epic', () => {
+      ok(RARITY_TO_STAGE.legendary !== RARITY_TO_STAGE.epic, 'Legendary should differ from epic');
+    });
+
+    test('rewards.js', 'RARITY_LABELS has all 5 rarities in German', () => {
+      eq(Object.keys(RARITY_LABELS).length, 5);
+      eq(RARITY_LABELS.common, 'Gewöhnlich');
+      eq(RARITY_LABELS.legendary, 'Legendär');
+    });
+
+    test('rewards.js', 'RARITY_COLORS has all 5 entries', () => {
+      eq(Object.keys(RARITY_COLORS).length, 5);
+      ok(RARITY_COLORS.legendary.startsWith('#'), 'Should be hex color');
+    });
+
+    // ========== Summary ==========
+
+    const summary = document.getElementById('summary');
+    const total = passed + failed;
+    summary.className = `summary ${failed === 0 ? 'pass' : 'fail'}`;
+    summary.textContent = failed === 0
+      ? `✅ Alle ${total} Tests bestanden!`
+      : `❌ ${failed} von ${total} Tests fehlgeschlagen`;
+
+  </script>
+</body>
+</html>
