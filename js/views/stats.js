@@ -210,7 +210,7 @@ function renderHeatmap(stats) {
     for (let col = 0; col < 12; col++) {
       const cellDate = new Date(startMonday);
       cellDate.setDate(cellDate.getDate() + col * 7 + row);
-      const ds = cellDate.toISOString().slice(0, 10);
+      const ds = cellDate.getFullYear() + '-' + String(cellDate.getMonth() + 1).padStart(2, '0') + '-' + String(cellDate.getDate()).padStart(2, '0');
       if (ds > today) {
         cells += `<div class="heatmap-cell heatmap-future"></div>`;
         continue;
