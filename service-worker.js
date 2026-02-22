@@ -2,7 +2,7 @@
  * Service Worker - Offline cache for all app files
  */
 
-const CACHE_NAME = 'local-habits-v7';
+const CACHE_NAME = 'local-habits-v8';
 const DEXIE_URL = 'https://unpkg.com/dexie/dist/dexie.mjs';
 const ASSETS = [
   './',
@@ -25,7 +25,9 @@ const ASSETS = [
   './js/views/tasks.js',
   './js/views/taskForm.js',
   './js/views/onboarding.js',
-  './js/utils/decoRewards.js'
+  './js/utils/decoRewards.js',
+  './js/garden/plantArt.js',
+  './js/garden/decoArt.js'
 ];
 
 // Install: cache all app assets + Dexie from CDN
