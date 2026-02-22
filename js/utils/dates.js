@@ -175,12 +175,20 @@ function calculateWeeklyStreak(completionDates, habit, findBest) {
 
   // Current streak
   let streak = 0;
-  let startIdx = 0;
-  // If current week isn't complete yet, skip it (still in progress)
-  if ((weekCounts[currentWeekStart] || 0) < target) {
-    startIdx = 1;
+  const currentWeekCount = weekCounts[currentWeekStart] || 0;
+
+  // Current week counts if target met OR if on track (proportional to day of week)
+  const dayOfWeek = new Date(today + 'T12:00:00').getDay(); // 0=Sun
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 0=Mon..6=Sun
+  const expectedByNow = Math.floor(target * (daysSinceMonday + 1) / 7);
+  const onTrack = currentWeekCount >= Math.max(1, expectedByNow);
+
+  if (currentWeekCount >= target || onTrack) {
+    streak = 1; // current week counts
   }
-  for (let i = startIdx; i < allWeeks.length; i++) {
+
+  // Count completed past weeks
+  for (let i = 1; i < allWeeks.length; i++) {
     if ((weekCounts[allWeeks[i]] || 0) >= target) {
       streak++;
     } else {
