@@ -126,7 +126,6 @@ function createTaskCard(task, completions, period, mainContainer, isOverdue) {
   `;
 
   card.addEventListener('click', async (e) => {
-    if (e.target.closest('.task-edit-trigger')) return;
 
     if (isCompleted) {
       await habitRepo.uncompleteTask(task.id, period);

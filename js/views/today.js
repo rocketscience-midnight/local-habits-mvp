@@ -289,7 +289,158 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
     await showHabitForm(habit.id, () => rerender(mainContainer));
   });
 
+  // Long-press drag reorder
+  setupDragReorder(card, habit, mainContainer);
+
   return card;
+}
+
+/**
+ * Long-press drag reorder within category
+ */
+function setupDragReorder(card, habit, mainContainer) {
+  let pressTimer = null;
+  let isDragging = false;
+  let startY = 0;
+  let startX = 0;
+  let dragClone = null;
+  let placeholder = null;
+  let listEl = null;
+  let cards = [];
+  let cardRects = [];
+  let offsetY = 0;
+
+  function cancelPress() {
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+  }
+
+  card.addEventListener('pointerdown', (e) => {
+    // Don't drag from edit button or check
+    if (e.target.closest('.habit-edit-btn') || e.target.closest('.habit-check') || e.target.closest('.habit-progress-ring')) return;
+
+    startX = e.clientX;
+    startY = e.clientY;
+
+    pressTimer = setTimeout(() => {
+      pressTimer = null;
+      startDrag(e);
+    }, 500);
+  });
+
+  card.addEventListener('pointermove', (e) => {
+    if (pressTimer) {
+      // Cancel if moved too much before long-press triggers
+      if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
+        cancelPress();
+      }
+    }
+    if (isDragging) {
+      e.preventDefault();
+      moveDrag(e);
+    }
+  });
+
+  card.addEventListener('pointerup', () => {
+    cancelPress();
+    if (isDragging) endDrag();
+  });
+
+  card.addEventListener('pointercancel', () => {
+    cancelPress();
+    if (isDragging) endDrag();
+  });
+
+  function startDrag(e) {
+    isDragging = true;
+    listEl = card.closest('.habit-list');
+    if (!listEl) { isDragging = false; return; }
+
+    // Haptic feedback if available
+    navigator.vibrate?.(30);
+
+    cards = [...listEl.querySelectorAll('.habit-card')];
+    cardRects = cards.map(c => c.getBoundingClientRect());
+
+    const rect = card.getBoundingClientRect();
+    offsetY = e.clientY - rect.top;
+
+    // Create floating clone
+    dragClone = card.cloneNode(true);
+    dragClone.className = 'habit-card drag-clone';
+    dragClone.style.cssText = `
+      position: fixed; z-index: 1000; pointer-events: none;
+      width: ${rect.width}px; left: ${rect.left}px; top: ${rect.top}px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2); transform: scale(1.03);
+      opacity: 0.95; transition: none;
+    `;
+    document.body.appendChild(dragClone);
+
+    // Placeholder
+    placeholder = document.createElement('div');
+    placeholder.className = 'drag-placeholder';
+    placeholder.style.height = rect.height + 'px';
+    card.style.opacity = '0';
+    card.style.height = rect.height + 'px';
+    listEl.insertBefore(placeholder, card);
+
+    card.setPointerCapture(e.pointerId);
+  }
+
+  function moveDrag(e) {
+    if (!dragClone) return;
+    dragClone.style.top = (e.clientY - offsetY) + 'px';
+
+    // Find insertion point
+    const midY = e.clientY;
+    let insertBefore = null;
+    for (let i = 0; i < cards.length; i++) {
+      if (cards[i] === card) continue;
+      const r = cards[i].getBoundingClientRect();
+      if (midY < r.top + r.height / 2) {
+        insertBefore = cards[i];
+        break;
+      }
+    }
+
+    if (insertBefore) {
+      listEl.insertBefore(placeholder, insertBefore);
+      listEl.insertBefore(card, insertBefore);
+    } else {
+      listEl.appendChild(placeholder);
+      listEl.appendChild(card);
+    }
+  }
+
+  async function endDrag() {
+    isDragging = false;
+    if (dragClone) { dragClone.remove(); dragClone = null; }
+    if (placeholder) { placeholder.remove(); placeholder = null; }
+    card.style.opacity = '';
+    card.style.height = '';
+
+    // Save new order: read habit IDs from DOM order
+    if (listEl) {
+      const newCards = [...listEl.querySelectorAll('.habit-card')];
+      const allHabits = await habitRepo.getAll();
+      // Get the category's habits in new order
+      const categoryHabitIds = newCards.map(c => {
+        const editBtn = c.querySelector('.habit-edit-btn');
+        return editBtn?.dataset.habitId;
+      }).filter(Boolean);
+
+      // Reassign order values: preserve relative global order but reorder within category
+      // Simple approach: find min order in this group, assign sequentially
+      const categoryHabits = categoryHabitIds.map(id => allHabits.find(h => h.id === id)).filter(Boolean);
+      const orders = categoryHabits.map(h => h.order).sort((a, b) => a - b);
+      for (let i = 0; i < categoryHabitIds.length; i++) {
+        const h = allHabits.find(x => x.id === categoryHabitIds[i]);
+        if (h && h.order !== orders[i]) {
+          h.order = orders[i];
+          await habitRepo.save(h);
+        }
+      }
+    }
+  }
 }
 
 /**
