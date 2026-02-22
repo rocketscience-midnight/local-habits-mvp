@@ -92,6 +92,20 @@ export async function renderGarden(container) {
   });
   debugWrap.appendChild(clearBtn);
 
+  const carrotBtn = document.createElement('button');
+  carrotBtn.className = 'garden-debug-btn';
+  carrotBtn.style.background = '#6B3B10';
+  carrotBtn.textContent = '🥕 Test-Möhre';
+  carrotBtn.addEventListener('click', async () => {
+    await habitRepo.addGardenPlant({
+      plantType: 'carrot', rarity: 'uncommon', growthStage: 1,
+      itemType: 'deco', habitId: 'debug-carrot', habitName: 'Test-Möhre',
+      weekEarned: new Date().toISOString().slice(0, 10), placed: 0, gridCol: null, gridRow: null,
+    });
+    renderGarden(container);
+  });
+  debugWrap.appendChild(carrotBtn);
+
   screen.appendChild(debugWrap);
 
   // State
