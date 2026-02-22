@@ -31,6 +31,201 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* ========== Dark Mode ========== */
+[data-theme="dark"] {
+  --bg: #1A1A2E;
+  --primary: #8B5CF6;
+  --primary-dark: #A78BFA;
+  --secondary: #FF6B35;
+  --accent-pink: #E84545;
+  --accent-purple: #8B5CF6;
+  --accent-yellow: #FF6B35;
+  --sky: #16213E;
+  --wood: #8B6F4E;
+  --orange: #FF6B35;
+  --coral: #E84545;
+  --deep-purple: #A78BFA;
+  --rich-purple: #8B5CF6;
+  --soft-purple: #7C5CBF;
+  --garden-green: #6BBF6B;
+  --garden-green-dark: #5AA85A;
+  --text: #E8E8E8;
+  --text-light: #A0A0B0;
+  --white: #16213E;
+  --shadow: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .bottom-nav {
+  background: #0F0F1E;
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .modal {
+  background: #1A1A2E;
+}
+
+[data-theme="dark"] .progress-bar,
+[data-theme="dark"] .stats-rate-bar,
+[data-theme="dark"] .heatmap-level-0 {
+  background: #2A2A4A;
+}
+
+[data-theme="dark"] .habit-card.completed {
+  background: linear-gradient(135deg, #1E1E3A, #252550);
+  border-color: var(--rich-purple);
+}
+
+[data-theme="dark"] .form-input {
+  background: #16213E;
+  border-color: #2A2A4A;
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .form-input:focus {
+  border-color: #8B5CF6;
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: #16213E;
+  color: #E8E8E8;
+  border-color: #2A2A4A;
+}
+
+[data-theme="dark"] .btn-icon:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .emoji-btn {
+  background: #16213E;
+}
+
+[data-theme="dark"] .emoji-btn.selected {
+  background: #252550;
+  border-color: #8B5CF6;
+}
+
+[data-theme="dark"] .emoji-picker-categories {
+  background: #16213E;
+  border-color: #2A2A4A;
+}
+
+[data-theme="dark"] .freq-btn {
+  background: #16213E;
+  border-color: #2A2A4A;
+  color: #A0A0B0;
+}
+
+[data-theme="dark"] .weekday-btn {
+  background: #16213E;
+  border-color: #2A2A4A;
+  color: #A0A0B0;
+}
+
+[data-theme="dark"] .target-dec,
+[data-theme="dark"] .target-inc {
+  background: #16213E !important;
+  border-color: #2A2A4A !important;
+}
+
+[data-theme="dark"] .progress-ring-bg {
+  stroke: #2A2A4A;
+}
+
+[data-theme="dark"] .habit-check {
+  border-color: #3A3A5A;
+}
+
+[data-theme="dark"] .time-divider-banner {
+  background: linear-gradient(135deg, rgba(248,212,128,0.15) 0%, rgba(255,107,53,0.12) 50%, rgba(139,92,246,0.18) 100%);
+}
+
+[data-theme="dark"] .time-btn {
+  background: #16213E;
+  border-color: #2A2A4A;
+  color: #A0A0B0;
+}
+
+[data-theme="dark"] .weekly-focus-card {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(22, 33, 62, 0.4));
+}
+
+[data-theme="dark"] .weekly-focus-input {
+  background: #16213E;
+  border-color: #2A2A4A;
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .focus-archive-item {
+  background: #16213E;
+}
+
+[data-theme="dark"] .heatmap-future {
+  background: transparent;
+}
+
+/* ========== Dark Mode Toggle ========== */
+.dark-mode-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 6px var(--shadow);
+  margin-bottom: 8px;
+}
+
+.dark-mode-toggle-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #D0D0D0;
+  border-radius: 28px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  left: 3px;
+  top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--rich-purple);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(24px);
+}
+
 /* ========== Reset & Base ========== */
 *, *::before, *::after {
   box-sizing: border-box;

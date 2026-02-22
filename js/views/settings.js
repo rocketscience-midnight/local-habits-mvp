@@ -5,9 +5,22 @@
 import habitRepo from '../repo/habitRepo.js';
 
 export async function renderSettings(container) {
+  const isDark = localStorage.getItem('theme') === 'dark';
+
   container.innerHTML = `
     <div class="settings-screen">
       <h1 class="settings-title">Einstellungen</h1>
+
+      <section class="settings-section">
+        <h2>Darstellung</h2>
+        <div class="dark-mode-toggle">
+          <span class="dark-mode-toggle-label">🌙 Dark Mode</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dark-mode-checkbox" ${isDark ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
 
       <section class="settings-section">
         <h2>Daten</h2>
@@ -19,6 +32,13 @@ export async function renderSettings(container) {
       </section>
     </div>
   `;
+
+  // Dark mode toggle
+  container.querySelector('#dark-mode-checkbox').addEventListener('change', (e) => {
+    const theme = e.target.checked ? 'dark' : 'light';
+    localStorage.setItem('theme', theme);
+    document.documentElement.dataset.theme = theme;
+  });
 
   // Export
   container.querySelector('#export-btn').addEventListener('click', async () => {

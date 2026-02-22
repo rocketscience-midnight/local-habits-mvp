@@ -8,6 +8,12 @@ import { renderGarden, cleanupGarden } from './views/garden.js';
 import { renderStats } from './views/stats.js';
 import { renderSettings } from './views/settings.js';
 
+// Apply saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+  document.documentElement.dataset.theme = savedTheme;
+}
+
 // Register all routes
 registerRoute('today', renderToday);
 registerRoute('garden', renderGarden);

@@ -321,3 +321,99 @@
 .collection-item.locked .collection-item-label {
   color: #BBB;
 }
+
+/* ========== Garden Dark Mode ========== */
+[data-theme="dark"] .garden-inventory {
+  background: rgba(22, 33, 62, 0.95);
+  border-top-color: #3A5A3A;
+}
+
+[data-theme="dark"] .garden-inventory-title {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .inventory-item {
+  background: #1A2A3A;
+}
+
+[data-theme="dark"] .inventory-item:active,
+[data-theme="dark"] .inventory-item.selected {
+  background: #252550;
+  border-color: #8B5CF6;
+}
+
+[data-theme="dark"] .garden-tooltip {
+  background: rgba(26, 26, 46, 0.96);
+  border-color: #8B5CF6;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .garden-tooltip-name {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .garden-tooltip-detail {
+  color: #A0A0B0;
+}
+
+[data-theme="dark"] .garden-tooltip-remove-btn {
+  background: #16213E;
+}
+
+[data-theme="dark"] .collection-item {
+  background: rgba(22, 33, 62, 0.8);
+  border-color: #2A2A4A;
+}
+
+[data-theme="dark"] .collection-item.locked {
+  background: rgba(22, 33, 62, 0.3);
+  border-color: #1E1E3A;
+}
+
+[data-theme="dark"] .collection-item-label {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .collection-item.locked .collection-item-label {
+  color: #555;
+}
+
+[data-theme="dark"] .garden-collection-title {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .garden-debug-btn {
+  background: #16213E;
+}
+
+[data-theme="dark"] .garden-empty {
+  color: #A0A0B0;
+}
+
+[data-theme="dark"] .reward-item {
+  background: #1A2A3A;
+}
+
+[data-theme="dark"] .reward-name {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .reward-habit {
+  color: #A0A0B0;
+}
+
+[data-theme="dark"] .reward-popup-title {
+  color: #E8E8E8;
+}
+
+[data-theme="dark"] .placement-cancel-btn {
+  background: #16213E;
+}
+
+[data-theme="dark"] .garden-placement-indicator {
+  background: rgba(139, 92, 246, 0.15);
+}
+
+[data-theme="dark"] .inventory-empty {
+  color: #A0A0B0;
+}
