@@ -731,7 +731,7 @@ export async function renderGarden(container) {
 
         if (plant) {
           const animOff = elapsed * 1.5 + r * 0.7 + c * 1.1;
-          const stage = plant.growthStage ?? RARITY_TO_STAGE[plant.rarity] ?? 2;
+          const stage = RARITY_TO_STAGE[plant.rarity] ?? plant.growthStage ?? 2;
           const pxSize = plant.rarity === 'legendary' ? PIXEL + 1 : PIXEL;
           drawPlant(ctx, x, y, plant.plantType, stage, animOff, pxSize, c, r);
         } else {
@@ -848,7 +848,7 @@ export async function renderGarden(container) {
         iconCanvas.width = 48;
         iconCanvas.height = 48;
         iconCanvas.className = 'inventory-icon-canvas';
-        const stage = plant.growthStage ?? RARITY_TO_STAGE[plant.rarity] ?? 2;
+        const stage = RARITY_TO_STAGE[plant.rarity] ?? plant.growthStage ?? 2;
         drawPlantIcon(iconCanvas, plant.plantType, stage);
 
         const label = document.createElement('div');
