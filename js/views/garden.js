@@ -303,9 +303,15 @@ export async function renderGarden(container) {
     }
   }
 
-  // Canvas setup
-  const gridCols = COLS;
-  const gridRows = ROWS;
+  // Canvas setup - grid grows when >70% full
+  const totalPlants = placedPlants.length;
+  const baseSlots = COLS * ROWS;
+  let gridCols = COLS;
+  let gridRows = ROWS;
+  while (totalPlants > gridCols * gridRows * 0.7) {
+    gridCols += 2;
+    gridRows += 1;
+  }
   const canvasW = (gridCols + gridRows) * (TILE_W / 2) + TILE_W;
   const skyH = 80;
   const canvasH = (gridCols + gridRows) * (TILE_H / 2) + TILE_H * 3 + skyH;
