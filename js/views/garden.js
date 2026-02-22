@@ -339,23 +339,24 @@ function drawDecoPlaced(ctx, cx, cy, decoType, animOffset, pixelSize = PIXEL) {
 
 function drawDecoPond(ctx, x, y, p, anim) {
   const shimmer = Math.sin(anim * 2) * 0.15;
-  // Water body - flat oval
-  drawPixelRect(ctx, x - p*2, y - p, p*5, p, '#68A8D8');
-  drawPixelRect(ctx, x - p*3, y - p*2, p*7, p, '#88C0E8');
-  drawPixelRect(ctx, x - p*3, y - p*3, p*7, p, '#88C0E8');
-  drawPixelRect(ctx, x - p*2, y - p*4, p*5, p, '#A8D8F0');
-  // Edge stones
-  drawPixel(ctx, x - p*3, y - p*4, '#B0A898');
-  drawPixel(ctx, x + p*3, y - p*2, '#B0A898');
+  // Water body - flat on the ground (y is tile bottom)
+  drawPixelRect(ctx, x - p*3, y, p*7, p, '#68A8D8');
+  drawPixelRect(ctx, x - p*3, y - p, p*7, p, '#88C0E8');
+  drawPixelRect(ctx, x - p*2, y - p*2, p*5, p, '#A8D8F0');
+  // Edge stones around the pond
+  drawPixel(ctx, x - p*3, y - p*2, '#B0A898');
+  drawPixel(ctx, x + p*3, y, '#B0A898');
+  drawPixel(ctx, x - p*4, y - p, '#C8C0B0');
+  drawPixel(ctx, x + p*4, y - p, '#C8C0B0');
   // Shimmer highlights
   ctx.save();
   ctx.globalAlpha = 0.3 + shimmer;
-  drawPixel(ctx, x - p, y - p*3, '#C8E8FF');
-  drawPixel(ctx, x + p, y - p*2, '#C8E8FF');
+  drawPixel(ctx, x - p, y - p, '#C8E8FF');
+  drawPixel(ctx, x + p, y, '#C8E8FF');
   ctx.restore();
   // Lily pad
-  drawPixel(ctx, x + p*2, y - p*3, '#6BBF6B');
-  drawPixel(ctx, x + p, y - p*2, '#5A9B5A');
+  drawPixel(ctx, x + p*2, y - p, '#6BBF6B');
+  drawPixel(ctx, x + p, y, '#5A9B5A');
 }
 
 function drawDecoLantern(ctx, x, y, p, anim) {
@@ -382,19 +383,20 @@ function drawDecoLantern(ctx, x, y, p, anim) {
 function drawDecoBench(ctx, x, y, p) {
   const WOOD = '#9B7B5B';
   const WOOD_D = '#7B5B3B';
-  // Legs
-  drawPixel(ctx, x - p*2, y - p, WOOD_D);
-  drawPixel(ctx, x + p*2, y - p, WOOD_D);
-  // Seat
-  drawPixelRect(ctx, x - p*3, y - p*2, p*7, p, WOOD);
-  // Back support posts
-  drawPixel(ctx, x - p*2, y - p*3, WOOD_D);
-  drawPixel(ctx, x + p*2, y - p*3, WOOD_D);
-  // Back rest
-  drawPixelRect(ctx, x - p*3, y - p*4, p*7, p, WOOD);
-  // Back post tops
-  drawPixel(ctx, x - p*2, y - p*5, WOOD_D);
-  drawPixel(ctx, x + p*2, y - p*5, WOOD_D);
+  const WOOD_L = '#B08E6B';
+  // 4 short legs
+  drawPixel(ctx, x - p*3, y - p, WOOD_D);
+  drawPixel(ctx, x + p*3, y - p, WOOD_D);
+  drawPixel(ctx, x - p*3, y - p*2, WOOD_D);
+  drawPixel(ctx, x + p*3, y - p*2, WOOD_D);
+  // Wide seat (2 planks)
+  drawPixelRect(ctx, x - p*4, y - p*3, p*9, p, WOOD);
+  drawPixelRect(ctx, x - p*4, y - p*4, p*9, p, WOOD_L);
+  // Armrests
+  drawPixel(ctx, x - p*4, y - p*5, WOOD_D);
+  drawPixel(ctx, x + p*4, y - p*5, WOOD_D);
+  // Short backrest (just 1 plank, not tall like a fence)
+  drawPixelRect(ctx, x - p*3, y - p*5, p*7, p, WOOD);
 }
 
 function drawDecoBirdhouse(ctx, x, y, p) {
@@ -419,23 +421,25 @@ function drawDecoBirdhouse(ctx, x, y, p) {
 function drawDecoWateringCan(ctx, x, y, p) {
   const METAL = '#808890';
   const METAL_L = '#A0A8B0';
-  const GREEN = '#5A8B5A';
+  const METAL_D = '#606870';
   // Body
-  drawPixelRect(ctx, x - p*2, y - p*3, p*4, p*3, GREEN);
+  drawPixelRect(ctx, x - p*2, y - p*3, p*4, p*3, METAL);
   // Rim
-  drawPixelRect(ctx, x - p*2, y - p*4, p*4, p, METAL);
+  drawPixelRect(ctx, x - p*2, y - p*4, p*4, p, METAL_L);
+  // Bottom
+  drawPixelRect(ctx, x - p*2, y, p*4, p, METAL_D);
   // Spout
   drawPixel(ctx, x + p*2, y - p*2, METAL_L);
   drawPixel(ctx, x + p*3, y - p*3, METAL_L);
   drawPixel(ctx, x + p*4, y - p*4, METAL_L);
   // Spout head (rose)
-  drawPixel(ctx, x + p*4, y - p*5, METAL);
-  drawPixel(ctx, x + p*5, y - p*5, METAL);
+  drawPixel(ctx, x + p*4, y - p*5, METAL_D);
+  drawPixel(ctx, x + p*5, y - p*5, METAL_D);
   // Handle
-  drawPixel(ctx, x - p*2, y - p*5, METAL);
+  drawPixel(ctx, x - p*2, y - p*5, METAL_D);
   drawPixel(ctx, x - p*2, y - p*6, METAL_L);
   drawPixel(ctx, x - p, y - p*7, METAL_L);
-  drawPixel(ctx, x, y - p*6, METAL);
+  drawPixel(ctx, x, y - p*6, METAL_D);
 }
 
 function drawDecoMushroomRing(ctx, x, y, p) {
