@@ -633,7 +633,7 @@ export async function renderGarden(container) {
           const animOff = elapsed * 1.5 + r * 0.7 + c * 1.1;
           const stage = plant.growthStage ?? RARITY_TO_STAGE[plant.rarity] ?? 2;
           const pxSize = plant.rarity === 'legendary' ? PIXEL + 1 : PIXEL;
-          drawPlant(ctx, x, y - TILE_H / 4, plant.plantType, stage, animOff, pxSize, c, r);
+          drawPlant(ctx, x, y, plant.plantType, stage, animOff, pxSize, c, r);
         } else {
           // Ground details on empty tiles
           const detail = groundDetailMap[key];
