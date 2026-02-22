@@ -318,7 +318,7 @@ export async function renderGarden(container) {
   const baseSlots = COLS * ROWS;
   let gridCols = COLS;
   let gridRows = ROWS;
-  while (totalPlants > gridCols * gridRows * 0.7) {
+  while (totalPlants > gridCols * gridRows * 0.6) {
     gridCols += 2;
     gridRows += 1;
   }
@@ -415,7 +415,7 @@ export async function renderGarden(container) {
 
       const label = document.createElement('div');
       label.className = 'collection-item-label';
-      label.innerHTML = `${PLANT_NAMES[combo.type]}<br><span style="color:${RARITY_COLORS[combo.rarity]};font-size:9px;font-weight:700;">${RARITY_LABELS[combo.rarity]}</span>`;
+      label.innerHTML = `<span style="color:${RARITY_COLORS[combo.rarity]};font-size:9px;font-weight:700;">${RARITY_LABELS[combo.rarity]}</span><br>${PLANT_NAMES[combo.type]}`;
 
       item.appendChild(iconCanvas);
       item.appendChild(label);
