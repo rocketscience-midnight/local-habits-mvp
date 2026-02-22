@@ -11,6 +11,8 @@ const MEDIUM_DECOS = [
   { type: 'watering_can', name: 'Gießkanne', emoji: '🌊' },
   { type: 'mushroom_ring', name: 'Pilzkreis', emoji: '🍄' },
   { type: 'carrot', name: 'Möhre', emoji: '🥕' },
+  { type: 'karotte', name: 'Karotte', emoji: '🥕' },
+  { type: 'mohrruebe', name: 'Mohrrübe', emoji: '🥕' },
 ];
 
 const HARD_DECOS = [

@@ -31,6 +31,8 @@ function drawDecoPlaced(ctx, cx, cy, decoType, animOffset, pixelSize = PIXEL) {
     case 'watering_can': drawDecoWateringCan(ctx, cx, cy, p); break;
     case 'mushroom_ring': drawDecoMushroomRing(ctx, cx, cy, p); break;
     case 'carrot': drawDecoCarrot(ctx, cx, cy, p); break;
+    case 'karotte': drawDecoKarotte(ctx, cx, cy, p); break;
+    case 'mohrruebe': drawDecoMohrruebe(ctx, cx, cy, p); break;
     case 'barn': drawDecoBarn(ctx, cx, cy, p); break;
     case 'bicycle': drawDecoBicycle(ctx, cx, cy, p); break;
     case 'fountain': drawDecoFountain(ctx, cx, cy, p, animOffset); break;
@@ -390,6 +392,52 @@ function drawDecoCarrot(ctx, x, y, p) {
   drawPixel(ctx, x - p, y - p*6, GREEN);
   drawPixel(ctx, x + p, y - p*6, GREEN);
   drawPixel(ctx, x, y - p*6, GREEN_D);
+}
+
+function drawDecoKarotte(ctx, x, y, p) {
+  const ORANGE = '#F0A050';
+  const ORANGE_L = '#F8B868';
+  const GREEN = '#6BBF6B';
+  const GREEN_D = '#4A8F4A';
+  const GREEN_L = '#8ED88E';
+  const SOIL = '#8B7355';
+  // Soil mound (smaller)
+  drawPixelRect(ctx, x - p, y, p*3, p, SOIL);
+  // Thin carrot body
+  drawPixel(ctx, x, y - p, ORANGE);
+  drawPixel(ctx, x, y - p*2, ORANGE_L);
+  drawPixel(ctx, x, y - p*3, ORANGE);
+  // Tall bushy leaves (4 stems)
+  drawPixel(ctx, x, y - p*4, GREEN);
+  drawPixel(ctx, x - p, y - p*5, GREEN_D);
+  drawPixel(ctx, x, y - p*5, GREEN);
+  drawPixel(ctx, x + p, y - p*5, GREEN_D);
+  drawPixel(ctx, x - p, y - p*6, GREEN_L);
+  drawPixel(ctx, x + p, y - p*6, GREEN_L);
+  drawPixel(ctx, x - p*2, y - p*7, GREEN);
+  drawPixel(ctx, x + p*2, y - p*7, GREEN);
+}
+
+function drawDecoMohrruebe(ctx, x, y, p) {
+  const ORANGE = '#CC6020';
+  const ORANGE_D = '#A84810';
+  const ORANGE_L = '#E07838';
+  const GREEN = '#5A9B5A';
+  const GREEN_D = '#4A8F4A';
+  const SOIL = '#8B7355';
+  // Soil mound (wide)
+  drawPixelRect(ctx, x - p*2, y, p*5, p, SOIL);
+  drawPixelRect(ctx, x - p, y - p, p*3, p, SOIL);
+  // Thick stubby carrot
+  drawPixelRect(ctx, x - p, y - p*2, p*3, p, ORANGE);
+  drawPixelRect(ctx, x - p, y - p*3, p*3, p, ORANGE_L);
+  drawPixel(ctx, x, y - p*4, ORANGE_D);
+  // Short sturdy leaves
+  drawPixel(ctx, x - p, y - p*4, GREEN);
+  drawPixel(ctx, x, y - p*5, GREEN);
+  drawPixel(ctx, x + p, y - p*4, GREEN);
+  drawPixel(ctx, x - p, y - p*5, GREEN_D);
+  drawPixel(ctx, x + p, y - p*5, GREEN_D);
 }
 
 export { drawDecoPlaced };
