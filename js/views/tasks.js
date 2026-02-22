@@ -137,7 +137,7 @@ function createTaskCard(task, completions, period, mainContainer, isOverdue) {
       const deco = await awardDeco(task);
       if (deco) {
         showDecoReward(card, deco);
-        setTimeout(() => rerender(mainContainer), 2200);
+        setTimeout(() => rerender(mainContainer), 3800);
       } else {
         rerender(mainContainer);
       }
@@ -194,7 +194,7 @@ function showDecoReward(card, deco) {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => el.classList.add('animate'));
   });
-  setTimeout(() => el.remove(), 2000);
+  setTimeout(() => el.remove(), 3500);
 }
 
 async function rerender(container) {

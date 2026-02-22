@@ -62,13 +62,13 @@ export async function showOnboarding() {
         name: 'Wasser trinken',
         emoji: '💧',
         frequency: 'daily',
-        targetPerDay: 1,
+        targetPerDay: 6,
         timeOfDay: 'anytime',
       });
       await habitRepo.save({
         name: 'Kalt duschen',
         emoji: '🚿',
-        frequency: 'daily',
+        frequency: { type: 'weekly', timesPerWeek: 5 },
         targetPerDay: 1,
         timeOfDay: 'morning',
       });

@@ -1511,7 +1511,7 @@ body {
   text-align: center;
   pointer-events: none;
   opacity: 1;
-  transition: all 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .deco-reward-anim.animate {
