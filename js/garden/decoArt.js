@@ -30,6 +30,7 @@ function drawDecoPlaced(ctx, cx, cy, decoType, animOffset, pixelSize = PIXEL) {
     case 'birdhouse': drawDecoBirdhouse(ctx, cx, cy, p); break;
     case 'watering_can': drawDecoWateringCan(ctx, cx, cy, p); break;
     case 'mushroom_ring': drawDecoMushroomRing(ctx, cx, cy, p); break;
+    case 'carrot': drawDecoCarrot(ctx, cx, cy, p); break;
     case 'barn': drawDecoBarn(ctx, cx, cy, p); break;
     case 'bicycle': drawDecoBicycle(ctx, cx, cy, p); break;
     case 'fountain': drawDecoFountain(ctx, cx, cy, p, animOffset); break;
@@ -365,5 +366,30 @@ function drawDecoBridge(ctx, x, y, p) {
   ctx.restore();
 }
 
+
+function drawDecoCarrot(ctx, x, y, p) {
+  const ORANGE = '#E8883D';
+  const ORANGE_D = '#CC6B28';
+  const ORANGE_L = '#F0A050';
+  const GREEN = '#6BBF6B';
+  const GREEN_D = '#4A8F4A';
+  const SOIL = '#8B7355';
+  // Soil mound
+  drawPixelRect(ctx, x - p*2, y, p*5, p, SOIL);
+  drawPixelRect(ctx, x - p, y - p, p*3, p, SOIL);
+  // Carrot body poking out of soil
+  drawPixelRect(ctx, x, y - p*2, p, p, ORANGE);
+  drawPixel(ctx, x - p, y - p*2, ORANGE_D);
+  drawPixel(ctx, x + p, y - p*2, ORANGE_L);
+  drawPixel(ctx, x, y - p*3, ORANGE);
+  // Green leaves (3 stems fanning out)
+  drawPixel(ctx, x, y - p*4, GREEN);
+  drawPixel(ctx, x, y - p*5, GREEN);
+  drawPixel(ctx, x - p, y - p*5, GREEN_D);
+  drawPixel(ctx, x + p, y - p*5, GREEN_D);
+  drawPixel(ctx, x - p, y - p*6, GREEN);
+  drawPixel(ctx, x + p, y - p*6, GREEN);
+  drawPixel(ctx, x, y - p*6, GREEN_D);
+}
 
 export { drawDecoPlaced };

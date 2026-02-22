@@ -10,6 +10,7 @@ const MEDIUM_DECOS = [
   { type: 'birdhouse', name: 'Vogelhaus', emoji: '🐦' },
   { type: 'watering_can', name: 'Gießkanne', emoji: '🌊' },
   { type: 'mushroom_ring', name: 'Pilzkreis', emoji: '🍄' },
+  { type: 'carrot', name: 'Möhre', emoji: '🥕' },
 ];
 
 const HARD_DECOS = [
