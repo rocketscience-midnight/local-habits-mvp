@@ -765,7 +765,7 @@ export async function renderGarden(container) {
         if (plant) {
           const animOff = elapsed * 1.5 + r * 0.7 + c * 1.1;
           const stage = RARITY_TO_STAGE[plant.rarity] ?? plant.growthStage ?? 2;
-          const pxSize = plant.rarity === 'legendary' ? PIXEL + 1 : PIXEL;
+          const pxSize = (plant.rarity === 'legendary' && plant.plantType !== 'sunflower') ? PIXEL + 1 : PIXEL;
           drawPlant(ctx, x, y, plant.plantType, stage, animOff, pxSize, c, r);
         } else {
           // Ground details on empty tiles
