@@ -34,6 +34,7 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
   let habit = { name: '', emoji: '✨', frequency: 'daily', targetPerDay: 1, timeOfDay: 'anytime' };
   if (editId) {
     habit = await habitRepo.getById(editId) || habit;
+    console.log('[HabitForm] loaded:', habit.name, 'frequency:', JSON.stringify(habit.frequency));
   }
 
   const isWeekly = isWeeklyHabit(habit);
@@ -196,6 +197,7 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
       timeOfDay,
     };
 
+    console.log('[HabitForm] saving:', JSON.stringify(toSave.frequency), 'freqMode:', freqMode, 'timesPerWeek:', currentTimesPerWeek);
     await habitRepo.save(toSave);
     overlay.remove();
     onDone();
