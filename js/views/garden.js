@@ -415,7 +415,7 @@ export async function renderGarden(container) {
 
       const label = document.createElement('div');
       label.className = 'collection-item-label';
-      label.innerHTML = `<span style="color:${RARITY_COLORS[combo.rarity]};font-size:9px;font-weight:700;">${RARITY_LABELS[combo.rarity]}</span><br>${PLANT_NAMES[combo.type]}`;
+      label.innerHTML = `<span style="font-size:9px;color:#8A8A8A;">${RARITY_LABELS[combo.rarity]}</span><br><span style="color:${RARITY_COLORS[combo.rarity]};font-weight:600;">${PLANT_NAMES[combo.type]}</span>`;
 
       item.appendChild(iconCanvas);
       item.appendChild(label);

@@ -182,11 +182,16 @@ const habitRepo = {
   },
 
   async placePlant(plantId, gridCol, gridRow) {
+    // Prevent placing on occupied tile
+    const all = await db.gardenPlants.where('placed').equals(1).toArray();
+    const occupied = all.some(p => p.gridCol === gridCol && p.gridRow === gridRow);
+    if (occupied) return false;
     await db.gardenPlants.update(plantId, {
       placed: 1,
       gridCol,
       gridRow
     });
+    return true;
   },
 
   async unplacePlant(plantId) {

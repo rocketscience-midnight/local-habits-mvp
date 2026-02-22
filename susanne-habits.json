@@ -1,0 +1,47 @@
+{
+  "habits": [
+    {
+      "id": "6dd43a05-c844-4f71-94e6-71bc18bea16f",
+      "name": "Meditation",
+      "emoji": "🧘",
+      "frequency": "daily",
+      "targetPerDay": 1,
+      "timeOfDay": "morning",
+      "order": 0,
+      "createdAt": "2026-02-23T08:00:00.000Z"
+    },
+    {
+      "id": "c209cd74-9532-4dc5-bb4d-66a62f240c7c",
+      "name": "Rückenübungen",
+      "emoji": "🏋️",
+      "frequency": "daily",
+      "targetPerDay": 1,
+      "timeOfDay": "morning",
+      "order": 1,
+      "createdAt": "2026-02-23T08:00:00.000Z"
+    },
+    {
+      "id": "dc8fb18f-28a5-408b-b48e-602af296a574",
+      "name": "Proteinshake",
+      "emoji": "🥤",
+      "frequency": "daily",
+      "targetPerDay": 1,
+      "timeOfDay": "midday",
+      "order": 2,
+      "createdAt": "2026-02-23T08:00:00.000Z"
+    },
+    {
+      "id": "e483dcd9-4c1f-4580-92b7-2ae16b442b39",
+      "name": "Tagebuch",
+      "emoji": "📝",
+      "frequency": "daily",
+      "targetPerDay": 1,
+      "timeOfDay": "morning",
+      "order": 3,
+      "createdAt": "2026-02-23T08:00:00.000Z"
+    }
+  ],
+  "completions": [],
+  "gardenPlants": [],
+  "weeklyFocus": []
+}
