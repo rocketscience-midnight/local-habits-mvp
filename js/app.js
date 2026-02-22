@@ -7,6 +7,7 @@ import { renderToday } from './views/today.js';
 import { renderGarden, cleanupGarden } from './views/garden.js';
 import { renderStats } from './views/stats.js';
 import { renderSettings } from './views/settings.js';
+import { isOnboardingDone, showOnboarding } from './views/onboarding.js';
 
 // Apply saved theme
 const savedTheme = localStorage.getItem('theme');
@@ -23,11 +24,18 @@ registerRoute('settings', renderSettings);
 // Register cleanup functions
 registerCleanup(cleanupGarden);
 
-// Initialize router when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initRouter);
-} else {
+// Initialize router when DOM is ready, show onboarding if first launch
+async function boot() {
+  if (!isOnboardingDone()) {
+    await showOnboarding();
+  }
   initRouter();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
 }
 
 // Register service worker for PWA

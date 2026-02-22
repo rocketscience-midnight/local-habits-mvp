@@ -39,6 +39,7 @@ const PLANT_PALETTES = {
   fern:      { stem: '#4A8F4A', leaf: '#6BBF6B', bloom1: '#7BC47B', bloom2: '#8ED88E', bloom3: '#A8D8A8' },
   daisy:     { stem: '#6BBF6B', leaf: '#8ED88E', bloom1: '#FFFFFF', bloom2: '#F8D480', bloom3: '#FFE8B0' },
   appletree: { stem: '#8B6B4B', leaf: '#7BC47B', bloom1: '#E06040', bloom2: '#CC4030', bloom3: '#6BBF6B' },
+  orchid:    { stem: '#6BBF6B', leaf: '#8ED88E', bloom1: '#E0A0E0', bloom2: '#C878D0', bloom3: '#A050B0' },
 };
 
 // ============================================================
@@ -174,6 +175,7 @@ function drawPlant(ctx, cx, cy, plantType, stage, animOffset, pixelSize = PIXEL,
   switch (plantType) {
     case 'tulip': drawTulip(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'daisy': drawTulip(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'orchid': drawTulip(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'sunflower': drawSunflower(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'bush': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'grass': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
@@ -409,7 +411,7 @@ export async function renderGarden(container) {
     bush: 'Busch', tulip: 'Tulpe', sunflower: 'Sonnenblume',
     cherry: 'Kirschbaum', mushroom: 'Pilz', grass: 'Gras',
     clover: 'Klee', fern: 'Farn', daisy: 'Gänseblümchen',
-    appletree: 'Apfelbaum'
+    appletree: 'Apfelbaum', orchid: 'Orchidee'
   };
   const ALL_COMBOS = [
     { type: 'bush', rarity: 'common' }, { type: 'mushroom', rarity: 'common' },

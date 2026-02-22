@@ -1281,3 +1281,70 @@ body {
   font-style: italic;
   color: var(--text);
 }
+
+/* ========== Onboarding ========== */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  padding: 20px;
+}
+
+.onboarding-overlay.visible {
+  opacity: 1;
+}
+
+.onboarding-card {
+  background: #FFF8F0;
+  border-radius: 20px;
+  padding: 32px 24px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.onboarding-overlay.visible .onboarding-card {
+  transform: translateY(0);
+}
+
+.onboarding-emoji {
+  font-size: 56px;
+  margin-bottom: 12px;
+}
+
+.onboarding-title {
+  font-size: 26px;
+  color: #8B5CF6;
+  margin-bottom: 16px;
+}
+
+.onboarding-text {
+  font-size: 15px;
+  color: #4A4A4A;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.onboarding-start {
+  margin-top: 8px;
+  font-size: 17px;
+  padding: 14px 32px;
+  width: 100%;
+}
+
+[data-theme="dark"] .onboarding-card {
+  background: #16213E;
+}
+
+[data-theme="dark"] .onboarding-text {
+  color: #C0C0D0;
+}
