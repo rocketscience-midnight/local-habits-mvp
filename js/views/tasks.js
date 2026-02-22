@@ -137,7 +137,7 @@ function createTaskCard(task, completions, period, mainContainer, isOverdue) {
       const deco = await awardDeco(task);
       if (deco) {
         showDecoReward(card, deco);
-        setTimeout(() => rerender(mainContainer), 1800);
+        setTimeout(() => rerender(mainContainer), 2200);
       } else {
         rerender(mainContainer);
       }
@@ -190,8 +190,11 @@ function showDecoReward(card, deco) {
   el.style.left = (rect.left + rect.width / 2) + 'px';
   el.style.top = (rect.top + rect.height / 2) + 'px';
   document.body.appendChild(el);
-  requestAnimationFrame(() => el.classList.add('animate'));
-  setTimeout(() => el.remove(), 1800);
+  // Double rAF to ensure the browser has painted before animating
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => el.classList.add('animate'));
+  });
+  setTimeout(() => el.remove(), 2000);
 }
 
 async function rerender(container) {
