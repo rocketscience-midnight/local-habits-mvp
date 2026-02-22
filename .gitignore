@@ -5,3 +5,4 @@ swatches2.jpg
 *.json
 !manifest.json
 TESTS.md
+SECURITY.md
