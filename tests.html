@@ -227,9 +227,9 @@
 
     // ========== sanitize.js ==========
 
-    test('sanitize.js', 'escapes <script> tags', () => {
-      const result = escapeHtml('<script>alert("xss")</script>');
-      ok(!result.includes('<script>'), 'Should not contain raw script tag');
+    test('sanitize.js', 'escapes script tags', () => {
+      const result = escapeHtml('<scr' + 'ipt>alert("xss")<\/scr' + 'ipt>');
+      ok(!result.includes('<scr' + 'ipt>'), 'Should not contain raw script tag');
       ok(result.includes('&lt;'), 'Should contain &lt;');
     });
 
