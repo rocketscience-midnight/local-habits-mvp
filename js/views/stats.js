@@ -206,8 +206,8 @@ function renderHeatmap(stats) {
   startMonday.setDate(startMonday.getDate() - 11 * 7);
 
   let cells = '';
-  for (let row = 0; row < 7; row++) { // Mon=0, Tue=1, ..., Sun=6
-    for (let col = 0; col < 12; col++) {
+  for (let col = 0; col < 12; col++) { // weeks
+    for (let row = 0; row < 7; row++) { // Mon=0, Tue=1, ..., Sun=6
       const cellDate = new Date(startMonday);
       cellDate.setDate(cellDate.getDate() + col * 7 + row);
       const ds = cellDate.getFullYear() + '-' + String(cellDate.getMonth() + 1).padStart(2, '0') + '-' + String(cellDate.getDate()).padStart(2, '0');
