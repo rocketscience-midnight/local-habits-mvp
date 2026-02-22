@@ -34,6 +34,11 @@ const PLANT_PALETTES = {
   bush:      { stem: '#5A9B5A', leaf: '#7BC47B', bloom1: '#A8D8A8', bloom2: '#6BBF6B', bloom3: '#4A8F4A' },
   cherry:    { stem: '#9B7B5B', leaf: '#A8D8A8', bloom1: '#DDA0DD', bloom2: '#C77DC7', bloom3: '#8B5CF6' },
   mushroom:  { stem: '#D8C8B0', leaf: '#E8D8C0', bloom1: '#D88888', bloom2: '#C06060', bloom3: '#8B5CF6' },
+  grass:     { stem: '#7BC47B', leaf: '#A8D8A8', bloom1: '#8ED88E', bloom2: '#6BBF6B', bloom3: '#5A9B5A' },
+  clover:    { stem: '#5A9B5A', leaf: '#6BBF6B', bloom1: '#8ED88E', bloom2: '#A8D8A8', bloom3: '#E8F5E8' },
+  fern:      { stem: '#4A8F4A', leaf: '#6BBF6B', bloom1: '#7BC47B', bloom2: '#8ED88E', bloom3: '#A8D8A8' },
+  daisy:     { stem: '#6BBF6B', leaf: '#8ED88E', bloom1: '#FFFFFF', bloom2: '#F8D480', bloom3: '#FFE8B0' },
+  appletree: { stem: '#8B6B4B', leaf: '#7BC47B', bloom1: '#E06040', bloom2: '#CC4030', bloom3: '#6BBF6B' },
 };
 
 // ============================================================
@@ -168,9 +173,14 @@ function drawPlant(ctx, cx, cy, plantType, stage, animOffset, pixelSize = PIXEL,
 
   switch (plantType) {
     case 'tulip': drawTulip(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'daisy': drawTulip(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'sunflower': drawSunflower(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'bush': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'grass': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'clover': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'fern': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'cherry': drawCherry(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'appletree': drawCherry(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'mushroom': drawMushroom(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     default: drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop);
   }
@@ -356,13 +366,17 @@ export async function renderGarden(container) {
 
   const PLANT_NAMES = {
     bush: 'Busch', tulip: 'Tulpe', sunflower: 'Sonnenblume',
-    cherry: 'Kirschbaum', mushroom: 'Pilz'
+    cherry: 'Kirschbaum', mushroom: 'Pilz', grass: 'Gras',
+    clover: 'Klee', fern: 'Farn', daisy: 'Gänseblümchen',
+    appletree: 'Apfelbaum'
   };
   const ALL_COMBOS = [
     { type: 'bush', rarity: 'common' }, { type: 'mushroom', rarity: 'common' },
+    { type: 'grass', rarity: 'common' }, { type: 'clover', rarity: 'common' },
     { type: 'tulip', rarity: 'uncommon' }, { type: 'mushroom', rarity: 'uncommon' },
+    { type: 'fern', rarity: 'uncommon' }, { type: 'daisy', rarity: 'uncommon' },
     { type: 'sunflower', rarity: 'rare' }, { type: 'bush', rarity: 'rare' },
-    { type: 'cherry', rarity: 'epic' },
+    { type: 'cherry', rarity: 'epic' }, { type: 'appletree', rarity: 'epic' },
     { type: 'cherry', rarity: 'legendary' }, { type: 'sunflower', rarity: 'legendary' },
   ];
 

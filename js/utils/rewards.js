@@ -9,10 +9,10 @@ import { todayString, getWeekStart, isWeeklyHabit, getISOWeekKey } from './dates
 
 // Plant types available for each rarity
 const PLANT_TYPES_BY_RARITY = {
-  common:    ['bush', 'mushroom'],
-  uncommon:  ['tulip', 'mushroom'],
+  common:    ['bush', 'mushroom', 'grass', 'clover'],
+  uncommon:  ['tulip', 'mushroom', 'fern', 'daisy'],
   rare:      ['sunflower', 'bush'],
-  epic:      ['cherry'],
+  epic:      ['cherry', 'appletree'],
   legendary: ['cherry', 'sunflower'],
 };
 
