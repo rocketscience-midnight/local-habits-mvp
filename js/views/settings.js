@@ -32,10 +32,10 @@ export async function renderSettings(container) {
         <div class="sound-style-picker" id="sound-style-section">
           <span class="dark-mode-toggle-label" style="margin-bottom:8px;display:block;">🎵 Sound-Stil</span>
           <div class="sound-btn-row">
-            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'pling') === 'pling' ? 'active' : ''}" data-style="pling">✨ Pling</button>
-            <button class="btn btn-secondary sound-pick-btn ${localStorage.getItem('soundStyle') === 'xylophon' ? 'active' : ''}" data-style="xylophon">🪵 Xylophon</button>
-            <button class="btn btn-secondary sound-pick-btn ${localStorage.getItem('soundStyle') === 'tropfen' ? 'active' : ''}" data-style="tropfen">💧 Tropfen</button>
-            <button class="btn btn-secondary sound-pick-btn ${localStorage.getItem('soundStyle') === 'glockenspiel' ? 'active' : ''}" data-style="glockenspiel">🔔 Glockenspiel</button>
+            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'pling' ? 'active' : ''}" data-style="pling">✨ Pling</button>
+            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'xylophon' ? 'active' : ''}" data-style="xylophon">🪵 Xylophon</button>
+            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'tropfen' ? 'active' : ''}" data-style="tropfen">💧 Tropfen</button>
+            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'glockenspiel' ? 'active' : ''}" data-style="glockenspiel">🔔 Glockenspiel</button>
           </div>
         </div>
       </section>

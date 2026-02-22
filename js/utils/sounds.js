@@ -12,7 +12,7 @@ function getCtx() {
 
 /** Get current sound style from settings */
 function getStyle() {
-  return localStorage.getItem('soundStyle') || 'pling';
+  return localStorage.getItem('soundStyle') || 'glockenspiel';
 }
 
 /**
