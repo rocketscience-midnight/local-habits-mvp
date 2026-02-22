@@ -550,8 +550,7 @@ export async function renderGarden(container) {
             drawDecoPlaced(ctx, x, y, plant.plantType, animOff);
           } else {
             const stage = RARITY_TO_STAGE[plant.rarity] ?? plant.growthStage ?? 2;
-            const pxSize = (plant.rarity === 'legendary' && plant.plantType !== 'sunflower') ? PIXEL + 1 : PIXEL;
-            drawPlant(ctx, x, y, plant.plantType, stage, animOff, pxSize, c, r);
+            drawPlant(ctx, x, y, plant.plantType, stage, animOff, PIXEL, c, r);
           }
         } else {
           // Ground details on empty tiles

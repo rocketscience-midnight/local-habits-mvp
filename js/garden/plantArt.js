@@ -154,7 +154,7 @@ function drawPlant(ctx, cx, cy, plantType, stage, animOffset, pixelSize = PIXEL,
   const p = pixelSize;
 
   const bx = cx + sway;
-  const by = cy;
+  const by = cy + p * 2; // shift down so plants sit on the tile
 
   // Shadow
   const shadowW = p * (1.2 + stage * 0.8);
@@ -163,7 +163,7 @@ function drawPlant(ctx, cx, cy, plantType, stage, animOffset, pixelSize = PIXEL,
   ctx.globalAlpha = 0.18;
   ctx.fillStyle = '#2D2D2D';
   ctx.beginPath();
-  ctx.ellipse(bx + p / 2, by + p, shadowW, shadowH, 0, 0, Math.PI * 2);
+  ctx.ellipse(bx + p / 2, by, shadowW, shadowH, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
