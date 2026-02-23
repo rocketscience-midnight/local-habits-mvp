@@ -16,17 +16,13 @@ export async function renderSettings(container) {
       <div class="header-row"><h1 class="settings-title">Einstellungen</h1></div>
 
       <section class="settings-section">
-        <h2>Design</h2>
+        <h2>🎨 Aussehen & Klang</h2>
         <div class="theme-picker">
           <button class="theme-option ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">🌸 Dreamgarden</button>
           <button class="theme-option ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">🌙 Dunkel</button>
           <button class="theme-option ${currentTheme === 'midnightsky' ? 'active' : ''}" data-theme="midnightsky">🖤 Midnightsky</button>
         </div>
-      </section>
-
-      <section class="settings-section">
-        <h2>Darstellung</h2>
-        <div class="dark-mode-toggle">
+        <div class="dark-mode-toggle" style="margin-top:12px;">
           <span class="dark-mode-toggle-label">🔊 Sound-Effekte</span>
           <label class="toggle-switch">
             <input type="checkbox" id="sound-checkbox" ${localStorage.getItem('sound') !== 'off' ? 'checked' : ''}>
@@ -45,19 +41,17 @@ export async function renderSettings(container) {
       </section>
 
       <section class="settings-section">
-        <h2>Entwickler</h2>
-        <button id="show-onboarding-btn" class="garden-debug-btn" style="margin-bottom:8px;width:100%;">📖 Onboarding anzeigen</button>
-        <div class="dark-mode-toggle">
-          <span class="dark-mode-toggle-label">🐛 Debug-Modus</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="debug-checkbox" ${localStorage.getItem('debug') !== '0' ? 'checked' : ''}>
-            <span class="toggle-slider"></span>
-          </label>
+        <h2>💾 Daten</h2>
+        <div class="data-buttons">
+          <button class="btn btn-secondary" id="export-btn">📤 Daten exportieren</button>
+          <button class="btn btn-secondary" id="import-btn">📥 Daten importieren</button>
+          <button class="btn btn-secondary" id="clear-cache-btn">🔄 Cache leeren & neu laden</button>
         </div>
+        <input type="file" id="import-file" accept=".json" style="display:none">
       </section>
 
       <section class="settings-section">
-        <h2>Demo</h2>
+        <h2>🛠 Erweitert</h2>
         <div class="dark-mode-toggle">
           <span class="dark-mode-toggle-label">🎭 Demo-Modus</span>
           <label class="toggle-switch">
@@ -65,17 +59,15 @@ export async function renderSettings(container) {
             <span class="toggle-slider"></span>
           </label>
         </div>
-        <p style="font-size:12px;color:#8A8A8A;margin:4px 0 0 0;">Lädt Beispieldaten zum Ausprobieren der App.</p>
-      </section>
-
-      <section class="settings-section">
-        <h2>Daten</h2>
-        <div class="data-buttons">
-          <button class="btn btn-secondary" id="export-btn">📤 Daten exportieren</button>
-          <button class="btn btn-secondary" id="import-btn">📥 Daten importieren</button>
-          <button class="btn btn-secondary" id="clear-cache-btn">🔄 Cache leeren & neu laden</button>
+        <p style="font-size:12px;color:#8A8A8A;margin:4px 0 12px 0;">Lädt Beispieldaten zum Ausprobieren der App.</p>
+        <button id="show-onboarding-btn" class="btn btn-secondary" style="width:100%;margin-bottom:8px;">📖 Onboarding anzeigen</button>
+        <div class="dark-mode-toggle">
+          <span class="dark-mode-toggle-label">🐛 Debug-Modus</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="debug-checkbox" ${localStorage.getItem('debug') !== '0' ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <input type="file" id="import-file" accept=".json" style="display:none">
       </section>
     </div>
   `;
