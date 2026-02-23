@@ -431,3 +431,129 @@
 [data-theme="dark"] .inventory-empty {
   color: #A0A0B0;
 }
+
+/* ========== Garden Midnightsky Mode ========== */
+
+/* Base overrides for hardcoded light colors */
+[data-theme="midnightsky"] .garden-debug-btn {
+  background: #111111;
+  border-color: #FF575A;
+  color: #FF575A;
+}
+
+[data-theme="midnightsky"] .garden-debug-btn:active {
+  background: #FF575A;
+  color: #F9F8F2;
+}
+
+[data-theme="midnightsky"] .garden-placement-indicator {
+  background: rgba(255, 87, 90, 0.12);
+  border-top-color: #FF575A;
+}
+
+[data-theme="midnightsky"] .placement-text {
+  color: #FF575A;
+}
+
+[data-theme="midnightsky"] .placement-cancel-btn {
+  background: #111111;
+  border-color: #E84545;
+  color: #E84545;
+}
+
+[data-theme="midnightsky"] .garden-tooltip {
+  background: rgba(17, 17, 17, 0.96);
+  border-color: #FF575A;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="midnightsky"] .garden-tooltip-name {
+  color: #F9F8F2;
+}
+
+[data-theme="midnightsky"] .garden-tooltip-rarity {
+  color: #FF575A;
+}
+
+[data-theme="midnightsky"] .garden-tooltip-detail {
+  color: #8A8A8A;
+}
+
+[data-theme="midnightsky"] .garden-tooltip-remove-btn {
+  background: #0A0A0A;
+  border-color: #E84545;
+  color: #E84545;
+}
+
+[data-theme="midnightsky"] .garden-empty {
+  color: #8A8A8A;
+}
+
+[data-theme="midnightsky"] .garden-inventory {
+  background: rgba(10, 10, 10, 0.95);
+  border-top-color: #1A1A1A;
+}
+
+[data-theme="midnightsky"] .garden-inventory-title {
+  color: #F9F8F2;
+}
+
+[data-theme="midnightsky"] .inventory-empty {
+  color: #8A8A8A;
+}
+
+[data-theme="midnightsky"] .inventory-item {
+  background: #111111;
+}
+
+[data-theme="midnightsky"] .inventory-item:active,
+[data-theme="midnightsky"] .inventory-item.selected {
+  border-color: #FF575A;
+  background: #340A22;
+}
+
+[data-theme="midnightsky"] .reward-popup-title {
+  color: #F9F8F2;
+}
+
+[data-theme="midnightsky"] .reward-item {
+  background: #111111;
+}
+
+[data-theme="midnightsky"] .reward-name {
+  color: #F9F8F2;
+}
+
+[data-theme="midnightsky"] .reward-rarity {
+  color: #FF575A;
+}
+
+[data-theme="midnightsky"] .reward-habit {
+  color: #8A8A8A;
+}
+
+[data-theme="midnightsky"] .garden-collection-title {
+  color: #F9F8F2;
+}
+
+[data-theme="midnightsky"] .collection-item {
+  background: rgba(17, 17, 17, 0.8);
+  border-color: #1A1A1A;
+}
+
+[data-theme="midnightsky"] .collection-item.locked {
+  background: rgba(17, 17, 17, 0.3);
+  border-color: #1A1A1A;
+}
+
+[data-theme="midnightsky"] .collection-item-label {
+  color: #F9F8F2;
+}
+
+[data-theme="midnightsky"] .collection-item.locked .collection-item-label {
+  color: #555;
+}
+
+[data-theme="midnightsky"] .garden-title {
+  color: #F9F8F2;
+}
