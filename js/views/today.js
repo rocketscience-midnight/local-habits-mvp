@@ -336,9 +336,15 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
   });
 
   // Tap to increment/toggle
+  let isProcessing = false;
   card.addEventListener('click', async (e) => {
-    if (didLongPress) return;
-    await handleHabitToggle(habit, card, mainContainer);
+    if (didLongPress || isProcessing) return;
+    isProcessing = true;
+    try {
+      await handleHabitToggle(habit, card, mainContainer);
+    } finally {
+      isProcessing = false;
+    }
   });
 
   return card;
