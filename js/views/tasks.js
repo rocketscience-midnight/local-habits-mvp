@@ -143,8 +143,9 @@ function createTaskCard(task, completions, period, mainContainer) {
   `;
 
   card.addEventListener('click', async (e) => {
+    const currentlyCompleted = card.classList.contains('completed');
 
-    if (isCompleted) {
+    if (currentlyCompleted) {
       await taskRepo.uncompleteTask(task.id, period);
       // Targeted: move card back to difficulty group
       card.classList.remove('completed');
