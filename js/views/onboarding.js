@@ -2,6 +2,8 @@
  * Onboarding screen – shown on first app launch
  */
 import habitRepo from '../repo/habitRepo.js';
+import gardenRepo from '../repo/gardenRepo.js';
+import taskRepo from '../repo/taskRepo.js';
 
 const ONBOARDING_KEY = 'onboarding-done';
 
@@ -45,7 +47,7 @@ export async function showOnboarding() {
 
     overlay.querySelector('#onboarding-go').addEventListener('click', async () => {
       // Add starter orchid
-      await habitRepo.addGardenPlant({
+      await gardenRepo.addGardenPlant({
         plantType: 'orchid',
         rarity: 'uncommon',
         growthStage: 2,
@@ -74,13 +76,13 @@ export async function showOnboarding() {
       });
 
       // Add starter tasks
-      await habitRepo.saveTask({
+      await taskRepo.saveTask({
         name: 'Staubsaugen',
         emoji: '🧹',
         frequency: 'weekly',
         difficulty: 'medium',
       });
-      await habitRepo.saveTask({
+      await taskRepo.saveTask({
         name: 'Die erste Pflanze in den Garten pflanzen',
         emoji: '🌱',
         frequency: 'weekly',

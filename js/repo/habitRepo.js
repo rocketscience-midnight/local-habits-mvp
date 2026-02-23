@@ -1,90 +1,11 @@
 /**
- * Habit Repository - Data access layer using Dexie.js (IndexedDB)
- * v5: garden plants as collectible rewards (collect & place model)
+ * Habit Repository - Habits, Completions, Weekly Focus, and data export/import
  */
 
-import Dexie from 'https://unpkg.com/dexie@4.0.11/dist/dexie.mjs';
+import db, { uuid } from './db.js';
 import { todayString, calculateStreak, calculateBestStreak } from '../utils/dates.js';
 
-const db = new Dexie('LocalHabitsDB');
-
-// v1 original schema
-db.version(1).stores({
-  habits: 'id, name, order, createdAt',
-  completions: 'id, habitId, date, [habitId+date]'
-});
-
-// v2: add targetPerDay and timeOfDay
-db.version(2).stores({
-  habits: 'id, name, order, createdAt',
-  completions: 'id, habitId, date, [habitId+date]'
-}).upgrade(tx => {
-  return tx.table('habits').toCollection().modify(habit => {
-    if (!habit.targetPerDay) habit.targetPerDay = 1;
-    if (!habit.timeOfDay) habit.timeOfDay = 'anytime';
-  });
-});
-
-// v3: migrate frequency arrays to { type: 'weekly', timesPerWeek: N }
-db.version(3).stores({
-  habits: 'id, name, order, createdAt',
-  completions: 'id, habitId, date, [habitId+date]'
-}).upgrade(tx => {
-  return tx.table('habits').toCollection().modify(habit => {
-    if (Array.isArray(habit.frequency)) {
-      habit.frequency = { type: 'weekly', timesPerWeek: habit.frequency.length || 3 };
-    }
-  });
-});
-
-// v4: (dead migration removed - v5 deletes plantType anyway)
-db.version(4).stores({
-  habits: 'id, name, order, createdAt',
-  completions: 'id, habitId, date, [habitId+date]'
-});
-
-// v5: add gardenPlants table, remove plantType from habits
-db.version(5).stores({
-  habits: 'id, name, order, createdAt',
-  completions: 'id, habitId, date, [habitId+date]',
-  gardenPlants: 'id, habitId, weekEarned, placed, [habitId+weekEarned]'
-}).upgrade(tx => {
-  // Remove plantType from habits (Dexie keeps extra props, just clean up)
-  return tx.table('habits').toCollection().modify(habit => {
-    delete habit.plantType;
-  });
-});
-
-// v6: add weeklyFocus table
-db.version(6).stores({
-  habits: 'id, name, order, createdAt',
-  completions: 'id, habitId, date, [habitId+date]',
-  gardenPlants: 'id, habitId, weekEarned, placed, [habitId+weekEarned]',
-  weeklyFocus: 'id, weekKey'
-});
-
-// v7: add tasks and taskCompletions tables
-db.version(7).stores({
-  habits: 'id, name, order, createdAt',
-  completions: 'id, habitId, date, [habitId+date]',
-  gardenPlants: 'id, habitId, weekEarned, placed, [habitId+weekEarned]',
-  weeklyFocus: 'id, weekKey',
-  tasks: 'id, name, frequency, difficulty, order, createdAt',
-  taskCompletions: 'id, taskId, period'
-});
-
-function uuid() {
-  return crypto.randomUUID?.() ||
-    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = Math.random() * 16 | 0;
-      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
-}
-
 const habitRepo = {
-  /** Direct access to gardenPlants table */
-  gardenPlants: db.gardenPlants,
-
   async getAll() {
     return db.habits.orderBy('order').toArray();
   },
@@ -102,7 +23,6 @@ const habitRepo = {
     }
     if (!habit.targetPerDay) habit.targetPerDay = 1;
     if (!habit.timeOfDay) habit.timeOfDay = 'anytime';
-    // No more plantType assignment
     await db.habits.put(habit);
     return habit;
   },
@@ -171,55 +91,6 @@ const habitRepo = {
     return calculateBestStreak(dates, habit);
   },
 
-  // === Garden Plant methods ===
-
-  async getAllGardenPlants() {
-    return db.gardenPlants.toArray();
-  },
-
-  async getUnplacedPlants() {
-    return db.gardenPlants.where('placed').equals(0).toArray();
-  },
-
-  async getPlacedPlants() {
-    return db.gardenPlants.where('placed').equals(1).toArray();
-  },
-
-  async addGardenPlant(plant) {
-    plant.id = uuid();
-    await db.gardenPlants.put(plant);
-    return plant;
-  },
-
-  async placePlant(plantId, gridCol, gridRow) {
-    // Prevent placing on occupied tile
-    const all = await db.gardenPlants.where('placed').equals(1).toArray();
-    const occupied = all.some(p => p.gridCol === gridCol && p.gridRow === gridRow);
-    if (occupied) return false;
-    await db.gardenPlants.update(plantId, {
-      placed: 1,
-      gridCol,
-      gridRow
-    });
-    return true;
-  },
-
-  async clearAllPlants() {
-    await db.gardenPlants.clear();
-  },
-
-  async unplacePlant(plantId) {
-    await db.gardenPlants.update(plantId, {
-      placed: 0,
-      gridCol: null,
-      gridRow: null
-    });
-  },
-
-  async getPlantByHabitAndWeek(habitId, weekEarned) {
-    return db.gardenPlants.where({ habitId, weekEarned }).first();
-  },
-
   // === Weekly Focus methods ===
 
   async getWeeklyFocus(weekKey) {
@@ -239,50 +110,7 @@ const habitRepo = {
     return db.weeklyFocus.toArray();
   },
 
-  // === Task methods ===
-
-  async getAllTasks() {
-    return db.tasks.orderBy('order').toArray();
-  },
-
-  async saveTask(task) {
-    if (!task.id) {
-      task.id = uuid();
-      task.createdAt = new Date().toISOString();
-      const count = await db.tasks.count();
-      task.order = count;
-    }
-    await db.tasks.put(task);
-    return task;
-  },
-
-  async deleteTask(id) {
-    await db.taskCompletions.where('taskId').equals(id).delete();
-    await db.tasks.delete(id);
-  },
-
-  async getTaskCompletions(period) {
-    return db.taskCompletions.where('period').equals(period).toArray();
-  },
-
-  async completeTask(taskId, period) {
-    await db.taskCompletions.put({
-      id: uuid(),
-      taskId,
-      period,
-      completedAt: new Date().toISOString()
-    });
-  },
-
-  async uncompleteTask(taskId, period) {
-    const comps = await db.taskCompletions
-      .where('taskId').equals(taskId)
-      .filter(c => c.period === period)
-      .toArray();
-    if (comps.length > 0) {
-      await db.taskCompletions.delete(comps[comps.length - 1].id);
-    }
-  },
+  // === Export / Import (all tables!) ===
 
   async exportData() {
     const habits = await db.habits.toArray();

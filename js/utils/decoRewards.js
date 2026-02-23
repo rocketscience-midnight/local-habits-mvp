@@ -1,7 +1,7 @@
 /**
  * Decoration rewards for completing medium/hard tasks
  */
-import habitRepo from '../repo/habitRepo.js';
+import gardenRepo from '../repo/gardenRepo.js';
 
 const MEDIUM_DECOS = [
   { type: 'pond_small', name: 'Kleiner Teich', emoji: '🪷' },
@@ -56,6 +56,6 @@ export async function awardDeco(task) {
     gridRow: null,
   };
 
-  await habitRepo.addGardenPlant(plant);
+  await gardenRepo.addGardenPlant(plant);
   return deco;
 }

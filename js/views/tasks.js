@@ -2,7 +2,7 @@
  * Tasks View - Recurring household todos grouped by frequency
  */
 
-import habitRepo from '../repo/habitRepo.js';
+import taskRepo from '../repo/taskRepo.js';
 import { getCurrentPeriod, isTaskOverdue, getOverdueDays } from '../utils/dates.js';
 import { showTaskForm } from './taskForm.js';
 import { escapeHtml } from '../utils/sanitize.js';
@@ -10,6 +10,7 @@ import { showHelp } from './help.js';
 import { awardDeco } from '../utils/decoRewards.js';
 import { playPling } from '../utils/sounds.js';
 import { burstConfetti } from '../utils/confetti.js';
+import { createFAB } from '../components/fab.js';
 
 const FREQUENCY_GROUPS = [
   { key: 'once', label: 'Einmalig' },
@@ -22,7 +23,7 @@ const FREQUENCY_GROUPS = [
 const DIFFICULTY_DOT = { easy: '🟢', medium: '🟡', hard: '🔴' };
 
 export async function renderTasks(container) {
-  const tasks = await habitRepo.getAllTasks();
+  const tasks = await taskRepo.getAllTasks();
 
   // Header
   const header = document.createElement('div');
@@ -36,7 +37,7 @@ export async function renderTasks(container) {
   const allCompletions = {};
   for (const fg of FREQUENCY_GROUPS) {
     periods[fg.key] = getCurrentPeriod(fg.key);
-    const comps = await habitRepo.getTaskCompletions(periods[fg.key]);
+    const comps = await taskRepo.getTaskCompletions(periods[fg.key]);
     for (const c of comps) {
       if (!allCompletions[c.taskId]) allCompletions[c.taskId] = [];
       allCompletions[c.taskId].push(c);
@@ -112,10 +113,10 @@ function createTaskCard(task, completions, period, mainContainer) {
   card.addEventListener('click', async (e) => {
 
     if (isCompleted) {
-      await habitRepo.uncompleteTask(task.id, period);
+      await taskRepo.uncompleteTask(task.id, period);
       rerender(mainContainer);
     } else {
-      await habitRepo.completeTask(task.id, period);
+      await taskRepo.completeTask(task.id, period);
       // Instant visual feedback
       const check = card.querySelector('.task-check');
       if (check) { check.classList.add('checked'); check.textContent = '✓'; }
@@ -149,25 +150,11 @@ function createTaskCard(task, completions, period, mainContainer) {
 }
 
 function addTaskFAB(container) {
-  // Remove any existing FAB first
-  document.querySelector('.fab')?.remove();
-
-  const fab = document.createElement('button');
-  fab.className = 'fab';
-  fab.setAttribute('aria-label', 'Neue Aufgabe erstellen');
-  fab.textContent = '+';
-  fab.addEventListener('click', () => {
-    showTaskForm(null, () => rerender(container));
+  createFAB({
+    container,
+    label: 'Neue Aufgabe erstellen',
+    onClick: () => showTaskForm(null, () => rerender(container)),
   });
-  document.body.appendChild(fab);
-
-  const observer = new MutationObserver(() => {
-    if (!document.body.contains(container) || container.innerHTML === '') {
-      fab.remove();
-      observer.disconnect();
-    }
-  });
-  observer.observe(container, { childList: true });
 }
 
 function showDecoReward(card, deco) {

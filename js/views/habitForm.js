@@ -7,16 +7,8 @@
 import habitRepo from '../repo/habitRepo.js';
 import { isWeeklyHabit } from '../utils/dates.js';
 import { escapeHtml } from '../utils/sanitize.js';
-
-/** Curated emoji grid organized by category */
-const EMOJI_CATEGORIES = [
-  { name: 'Fitness', emojis: ['💪', '🏃', '🚴', '🏊', '🧘', '⚽', '🎾', '🏋️', '🤸', '🚶'] },
-  { name: 'Essen', emojis: ['💧', '🥗', '🍎', '🥦', '🍳', '☕', '🫖', '🥤', '🧃', '🍌'] },
-  { name: 'Geist', emojis: ['📚', '🧠', '✍️', '📝', '🎵', '🎨', '🙏', '😴', '🧘', '💭'] },
-  { name: 'Arbeit', emojis: ['💻', '📧', '📊', '🎯', '⏰', '📅', '✅', '📞', '🗂️', '💡'] },
-  { name: 'Zuhause', emojis: ['🧹', '🛏️', '🪴', '🍳', '👕', '🗑️', '🐕', '🐈', '🧺', '🪥'] },
-  { name: 'Natur', emojis: ['🌿', '🌻', '☀️', '🌲', '🦋', '🌈', '🍃', '🌊', '🐦', '⭐'] },
-];
+import { createModal } from '../components/modal.js';
+import { HABIT_EMOJI_CATEGORIES, renderEmojiPickerHTML, attachEmojiPickerHandlers } from '../components/emojiPicker.js';
 
 /** Time-of-day options */
 const TIME_OPTIONS = [
@@ -39,58 +31,45 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
   const isWeekly = isWeeklyHabit(habit);
   const timesPerWeek = isWeekly ? habit.frequency.timesPerWeek : (habit.timesPerWeek || 7);
 
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal">
-      <h2>${editId ? 'Gewohnheit bearbeiten' : 'Neue Gewohnheit'}</h2>
+  const html = `
+    <h2>${editId ? 'Gewohnheit bearbeiten' : 'Neue Gewohnheit'}</h2>
 
-      <label class="form-label">Emoji wählen</label>
-      <div class="emoji-picker-categories" id="emoji-picker">
-        ${EMOJI_CATEGORIES.map(cat => `
-          <div class="emoji-cat">
-            <div class="emoji-cat-label">${cat.name}</div>
-            <div class="emoji-cat-grid">
-              ${cat.emojis.map(e => `
-                <button type="button" class="emoji-btn ${e === habit.emoji ? 'selected' : ''}" data-emoji="${e}">${e}</button>
-              `).join('')}
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      <label class="form-label">Name</label>
-      <input type="text" class="form-input" id="habit-name" value="${escapeHtml(habit.name)}" placeholder="z.B. Meditation" maxlength="50">
+    <label class="form-label">Emoji wählen</label>
+    <div class="emoji-picker-categories" id="emoji-picker">
+      ${renderEmojiPickerHTML(HABIT_EMOJI_CATEGORIES, habit.emoji)}
+    </div>
+    <label class="form-label">Name</label>
+    <input type="text" class="form-input" id="habit-name" value="${escapeHtml(habit.name)}" placeholder="z.B. Meditation" maxlength="50">
 
-      <label class="form-label">Tageszeit</label>
-      <div class="time-picker">
-        ${TIME_OPTIONS.map(opt => `
-          <button type="button" class="btn time-btn ${(habit.timeOfDay || 'anytime') === opt.value ? 'active' : ''}" data-time="${opt.value}">${opt.label}</button>
-        `).join('')}
-      </div>
+    <label class="form-label">Tageszeit</label>
+    <div class="time-picker">
+      ${TIME_OPTIONS.map(opt => `
+        <button type="button" class="btn time-btn ${(habit.timeOfDay || 'anytime') === opt.value ? 'active' : ''}" data-time="${opt.value}">${opt.label}</button>
+      `).join('')}
+    </div>
 
-      <label class="form-label">Wie oft pro Tag?</label>
-      <div class="target-picker">
-        <button type="button" class="btn-icon target-dec" aria-label="Weniger">−</button>
-        <span class="target-value" id="target-value">${habit.targetPerDay || 1}×</span>
-        <button type="button" class="btn-icon target-inc" aria-label="Mehr">+</button>
-      </div>
+    <label class="form-label">Wie oft pro Tag?</label>
+    <div class="target-picker">
+      <button type="button" class="btn-icon target-dec" aria-label="Weniger">−</button>
+      <span class="target-value" id="target-value">${habit.targetPerDay || 1}×</span>
+      <button type="button" class="btn-icon target-inc" aria-label="Mehr">+</button>
+    </div>
 
-      <label class="form-label">Wie oft pro Woche?</label>
-      <div class="target-picker">
-        <button type="button" class="btn-icon weekly-dec" aria-label="Weniger">−</button>
-        <span class="target-value" id="weekly-value">${timesPerWeek}×</span>
-        <button type="button" class="btn-icon weekly-inc" aria-label="Mehr">+</button>
-      </div>
+    <label class="form-label">Wie oft pro Woche?</label>
+    <div class="target-picker">
+      <button type="button" class="btn-icon weekly-dec" aria-label="Weniger">−</button>
+      <span class="target-value" id="weekly-value">${timesPerWeek}×</span>
+      <button type="button" class="btn-icon weekly-inc" aria-label="Mehr">+</button>
+    </div>
 
-      <div class="modal-actions">
-        ${editId ? '<button class="btn btn-danger" id="delete-btn">🗑️ Löschen</button>' : ''}
-        <button class="btn btn-secondary" id="cancel-btn">Abbrechen</button>
-        <button class="btn btn-primary" id="save-btn">Speichern</button>
-      </div>
+    <div class="modal-actions">
+      ${editId ? '<button class="btn btn-danger" id="delete-btn">🗑️ Löschen</button>' : ''}
+      <button class="btn btn-secondary" id="cancel-btn">Abbrechen</button>
+      <button class="btn btn-primary" id="save-btn">Speichern</button>
     </div>
   `;
 
-  document.body.appendChild(overlay);
+  const { overlay, close } = createModal(html);
 
   // State
   let currentEmoji = habit.emoji;
@@ -99,18 +78,10 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
   let timeOfDay = habit.timeOfDay || 'anytime';
 
   // Emoji picker
-  overlay.querySelectorAll('.emoji-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      overlay.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      currentEmoji = btn.dataset.emoji;
-      // emoji input removed, value tracked in currentEmoji
-      // Auto-focus name field after emoji selection
-      overlay.querySelector('#habit-name').focus();
-    });
+  attachEmojiPickerHandlers(overlay.querySelector('#emoji-picker'), (emoji) => {
+    currentEmoji = emoji;
+    overlay.querySelector('#habit-name').focus();
   });
-
-  // Custom emoji input removed - using grid picker only
 
   // Time-of-day picker
   overlay.querySelectorAll('.time-btn').forEach(btn => {
@@ -149,16 +120,15 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
     }
   });
 
-  // Cancel / backdrop
-  overlay.querySelector('#cancel-btn').addEventListener('click', () => overlay.remove());
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  // Cancel
+  overlay.querySelector('#cancel-btn').addEventListener('click', close);
 
   // Delete
   if (editId) {
     overlay.querySelector('#delete-btn').addEventListener('click', async () => {
       if (confirm('Gewohnheit wirklich löschen? Alle Daten gehen verloren.')) {
         await habitRepo.delete(editId);
-        overlay.remove();
+        close();
         onDone();
       }
     });
@@ -179,9 +149,7 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
     };
 
     await habitRepo.save(toSave);
-    overlay.remove();
+    close();
     onDone();
   });
-
-  // Don't auto-focus name - user should pick emoji first
 }

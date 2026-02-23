@@ -2,7 +2,7 @@
  * Service Worker - Offline cache for all app files
  */
 
-const CACHE_NAME = 'local-habits-v30';
+const CACHE_NAME = 'local-habits-v31';
 const DEXIE_URL = 'https://unpkg.com/dexie@4.0.11/dist/dexie.mjs';
 const ASSETS = [
   './',
@@ -12,7 +12,13 @@ const ASSETS = [
   './css/garden.css',
   './js/app.js',
   './js/router.js',
+  './js/repo/db.js',
   './js/repo/habitRepo.js',
+  './js/repo/gardenRepo.js',
+  './js/repo/taskRepo.js',
+  './js/components/fab.js',
+  './js/components/modal.js',
+  './js/components/emojiPicker.js',
   './js/views/today.js',
   './js/views/garden.js',
   './js/views/stats.js',
@@ -26,6 +32,8 @@ const ASSETS = [
   './js/views/taskForm.js',
   './js/views/onboarding.js',
   './js/views/help.js',
+  './js/views/gardenRenderer.js',
+  './js/views/gardenInventory.js',
   './js/views/weeklyFocus.js',
   './js/utils/decoRewards.js',
   './js/utils/sounds.js',

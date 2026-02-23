@@ -5,6 +5,7 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
+import gardenRepo from '../repo/gardenRepo.js';
 import { todayString, getWeekStart, isWeeklyHabit, getISOWeekKey } from './dates.js';
 
 // Plant types available for each rarity
@@ -140,7 +141,7 @@ export async function checkWeeklyRewards() {
 
   for (const habit of habits) {
     // Check if we already awarded a plant for this habit+week
-    const existing = await habitRepo.getPlantByHabitAndWeek(habit.id, lastWeekISO);
+    const existing = await gardenRepo.getPlantByHabitAndWeek(habit.id, lastWeekISO);
     if (existing) continue;
 
     // Get all completions for this habit
@@ -171,7 +172,7 @@ export async function checkWeeklyRewards() {
     const rarity = streakWeeksToRarity(streakWeeks);
     const plantType = pickPlantType(rarity);
 
-    const plant = await habitRepo.addGardenPlant({
+    const plant = await gardenRepo.addGardenPlant({
       plantType,
       rarity,
       growthStage: RARITY_TO_STAGE[rarity],
@@ -198,7 +199,7 @@ export async function addTestPlant() {
   const plantType = pickPlantType(rarity);
   const weekISO = getISOWeekKey(todayString());
 
-  return habitRepo.addGardenPlant({
+  return gardenRepo.addGardenPlant({
     plantType,
     rarity,
     growthStage: RARITY_TO_STAGE[rarity],
