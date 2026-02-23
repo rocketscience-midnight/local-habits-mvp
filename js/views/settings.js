@@ -41,6 +41,17 @@ export async function renderSettings(container) {
       </section>
 
       <section class="settings-section">
+        <h2>Entwickler</h2>
+        <div class="dark-mode-toggle">
+          <span class="dark-mode-toggle-label">🐛 Debug-Modus</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="debug-checkbox" ${localStorage.getItem('debug') !== '0' ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-section">
         <h2>Daten</h2>
         <div class="data-buttons">
           <button class="btn btn-secondary" id="export-btn">📤 Daten exportieren</button>
@@ -70,6 +81,11 @@ export async function renderSettings(container) {
       playSound(style, 'small');
       setTimeout(() => playSound(style, 'big'), 400);
     });
+  });
+
+  // Debug toggle
+  container.querySelector('#debug-checkbox').addEventListener('change', (e) => {
+    localStorage.setItem('debug', e.target.checked ? '1' : '0');
   });
 
   // Dark mode toggle

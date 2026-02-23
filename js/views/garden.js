@@ -70,49 +70,51 @@ export async function renderGarden(container) {
   title.querySelector('.help-btn').addEventListener('click', showHelp);
   screen.appendChild(title);
 
-  // Debug button
-  const debugWrap = document.createElement('div');
-  debugWrap.style.cssText = 'display:flex;gap:8px;justify-content:center;margin-bottom:8px;';
+  // Debug buttons (only visible when debug mode is enabled in settings)
+  if (localStorage.getItem('debug') !== '0') {
+    const debugWrap = document.createElement('div');
+    debugWrap.style.cssText = 'display:flex;gap:8px;justify-content:center;margin-bottom:8px;';
 
-  const debugBtn = document.createElement('button');
-  debugBtn.className = 'garden-debug-btn';
-  debugBtn.textContent = '🎁 Test-Pflanze';
-  debugBtn.addEventListener('click', async () => {
-    await addTestPlant();
-    renderGarden(container);
-  });
-  debugWrap.appendChild(debugBtn);
+    const debugBtn = document.createElement('button');
+    debugBtn.className = 'garden-debug-btn';
+    debugBtn.textContent = '🎁 Test-Pflanze';
+    debugBtn.addEventListener('click', async () => {
+      await addTestPlant();
+      renderGarden(container);
+    });
+    debugWrap.appendChild(debugBtn);
 
-  const clearBtn = document.createElement('button');
-  clearBtn.className = 'garden-debug-btn';
-  clearBtn.style.background = '#4A1020';
-  clearBtn.textContent = '🗑️ Alle Pflanzen löschen';
-  clearBtn.addEventListener('click', async () => {
-    if (!confirm('Wirklich ALLE Pflanzen löschen?')) return;
-    await habitRepo.clearAllPlants();
-    renderGarden(container);
-  });
-  debugWrap.appendChild(clearBtn);
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'garden-debug-btn';
+    clearBtn.style.background = '#4A1020';
+    clearBtn.textContent = '🗑️ Alle Pflanzen löschen';
+    clearBtn.addEventListener('click', async () => {
+      if (!confirm('Wirklich ALLE Pflanzen löschen?')) return;
+      await habitRepo.clearAllPlants();
+      renderGarden(container);
+    });
+    debugWrap.appendChild(clearBtn);
 
-  const carrotBtn = document.createElement('button');
-  carrotBtn.className = 'garden-debug-btn';
-  carrotBtn.style.background = '#6B3B10';
-  carrotBtn.textContent = '🥕 Test-Gemüse';
-  carrotBtn.addEventListener('click', async () => {
-    const types = ['carrot', 'karotte', 'mohrruebe'];
-    const names = ['Möhre', 'Karotte', 'Mohrrübe'];
-    for (let i = 0; i < 3; i++) {
-      await habitRepo.addGardenPlant({
-        plantType: types[i], rarity: 'uncommon', growthStage: 1,
-        itemType: 'deco', habitId: 'debug-' + types[i], habitName: names[i],
-        weekEarned: new Date().toISOString().slice(0, 10), placed: 0, gridCol: null, gridRow: null,
-      });
-    }
-    renderGarden(container);
-  });
-  debugWrap.appendChild(carrotBtn);
+    const carrotBtn = document.createElement('button');
+    carrotBtn.className = 'garden-debug-btn';
+    carrotBtn.style.background = '#6B3B10';
+    carrotBtn.textContent = '🥕 Test-Gemüse';
+    carrotBtn.addEventListener('click', async () => {
+      const types = ['carrot', 'karotte', 'mohrruebe'];
+      const names = ['Möhre', 'Karotte', 'Mohrrübe'];
+      for (let i = 0; i < 3; i++) {
+        await habitRepo.addGardenPlant({
+          plantType: types[i], rarity: 'uncommon', growthStage: 1,
+          itemType: 'deco', habitId: 'debug-' + types[i], habitName: names[i],
+          weekEarned: new Date().toISOString().slice(0, 10), placed: 0, gridCol: null, gridRow: null,
+        });
+      }
+      renderGarden(container);
+    });
+    debugWrap.appendChild(carrotBtn);
 
-  screen.appendChild(debugWrap);
+    screen.appendChild(debugWrap);
+  }
 
   // State
   let placementMode = null; // GardenPlant being placed, or null
@@ -743,7 +745,7 @@ function showRewardPopup(plants, onClose) {
       <div class="reward-popup-list">
         ${plants.map(p => {
           const color = RARITY_COLORS[p.rarity] || '#8ED88E';
-          const emoji = p.plantType === 'cherry' ? '🌸' : p.plantType === 'sunflower' ? '🌻' : p.plantType === 'tulip' ? '🌷' : p.plantType === 'mushroom' ? '🍄' : '🌿';
+          const emoji = PLANT_EMOJIS[p.plantType] || '🌿';
           return `<div class="reward-item">
             <span class="reward-emoji">${emoji}</span>
             <div class="reward-info">

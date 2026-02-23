@@ -2,8 +2,8 @@
  * Service Worker - Offline cache for all app files
  */
 
-const CACHE_NAME = 'local-habits-v27';
-const DEXIE_URL = 'https://unpkg.com/dexie/dist/dexie.mjs';
+const CACHE_NAME = 'local-habits-v28';
+const DEXIE_URL = 'https://unpkg.com/dexie@4.0.11/dist/dexie.mjs';
 const ASSETS = [
   './',
   './index.html',
@@ -26,6 +26,7 @@ const ASSETS = [
   './js/views/taskForm.js',
   './js/views/onboarding.js',
   './js/views/help.js',
+  './js/views/weeklyFocus.js',
   './js/utils/decoRewards.js',
   './js/utils/sounds.js',
   './js/garden/plantArt.js',
@@ -58,12 +59,22 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch: cache-first, fallback to network
+// Fetch: stale-while-revalidate
+// Serve cached version immediately, update cache in background
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request))
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request).then(response => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => cached);
+
+      return cached || fetchPromise;
+    })
   );
 });

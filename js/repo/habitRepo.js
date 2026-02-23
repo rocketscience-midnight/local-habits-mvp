@@ -3,7 +3,7 @@
  * v5: garden plants as collectible rewards (collect & place model)
  */
 
-import Dexie from 'https://unpkg.com/dexie/dist/dexie.mjs';
+import Dexie from 'https://unpkg.com/dexie@4.0.11/dist/dexie.mjs';
 import { todayString, calculateStreak, calculateBestStreak } from '../utils/dates.js';
 
 const db = new Dexie('LocalHabitsDB');

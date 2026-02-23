@@ -4,12 +4,13 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
-import { todayString, isHabitDueToday, isWeeklyHabit, getWeeklyCompletionCount, getISOWeekKey } from '../utils/dates.js';
+import { todayString, isHabitDueToday, isWeeklyHabit, getWeeklyCompletionCount } from '../utils/dates.js';
 import { showHabitForm } from './habitForm.js';
 import { burstConfetti } from '../utils/confetti.js';
 import { escapeHtml } from '../utils/sanitize.js';
 import { showHelp } from './help.js';
 import { playPling } from '../utils/sounds.js';
+import { renderWeeklyFocus } from './weeklyFocus.js';
 
 /** Time-of-day categories in display order */
 const TIME_CATEGORIES = [
@@ -49,7 +50,7 @@ export async function renderToday(container) {
   container.appendChild(header);
 
   // Weekly Focus section
-  await renderWeeklyFocus(container);
+  await renderWeeklyFocus(container, () => rerender(container));
 
   if (dueToday.length === 0) {
     const empty = document.createElement('div');
@@ -79,16 +80,18 @@ export async function renderToday(container) {
   `;
   container.appendChild(progress);
 
-  // Debug: Mega confetti test button
-  const confettiTest = document.createElement('button');
-  confettiTest.textContent = '🎊 Mega Konfetti!';
-  confettiTest.style.cssText = 'display:block;margin:8px auto;padding:8px 16px;border-radius:8px;border:2px dashed #8B5CF6;background:#FFF8F0;color:#8B5CF6;font-size:14px;font-weight:600;cursor:pointer;';
-  confettiTest.addEventListener('click', () => {
-    const cx = window.innerWidth / 2;
-    const cy = window.innerHeight / 2;
-    burstConfetti(cx, cy, 'mega');
-  });
-  container.appendChild(confettiTest);
+  // Debug: Mega confetti test button (only in debug mode)
+  if (localStorage.getItem('debug') !== '0') {
+    const confettiTest = document.createElement('button');
+    confettiTest.textContent = '🎊 Mega Konfetti!';
+    confettiTest.style.cssText = 'display:block;margin:8px auto;padding:8px 16px;border-radius:8px;border:2px dashed #8B5CF6;background:#FFF8F0;color:#8B5CF6;font-size:14px;font-weight:600;cursor:pointer;';
+    confettiTest.addEventListener('click', () => {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      burstConfetti(cx, cy, 'mega');
+    });
+    container.appendChild(confettiTest);
+  }
 
   // Group habits by timeOfDay
   const grouped = {};
@@ -294,59 +297,6 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
   });
 
   return card;
-}
-
-/**
- * Render the Wochenfokus card
- */
-async function renderWeeklyFocus(container) {
-  const weekKey = getISOWeekKey(todayString());
-  const weekNum = weekKey.split('-W')[1];
-  const focus = await habitRepo.getWeeklyFocus(weekKey);
-  const text = focus?.text || '';
-
-  const section = document.createElement('div');
-  section.className = 'weekly-focus-card';
-  section.innerHTML = `
-    <span class="weekly-focus-week">KW ${parseInt(weekNum)}</span>
-    <span class="weekly-focus-text">${text ? escapeHtml(text) : 'Tippe hier um deinen Wochenfokus zu setzen ✨'}</span>
-  `;
-  if (!text) section.classList.add('placeholder');
-
-  section.addEventListener('click', () => showWeeklyFocusModal(weekKey, text, container));
-  container.appendChild(section);
-}
-
-/**
- * Show modal to edit weekly focus
- */
-function showWeeklyFocusModal(weekKey, currentText, mainContainer) {
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal weekly-focus-modal">
-      <h3>Wochenfokus</h3>
-      <textarea class="weekly-focus-input" rows="3" placeholder="Was ist dein Fokus diese Woche?">${currentText}</textarea>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" data-action="cancel">Abbrechen</button>
-        <button class="btn btn-primary" data-action="save">Speichern</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-
-  const input = overlay.querySelector('.weekly-focus-input');
-  input.focus();
-
-  overlay.querySelector('[data-action="cancel"]').addEventListener('click', () => overlay.remove());
-  overlay.querySelector('[data-action="save"]').addEventListener('click', async () => {
-    await habitRepo.saveWeeklyFocus(weekKey, input.value.trim());
-    overlay.remove();
-    rerender(mainContainer);
-  });
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) overlay.remove();
-  });
 }
 
 /**
