@@ -3,7 +3,6 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
-import { showHelp } from './help.js';
 import { playSound } from '../utils/sounds.js';
 import { loadDemoData, clearDemoData } from '../utils/demoData.js';
 import { showOnboarding } from './onboarding.js';
@@ -13,7 +12,7 @@ export async function renderSettings(container) {
 
   container.innerHTML = `
     <div class="settings-screen">
-      <div class="header-row"><h1 class="settings-title">Einstellungen</h1><button class="help-btn" aria-label="Hilfe">❓</button></div>
+      <div class="header-row"><h1 class="settings-title">Einstellungen</h1></div>
 
       <section class="settings-section">
         <h2>Design</h2>
@@ -78,9 +77,6 @@ export async function renderSettings(container) {
       </section>
     </div>
   `;
-
-  // Help button
-  container.querySelector('.help-btn')?.addEventListener('click', showHelp);
 
   // Sound toggle
   container.querySelector('#sound-checkbox').addEventListener('change', (e) => {

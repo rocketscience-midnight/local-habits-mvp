@@ -6,7 +6,6 @@ import taskRepo from '../repo/taskRepo.js';
 import { getCurrentPeriod, isTaskOverdue, getOverdueDays } from '../utils/dates.js';
 import { showTaskForm } from './taskForm.js';
 import { escapeHtml } from '../utils/sanitize.js';
-import { showHelp } from './help.js';
 import { awardDeco } from '../utils/decoRewards.js';
 import { playPling } from '../utils/sounds.js';
 import { burstConfetti } from '../utils/confetti.js';
@@ -28,8 +27,7 @@ export async function renderTasks(container) {
   // Header
   const header = document.createElement('div');
   header.className = 'today-header';
-  header.innerHTML = `<div class="header-row"><h1 class="today-title">Aufgaben</h1><button class="help-btn" aria-label="Hilfe">❓</button></div>`;
-  header.querySelector('.help-btn').addEventListener('click', showHelp);
+  header.innerHTML = `<div class="header-row"><h1 class="today-title">Aufgaben</h1></div>`;
   container.appendChild(header);
 
   // Load completions for all relevant periods
@@ -57,24 +55,55 @@ export async function renderTasks(container) {
     return;
   }
 
-  // Filter out completed once-tasks
-  const visibleTasks = tasks.filter(t => {
-    if (t.frequency !== 'once') return true;
-    const comps = allCompletions[t.id] || [];
-    return comps.filter(c => c.period === 'once').length === 0;
-  });
+  // Split tasks into open and completed
+  const DIFFICULTY_GROUPS = [
+    { key: 'hard', label: '🔴 Schwer' },
+    { key: 'medium', label: '🟡 Mittel' },
+    { key: 'easy', label: '🟢 Leicht' },
+  ];
 
-  // Render by frequency group
-  for (const fg of FREQUENCY_GROUPS) {
-    const groupTasks = visibleTasks.filter(t => t.frequency === fg.key);
+  const openTasks = [];
+  const completedTasks = [];
+
+  for (const task of tasks) {
+    const comps = allCompletions[task.id] || [];
+    const period = periods[task.frequency] || 'once';
+    const isCompleted = comps.some(c => c.period === period);
+    // Hide completed once-tasks entirely
+    if (task.frequency === 'once' && comps.some(c => c.period === 'once')) continue;
+
+    if (isCompleted) {
+      completedTasks.push(task);
+    } else {
+      openTasks.push(task);
+    }
+  }
+
+  // Render open tasks grouped by difficulty
+  for (const dg of DIFFICULTY_GROUPS) {
+    const groupTasks = openTasks.filter(t => (t.difficulty || 'easy') === dg.key);
     if (groupTasks.length === 0) continue;
 
     const section = document.createElement('div');
     section.className = 'task-section';
-    section.innerHTML = `<div class="task-section-header">${fg.label}</div>`;
+    section.innerHTML = `<div class="task-section-header">${dg.label}</div>`;
     const list = document.createElement('div');
     list.className = 'task-list';
     for (const task of groupTasks) {
+      list.appendChild(createTaskCard(task, allCompletions[task.id] || [], periods[task.frequency] || 'once', container));
+    }
+    section.appendChild(list);
+    container.appendChild(section);
+  }
+
+  // Render completed tasks in own category
+  if (completedTasks.length > 0) {
+    const section = document.createElement('div');
+    section.className = 'task-section';
+    section.innerHTML = `<div class="task-section-header">✅ Erledigt</div>`;
+    const list = document.createElement('div');
+    list.className = 'task-list';
+    for (const task of completedTasks) {
       list.appendChild(createTaskCard(task, allCompletions[task.id] || [], periods[task.frequency] || 'once', container));
     }
     section.appendChild(list);

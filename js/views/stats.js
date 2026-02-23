@@ -3,7 +3,6 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
-import { showHelp } from './help.js';
 import { todayString, daysAgo, getDayOfWeek, getWeekStart, isHabitDueToday, countByDate, calculateStreak, calculateBestStreak, WEEKDAYS_MONDAY } from '../utils/dates.js';
 import { escapeHtml } from '../utils/sanitize.js';
 
@@ -67,7 +66,7 @@ export async function renderStats(container) {
 
   // Render
   let html = `
-    <div class="header-row"><h1 class="stats-title">Statistiken</h1><button class="help-btn" aria-label="Hilfe">❓</button></div>
+    <div class="header-row"><h1 class="stats-title">Statistiken</h1></div>
 
     <div class="stats-section">
       <div class="stats-section-header">📈 Übersicht</div>
@@ -146,9 +145,6 @@ export async function renderStats(container) {
   `;
 
   container.innerHTML = html;
-
-  // Help button
-  container.querySelector('.help-btn')?.addEventListener('click', showHelp);
 
   // Load weekly focus archive
   await renderFocusArchive(container.querySelector('#focus-archive-list'));

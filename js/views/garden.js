@@ -7,7 +7,6 @@ import gardenRepo from '../repo/gardenRepo.js';
 import { checkWeeklyRewards, addTestPlant, RARITY_LABELS, RARITY_COLORS } from '../utils/rewards.js';
 import { DECO_NAMES, DECO_EMOJIS } from '../utils/decoRewards.js';
 import { escapeHtml } from '../utils/sanitize.js';
-import { showHelp } from './help.js';
 import {
   TILE_W, TILE_H, COLS, ROWS,
   PLANT_NAMES_DE, PLANT_EMOJIS,
@@ -46,8 +45,7 @@ export async function renderGarden(container) {
 
   const title = document.createElement('h1');
   title.className = 'garden-title';
-  title.innerHTML = '<div class="header-row"><span>Garten</span><button class="help-btn" aria-label="Hilfe">❓</button></div>';
-  title.querySelector('.help-btn').addEventListener('click', showHelp);
+  title.innerHTML = '<div class="header-row"><span>Garten</span></div>';
   screen.appendChild(title);
 
   // Debug buttons (only visible when debug mode is enabled in settings)
