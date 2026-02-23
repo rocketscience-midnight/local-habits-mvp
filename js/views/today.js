@@ -48,8 +48,13 @@ export async function renderToday(container) {
   `;
   container.appendChild(header);
 
+  // Top row: Weekly Focus + Progress Ring side by side
+  const topRow = document.createElement('div');
+  topRow.className = 'today-top-row';
+  container.appendChild(topRow);
+
   // Weekly Focus section
-  await renderWeeklyFocus(container, () => rerender(container));
+  await renderWeeklyFocus(topRow, () => rerender(container));
 
   if (dueToday.length === 0) {
     const empty = document.createElement('div');
@@ -93,7 +98,7 @@ export async function renderToday(container) {
       <span class="progress-sub">Gewohnheiten heute</span>
     </div>
   `;
-  container.appendChild(progress);
+  topRow.appendChild(progress);
 
   // Debug: Mega confetti test button (only in debug mode)
   if (localStorage.getItem('debug') !== '0') {
