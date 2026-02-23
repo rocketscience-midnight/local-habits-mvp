@@ -23,19 +23,19 @@ export async function renderSettings(container) {
           <button class="theme-option ${currentTheme === 'midnightsky' ? 'active' : ''}" data-theme="midnightsky">🖤 Midnightsky</button>
         </div>
         <div class="dark-mode-toggle" style="margin-top:12px;">
-          <span class="dark-mode-toggle-label">🔊 Sound-Effekte</span>
+          <span class="dark-mode-toggle-label">Sound-Effekte</span>
           <label class="toggle-switch">
             <input type="checkbox" id="sound-checkbox" ${localStorage.getItem('sound') !== 'off' ? 'checked' : ''}>
             <span class="toggle-slider"></span>
           </label>
         </div>
         <div class="sound-style-picker" id="sound-style-section">
-          <span class="dark-mode-toggle-label" style="margin-bottom:8px;display:block;">🎵 Sound-Stil</span>
+          <span class="dark-mode-toggle-label" style="margin-bottom:8px;display:block;">Sound-Stil</span>
           <div class="sound-btn-row">
-            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'pling' ? 'active' : ''}" data-style="pling">✨ Pling</button>
-            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'xylophon' ? 'active' : ''}" data-style="xylophon">🪵 Xylophon</button>
-            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'tropfen' ? 'active' : ''}" data-style="tropfen">💧 Tropfen</button>
-            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'glockenspiel' ? 'active' : ''}" data-style="glockenspiel">🔔 Glockenspiel</button>
+            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'pling' ? 'active' : ''}" data-style="pling">Pling</button>
+            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'xylophon' ? 'active' : ''}" data-style="xylophon">Xylophon</button>
+            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'tropfen' ? 'active' : ''}" data-style="tropfen">Tropfen</button>
+            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'glockenspiel' ? 'active' : ''}" data-style="glockenspiel">Glockenspiel</button>
           </div>
         </div>
       </section>
@@ -43,9 +43,9 @@ export async function renderSettings(container) {
       <section class="settings-section">
         <h2>💾 Daten</h2>
         <div class="data-buttons">
-          <button class="btn btn-secondary" id="export-btn">📤 Daten exportieren</button>
-          <button class="btn btn-secondary" id="import-btn">📥 Daten importieren</button>
-          <button class="btn btn-secondary" id="clear-cache-btn">🔄 Cache leeren & neu laden</button>
+          <button class="btn btn-secondary" id="export-btn">Daten exportieren</button>
+          <button class="btn btn-secondary" id="import-btn">Daten importieren</button>
+          <button class="btn btn-secondary" id="clear-cache-btn">Cache leeren & neu laden</button>
         </div>
         <input type="file" id="import-file" accept=".json" style="display:none">
       </section>
@@ -53,16 +53,16 @@ export async function renderSettings(container) {
       <section class="settings-section">
         <h2>🛠 Erweitert</h2>
         <div class="dark-mode-toggle">
-          <span class="dark-mode-toggle-label">🎭 Demo-Modus</span>
+          <span class="dark-mode-toggle-label">Demo-Modus</span>
           <label class="toggle-switch">
             <input type="checkbox" id="demo-checkbox" ${localStorage.getItem('demoMode') === '1' ? 'checked' : ''}>
             <span class="toggle-slider"></span>
           </label>
         </div>
         <p style="font-size:12px;color:#8A8A8A;margin:4px 0 12px 0;">Lädt Beispieldaten zum Ausprobieren der App.</p>
-        <button id="show-onboarding-btn" class="btn btn-secondary" style="width:100%;margin-bottom:8px;">📖 Onboarding anzeigen</button>
+        <button id="show-onboarding-btn" class="btn btn-secondary" style="width:100%;margin-bottom:8px;text-align:left;">Onboarding anzeigen</button>
         <div class="dark-mode-toggle">
-          <span class="dark-mode-toggle-label">🐛 Debug-Modus</span>
+          <span class="dark-mode-toggle-label">Debug-Modus</span>
           <label class="toggle-switch">
             <input type="checkbox" id="debug-checkbox" ${localStorage.getItem('debug') !== '0' ? 'checked' : ''}>
             <span class="toggle-slider"></span>
