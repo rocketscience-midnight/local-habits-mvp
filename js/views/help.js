@@ -71,13 +71,6 @@ export function showHelp() {
           mit der Zeit ein richtiger kleiner Ort.
         </p>
 
-        <h3>📊 Statistiken</h3>
-        <p>
-          Im Statistiken-Tab siehst du, wie es dir über die letzten Wochen 
-          ergangen ist. Eine Heatmap zeigt dir auf einen Blick, an welchen 
-          Tagen du aktiv warst – wie ein Tagebuch deiner Disziplin.
-        </p>
-
         <h3>💜 Warum das Ganze?</h3>
         <p>
           Veränderung passiert nicht über Nacht. Sie passiert an den vielen 
