@@ -19,6 +19,12 @@ const FREQUENCY_GROUPS = [
   { key: 'quarterly', label: 'Quartalsweise' },
 ];
 
+const DIFFICULTY_GROUPS = [
+  { key: 'hard', label: '🔴 Schwer' },
+  { key: 'medium', label: '🟡 Mittel' },
+  { key: 'easy', label: '🟢 Leicht' },
+];
+
 const DIFFICULTY_DOT = { easy: '🟢', medium: '🟡', hard: '🔴' };
 
 export async function renderTasks(container) {
@@ -56,12 +62,6 @@ export async function renderTasks(container) {
   }
 
   // Split tasks into open and completed
-  const DIFFICULTY_GROUPS = [
-    { key: 'hard', label: '🔴 Schwer' },
-    { key: 'medium', label: '🟡 Mittel' },
-    { key: 'easy', label: '🟢 Leicht' },
-  ];
-
   const openTasks = [];
   const completedTasks = [];
 
@@ -86,6 +86,7 @@ export async function renderTasks(container) {
 
     const section = document.createElement('div');
     section.className = 'task-section';
+    section.dataset.group = dg.key;
     section.innerHTML = `<div class="task-section-header">${dg.label}</div>`;
     const list = document.createElement('div');
     list.className = 'task-list';
@@ -100,6 +101,7 @@ export async function renderTasks(container) {
   if (completedTasks.length > 0) {
     const section = document.createElement('div');
     section.className = 'task-section';
+    section.dataset.group = 'completed';
     section.innerHTML = `<div class="task-section-header">✅ Erledigt</div>`;
     const list = document.createElement('div');
     list.className = 'task-list';
@@ -121,6 +123,8 @@ function createTaskCard(task, completions, period, mainContainer) {
 
   const card = document.createElement('div');
   card.className = `task-card ${isCompleted ? 'completed' : ''}`;
+  card.dataset.taskId = task.id;
+  card.dataset.difficulty = task.difficulty || 'easy';
 
   const overdueHint = isOverdue ? `<span class="task-overdue-hint">Offen seit ${getOverdueDays(task)} Tagen</span>` : '';
 
@@ -142,24 +146,59 @@ function createTaskCard(task, completions, period, mainContainer) {
 
     if (isCompleted) {
       await taskRepo.uncompleteTask(task.id, period);
-      rerender(mainContainer);
+      // Targeted: move card back to difficulty group
+      card.classList.remove('completed');
+      const check = card.querySelector('.task-check');
+      if (check) { check.classList.remove('checked'); check.textContent = ''; }
+      // Restore overdue hint if applicable
+      const updatedComps = completions.filter(c => !(c.period === period));
+      const nowOverdue = task.frequency !== 'once' && isTaskOverdue(task, updatedComps);
+      const infoEl = card.querySelector('.task-card-info');
+      const existingHint = card.querySelector('.task-overdue-hint');
+      if (nowOverdue && !existingHint && infoEl) {
+        const hint = document.createElement('span');
+        hint.className = 'task-overdue-hint';
+        hint.textContent = `Offen seit ${getOverdueDays(task)} Tagen`;
+        infoEl.appendChild(hint);
+      }
+      requestAnimationFrame(() => {
+        moveCardToGroup(card, task.difficulty || 'easy', mainContainer);
+      });
     } else {
       await taskRepo.completeTask(task.id, period);
       // Instant visual feedback
       const check = card.querySelector('.task-check');
       if (check) { check.classList.add('checked'); check.textContent = '✓'; }
       card.classList.add('completed');
+      // Remove overdue hint
+      const hint = card.querySelector('.task-overdue-hint');
+      if (hint) hint.remove();
 
       playPling(task.difficulty === 'hard' ? 'big' : 'small');
       const deco = await awardDeco(task);
       if (deco) {
         showDecoReward(card, deco);
-        setTimeout(() => rerender(mainContainer), 3800);
+        setTimeout(() => {
+          if (task.frequency === 'once') {
+            fadeOutAndRemove(card, mainContainer);
+          } else {
+            requestAnimationFrame(() => {
+              moveCardToGroup(card, 'completed', mainContainer);
+            });
+          }
+        }, 3800);
       } else {
-        // Easy tasks: confetti instead of deco reward
         const rect = card.getBoundingClientRect();
         burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 'small');
-        setTimeout(() => rerender(mainContainer), 1200);
+        setTimeout(() => {
+          if (task.frequency === 'once') {
+            fadeOutAndRemove(card, mainContainer);
+          } else {
+            requestAnimationFrame(() => {
+              moveCardToGroup(card, 'completed', mainContainer);
+            });
+          }
+        }, 1200);
       }
     }
   });
@@ -175,6 +214,85 @@ function createTaskCard(task, completions, period, mainContainer) {
   card.addEventListener('pointerleave', () => clearTimeout(pressTimer));
 
   return card;
+}
+
+/**
+ * Move a task card to a different group section (difficulty or 'completed').
+ * Creates the target section if it doesn't exist. Removes empty source sections.
+ */
+function moveCardToGroup(card, targetGroupKey, mainContainer) {
+  const sourceList = card.parentElement;
+  const sourceSection = sourceList?.parentElement;
+
+  // Find or create target section
+  let targetSection = mainContainer.querySelector(`.task-section[data-group="${targetGroupKey}"]`);
+  if (!targetSection) {
+    targetSection = document.createElement('div');
+    targetSection.className = 'task-section';
+    targetSection.dataset.group = targetGroupKey;
+    const groupDef = targetGroupKey === 'completed'
+      ? { label: '✅ Erledigt' }
+      : DIFFICULTY_GROUPS.find(g => g.key === targetGroupKey);
+    targetSection.innerHTML = `<div class="task-section-header">${groupDef?.label || targetGroupKey}</div>`;
+    const list = document.createElement('div');
+    list.className = 'task-list';
+    targetSection.appendChild(list);
+
+    // Insert in correct order
+    const groupOrder = [...DIFFICULTY_GROUPS.map(g => g.key), 'completed'];
+    const targetIdx = groupOrder.indexOf(targetGroupKey);
+    let inserted = false;
+    const allSections = mainContainer.querySelectorAll('.task-section[data-group]');
+    for (const sec of allSections) {
+      const secIdx = groupOrder.indexOf(sec.dataset.group);
+      if (secIdx > targetIdx) {
+        mainContainer.insertBefore(targetSection, sec);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) {
+      // Insert before FAB
+      const fab = mainContainer.querySelector('.fab');
+      if (fab) {
+        mainContainer.insertBefore(targetSection, fab);
+      } else {
+        mainContainer.appendChild(targetSection);
+      }
+    }
+  }
+
+  const targetList = targetSection.querySelector('.task-list');
+  targetList.appendChild(card);
+
+  // Remove empty source section
+  if (sourceSection && sourceList && sourceList.children.length === 0) {
+    sourceSection.remove();
+  }
+}
+
+/**
+ * Fade out a card and remove it (for completed once-tasks)
+ */
+function fadeOutAndRemove(card, mainContainer) {
+  card.style.transition = 'opacity 0.3s ease, max-height 0.3s ease';
+  card.style.opacity = '0';
+  card.style.maxHeight = card.offsetHeight + 'px';
+  card.style.overflow = 'hidden';
+  requestAnimationFrame(() => {
+    card.style.maxHeight = '0';
+    card.style.marginBottom = '0';
+    card.style.paddingTop = '0';
+    card.style.paddingBottom = '0';
+  });
+  setTimeout(() => {
+    const sourceList = card.parentElement;
+    const sourceSection = sourceList?.parentElement;
+    card.remove();
+    if (sourceSection && sourceList && sourceList.children.length === 0) {
+      sourceSection.remove();
+    }
+  }, 350);
 }
 
 function addTaskFAB(container) {

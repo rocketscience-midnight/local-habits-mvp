@@ -92,6 +92,20 @@ export async function renderToday(container) {
     container.appendChild(confettiTest);
   }
 
+  // Batch-load all streaks in 2 DB calls instead of N
+  const allStreaks = await habitRepo.getAllStreaks();
+
+  // Batch-load all completions for weekly habits
+  const allHabitCompletions = {};
+  const weeklyHabits = dueToday.filter(h => isWeeklyHabit(h));
+  if (weeklyHabits.length > 0) {
+    const allComps = await habitRepo.getAllCompletions();
+    for (const c of allComps) {
+      if (!allHabitCompletions[c.habitId]) allHabitCompletions[c.habitId] = [];
+      allHabitCompletions[c.habitId].push(c);
+    }
+  }
+
   // Group habits by timeOfDay
   const grouped = {};
   for (const h of dueToday) {
@@ -107,8 +121,8 @@ export async function renderToday(container) {
     if (!habitsInCat || habitsInCat.length === 0) continue;
 
     // Insert banner between morning/midday and afternoon/evening sections
-    if (lastRenderedKey && 
-        ['morning', 'midday'].includes(lastRenderedKey) && 
+    if (lastRenderedKey &&
+        ['morning', 'midday'].includes(lastRenderedKey) &&
         ['afternoon', 'evening'].includes(cat.key)) {
       const banner = document.createElement('div');
       banner.className = 'time-divider-banner';
@@ -126,11 +140,11 @@ export async function renderToday(container) {
     for (const habit of habitsInCat) {
       const count = completionCounts[habit.id] || 0;
       const target = habit.targetPerDay || 1;
-      const streak = await habitRepo.getStreak(habit.id);
+      const streak = allStreaks[habit.id] || 0;
       let weeklyInfo = null;
       if (isWeeklyHabit(habit)) {
-        const allCompletions = await habitRepo.getCompletionsForHabit(habit.id);
-        const weeklyCount = getWeeklyCompletionCount(allCompletions.map(c => c.date));
+        const hComps = allHabitCompletions[habit.id] || [];
+        const weeklyCount = getWeeklyCompletionCount(hComps.map(c => c.date));
         weeklyInfo = { count: weeklyCount, target: habit.frequency.timesPerWeek };
       }
       const card = createHabitCard(habit, count, target, streak, container, weeklyInfo);

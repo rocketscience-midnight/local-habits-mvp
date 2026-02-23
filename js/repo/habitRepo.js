@@ -82,6 +82,21 @@ const habitRepo = {
     return calculateStreak(dates, habit);
   },
 
+  async getAllStreaks() {
+    const habits = await db.habits.toArray();
+    const completions = await db.completions.toArray();
+    const byHabit = {};
+    for (const c of completions) {
+      if (!byHabit[c.habitId]) byHabit[c.habitId] = [];
+      byHabit[c.habitId].push(c.date);
+    }
+    const streaks = {};
+    for (const habit of habits) {
+      streaks[habit.id] = calculateStreak(byHabit[habit.id] || [], habit);
+    }
+    return streaks;
+  },
+
   async getBestStreak(habitId) {
     const habit = await db.habits.get(habitId);
     if (!habit) return 0;
