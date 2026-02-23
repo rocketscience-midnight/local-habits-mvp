@@ -153,9 +153,29 @@ export async function renderGarden(container) {
 
   container.appendChild(screen);
 
-  // Show reward popup if new plants were earned
+  // Check for unseen deco rewards
+  const seenIds = JSON.parse(localStorage.getItem('seenDecoIds') || '[]');
+  const unseenDecos = allPlants.filter(p =>
+    p.itemType === 'deco' && !seenIds.includes(p.id)
+  );
+  if (unseenDecos.length > 0) {
+    const updatedSeen = [...seenIds, ...unseenDecos.map(d => d.id)];
+    localStorage.setItem('seenDecoIds', JSON.stringify(updatedSeen));
+  }
+
+  // Show reward popup: weekly plants first, then unseen decos
+  const allRewards = [...newPlants];
+  if (unseenDecos.length > 0 && newPlants.length === 0) {
+    showDecoRewardPopup(unseenDecos, () => refreshInventory());
+  }
   if (newPlants.length > 0) {
-    showRewardPopup(newPlants, () => refreshInventory());
+    showRewardPopup(newPlants, () => {
+      if (unseenDecos.length > 0) {
+        showDecoRewardPopup(unseenDecos, () => refreshInventory());
+      } else {
+        refreshInventory();
+      }
+    });
   }
 
   // Start renderer
@@ -245,6 +265,30 @@ export async function renderGarden(container) {
 // ============================================================
 // Reward popup
 // ============================================================
+
+function showDecoRewardPopup(decos, onClose) {
+  const html = `
+    <div class="reward-popup-title">🎁 ${decos.length} neue Deko${decos.length > 1 ? 's' : ''} für deinen Garten!</div>
+    <div class="reward-popup-list">
+      ${decos.map(d => {
+        const emoji = DECO_EMOJIS[d.plantType] || '🎨';
+        const name = DECO_NAMES[d.plantType] || d.plantType;
+        return `<div class="reward-item">
+          <span class="reward-emoji">${emoji}</span>
+          <div class="reward-info">
+            <div class="reward-name">${name}</div>
+            <div class="reward-rarity" style="color:#8B5CF6">Dekoration</div>
+            <div class="reward-habit">${escapeHtml(d.habitName)}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <button class="btn btn-primary reward-close-btn">Super! 🌱</button>
+  `;
+
+  const { overlay, close } = createModal(html, { extraClass: 'reward-popup', onClose });
+  overlay.querySelector('.reward-close-btn').addEventListener('click', close);
+}
 
 function showRewardPopup(plants, onClose) {
   const html = `
