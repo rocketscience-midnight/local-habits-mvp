@@ -83,7 +83,7 @@ export async function renderInfo(container) {
 
   // Divider
   const divider = document.createElement('hr');
-  divider.style.cssText = 'border:none;border-top:2px solid var(--border, #e0e0e0);margin:32px 16px;';
+  divider.style.cssText = 'border:none;border-top:2px solid var(--text-light);margin:32px 16px;opacity:0.3;';
   container.appendChild(divider);
 
   // Stats section
