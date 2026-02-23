@@ -142,7 +142,13 @@ function createTaskCard(task, completions, period, mainContainer) {
     </div>
   `;
 
+  let isProcessing = false;
+  let didLongPress = false;
+
   card.addEventListener('click', async (e) => {
+    if (isProcessing || didLongPress) return;
+    isProcessing = true;
+    try {
     const currentlyCompleted = card.classList.contains('completed');
 
     if (currentlyCompleted) {
@@ -152,7 +158,7 @@ function createTaskCard(task, completions, period, mainContainer) {
       const check = card.querySelector('.task-check');
       if (check) { check.classList.remove('checked'); check.textContent = ''; }
       // Restore overdue hint if applicable
-      const updatedComps = completions.filter(c => !(c.period === period));
+      const updatedComps = await taskRepo.getTaskCompletions(period);
       const nowOverdue = task.frequency !== 'once' && isTaskOverdue(task, updatedComps);
       const infoEl = card.querySelector('.task-card-info');
       const existingHint = card.querySelector('.task-overdue-hint');
@@ -202,16 +208,24 @@ function createTaskCard(task, completions, period, mainContainer) {
         }, 1200);
       }
     }
+    } finally {
+      isProcessing = false;
+    }
   });
 
   // Long press to edit
   let pressTimer;
   card.addEventListener('pointerdown', () => {
+    didLongPress = false;
     pressTimer = setTimeout(() => {
+      didLongPress = true;
       showTaskForm(task.id, () => rerender(mainContainer));
     }, 500);
   });
-  card.addEventListener('pointerup', () => clearTimeout(pressTimer));
+  card.addEventListener('pointerup', () => {
+    clearTimeout(pressTimer);
+    if (didLongPress) setTimeout(() => { didLongPress = false; }, 100);
+  });
   card.addEventListener('pointerleave', () => clearTimeout(pressTimer));
 
   return card;
