@@ -74,9 +74,14 @@
   background: #2A2A4A;
 }
 
-[data-theme="dark"] .habit-card.completed {
+[data-theme="dark"] .habit-card {
   background: linear-gradient(135deg, #1E1E3A, #252550);
   border-color: var(--rich-purple);
+}
+
+[data-theme="dark"] .habit-card.completed {
+  background: var(--white);
+  border-color: transparent;
 }
 
 [data-theme="dark"] .form-input {
@@ -368,8 +373,8 @@ body {
   width: 100%;
   min-height: 64px;
   padding: 14px 16px;
-  background: var(--white);
-  border: 2px solid transparent;
+  background: linear-gradient(135deg, #F5F0FF, #EDE5FF);
+  border: 2px solid var(--rich-purple);
   border-radius: var(--radius);
   box-shadow: 0 2px 8px var(--shadow);
   cursor: pointer;
@@ -384,8 +389,8 @@ body {
 }
 
 .habit-card.completed {
-  background: linear-gradient(135deg, #F5F0FF, #EDE5FF);
-  border-color: var(--rich-purple);
+  background: var(--white);
+  border-color: transparent;
 }
 
 .habit-card.just-completed {
@@ -1733,9 +1738,14 @@ body {
   background: #1A1A1A;
 }
 
-[data-theme="midnightsky"] .habit-card.completed {
+[data-theme="midnightsky"] .habit-card {
   background: linear-gradient(135deg, #1A0A0A, #200E15);
   border-color: #FF575A;
+}
+
+[data-theme="midnightsky"] .habit-card.completed {
+  background: var(--white);
+  border-color: transparent;
 }
 
 [data-theme="midnightsky"] .form-input {
