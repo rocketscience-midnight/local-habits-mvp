@@ -11,6 +11,7 @@ import { escapeHtml } from '../utils/sanitize.js';
 import { showHelp } from './help.js';
 import { playPling } from '../utils/sounds.js';
 import { renderWeeklyFocus } from './weeklyFocus.js';
+import { createFAB } from '../components/fab.js';
 
 /** Time-of-day categories in display order */
 const TIME_CATEGORIES = [
@@ -148,34 +149,101 @@ export async function renderToday(container) {
  * Add floating action button for creating new habits
  */
 function addFAB(container) {
-  const fab = document.createElement('button');
-  fab.className = 'fab';
-  fab.setAttribute('aria-label', 'Neue Gewohnheit erstellen');
-  fab.textContent = '+';
-  fab.addEventListener('click', async () => {
-    await showHabitForm(null, () => rerender(container));
+  createFAB({
+    container,
+    label: 'Neue Gewohnheit erstellen',
+    onClick: async () => {
+      await showHabitForm(null, () => rerender(container));
+    },
   });
-  // Append to body so it's fixed positioned above nav
-  document.body.appendChild(fab);
-
-  // Clean up FAB when leaving the view
-  const observer = new MutationObserver(() => {
-    if (!document.body.contains(container) || container.innerHTML === '') {
-      fab.remove();
-      observer.disconnect();
-    }
-  });
-  observer.observe(container, { childList: true });
 }
 
 /**
  * Re-render the today view
  */
 async function rerender(container) {
-  // Remove existing FAB
   document.querySelector('.fab')?.remove();
   container.innerHTML = '';
   await renderToday(container);
+}
+
+/**
+ * Handle habit toggle: increment/reset completion, visual feedback, sounds, confetti
+ */
+async function handleHabitToggle(habit, card, mainContainer) {
+  const target = habit.targetPerDay || 1;
+  const isMulti = target > 1;
+
+  const result = await habitRepo.incrementCompletion(habit.id);
+
+  // Confetti + sound on completion
+  if (result.count > 0) {
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    burstConfetti(cx, cy, result.completed ? 'big' : 'small');
+    playPling(result.completed ? 'big' : 'small');
+
+    // Check if ALL habits for today are now completed → MEGA burst!
+    if (result.completed) {
+      const _today = todayString();
+      const _allHabits = (await habitRepo.getAll()).filter(h => isHabitDueToday(h, _today));
+      const _comps = await habitRepo.getCompletionsForDate(_today);
+      const _counts = {};
+      for (const c of _comps) _counts[c.habitId] = (_counts[c.habitId] || 0) + 1;
+      const allDone = _allHabits.every(h => (_counts[h.id] || 0) >= (h.targetPerDay || 1));
+      if (allDone && _allHabits.length > 1) {
+        setTimeout(() => { burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 'mega'); playPling('mega'); }, 400);
+      }
+    }
+  }
+
+  // Visual feedback on card
+  if (result.completed && result.count > 0) {
+    card.classList.add('completed', 'just-completed');
+    setTimeout(() => card.classList.remove('just-completed'), 600);
+  } else if (result.count === 0) {
+    card.classList.remove('completed');
+  }
+
+  // Update multi-progress label
+  const multiLabel = card.querySelector('.habit-multi-progress');
+  if (multiLabel) multiLabel.textContent = `${result.count} / ${result.target}`;
+
+  // Update progress ring or check mark
+  if (isMulti) {
+    const ringFill = card.querySelector('.progress-ring-fill');
+    const ringText = card.querySelector('.progress-ring-text');
+    if (ringFill) {
+      ringFill.style.strokeDashoffset = 100 - (Math.min(result.count / result.target, 1) * 100);
+    }
+    if (ringText) ringText.textContent = result.count >= result.target ? '✓' : result.count;
+  } else {
+    const check = card.querySelector('.habit-check');
+    if (check) {
+      check.classList.toggle('checked', result.completed);
+      check.textContent = result.completed ? '✓' : '';
+    }
+  }
+
+  // Update streak display
+  const newStreak = await habitRepo.getStreak(habit.id);
+  const rightSide = card.querySelector('.habit-card-right');
+  let streakEl = rightSide.querySelector('.habit-streak');
+  if (newStreak > 0) {
+    if (streakEl) {
+      streakEl.textContent = `🔥 ${newStreak}`;
+    } else {
+      const s = document.createElement('span');
+      s.className = 'habit-streak';
+      s.textContent = `🔥 ${newStreak}`;
+      rightSide.insertBefore(s, rightSide.firstChild);
+    }
+  } else if (streakEl) {
+    streakEl.remove();
+  }
+
+  updateProgress(mainContainer);
 }
 
 /**
@@ -194,7 +262,7 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
       <div class="habit-card-info">
         <span class="habit-name">${escapeHtml(habit.name)}</span>
         ${isMulti ? `<span class="habit-multi-progress">${count} / ${target}</span>` : ''}
-        ${weeklyInfo ? `<span class="habit-weekly-progress">${weeklyInfo.count}/${weeklyInfo.target} diese Woche</span>` : ''}
+        ${''}<!-- weeklyInfo ausgeblendet zum Testen -->
       </div>
     </div>
     <div class="habit-card-right">
@@ -215,79 +283,9 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
   `;
 
   // Tap to increment/toggle
-  const tapArea = card;
-  tapArea.addEventListener('click', async (e) => {
-    // Don't trigger on edit button click
+  card.addEventListener('click', async (e) => {
     if (e.target.closest('.habit-edit-btn')) return;
-
-    const result = await habitRepo.incrementCompletion(habit.id);
-
-    // Confetti on completion
-    if (result.count > 0) {
-      const rect = card.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      burstConfetti(cx, cy, result.completed ? 'big' : 'small');
-      playPling(result.completed ? 'big' : 'small');
-
-      // Check if ALL habits for today are now completed → MEGA burst!
-      if (result.completed) {
-        const _today = todayString();
-        const _allHabits = (await habitRepo.getAll()).filter(h => isHabitDueToday(h, _today));
-        const _comps = await habitRepo.getCompletionsForDate(_today);
-        const _counts = {};
-        for (const c of _comps) _counts[c.habitId] = (_counts[c.habitId] || 0) + 1;
-        const allDone = _allHabits.every(h => (_counts[h.id] || 0) >= (h.targetPerDay || 1));
-        if (allDone && _allHabits.length > 1) {
-          setTimeout(() => { burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 'mega'); playPling('mega'); }, 400);
-        }
-      }
-    }
-
-    if (result.completed && result.count > 0) {
-      card.classList.add('completed', 'just-completed');
-      setTimeout(() => card.classList.remove('just-completed'), 600);
-    } else if (result.count === 0) {
-      card.classList.remove('completed');
-    }
-
-    // Update card display
-    const multiLabel = card.querySelector('.habit-multi-progress');
-    if (multiLabel) multiLabel.textContent = `${result.count} / ${result.target}`;
-
-    if (isMulti) {
-      const ringFill = card.querySelector('.progress-ring-fill');
-      const ringText = card.querySelector('.progress-ring-text');
-      if (ringFill) {
-        ringFill.style.strokeDashoffset = 100 - (Math.min(result.count / result.target, 1) * 100);
-      }
-      if (ringText) ringText.textContent = result.count >= result.target ? '✓' : result.count;
-    } else {
-      const check = card.querySelector('.habit-check');
-      if (check) {
-        check.classList.toggle('checked', result.completed);
-        check.textContent = result.completed ? '✓' : '';
-      }
-    }
-
-    // Update streak
-    const newStreak = await habitRepo.getStreak(habit.id);
-    const rightSide = card.querySelector('.habit-card-right');
-    let streakEl = rightSide.querySelector('.habit-streak');
-    if (newStreak > 0) {
-      if (streakEl) {
-        streakEl.textContent = `🔥 ${newStreak}`;
-      } else {
-        const s = document.createElement('span');
-        s.className = 'habit-streak';
-        s.textContent = `🔥 ${newStreak}`;
-        rightSide.insertBefore(s, rightSide.firstChild);
-      }
-    } else if (streakEl) {
-      streakEl.remove();
-    }
-
-    updateProgress(mainContainer);
+    await handleHabitToggle(habit, card, mainContainer);
   });
 
   // Edit button
