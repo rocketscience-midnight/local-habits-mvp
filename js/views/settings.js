@@ -5,6 +5,7 @@
 import habitRepo from '../repo/habitRepo.js';
 import { showHelp } from './help.js';
 import { playSound } from '../utils/sounds.js';
+import { loadDemoData, clearDemoData } from '../utils/demoData.js';
 
 export async function renderSettings(container) {
   const isDark = localStorage.getItem('theme') === 'dark';
@@ -52,6 +53,18 @@ export async function renderSettings(container) {
       </section>
 
       <section class="settings-section">
+        <h2>Demo</h2>
+        <div class="dark-mode-toggle">
+          <span class="dark-mode-toggle-label">🎭 Demo-Modus</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="demo-checkbox" ${localStorage.getItem('demoMode') === '1' ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <p style="font-size:12px;color:#8A8A8A;margin:4px 0 0 0;">Lädt Beispieldaten zum Ausprobieren der App.</p>
+      </section>
+
+      <section class="settings-section">
         <h2>Daten</h2>
         <div class="data-buttons">
           <button class="btn btn-secondary" id="export-btn">📤 Daten exportieren</button>
@@ -81,6 +94,25 @@ export async function renderSettings(container) {
       playSound(style, 'small');
       setTimeout(() => playSound(style, 'big'), 400);
     });
+  });
+
+  // Demo toggle
+  container.querySelector('#demo-checkbox').addEventListener('change', async (e) => {
+    if (e.target.checked) {
+      if (!confirm('⚠️ Achtung: Deine aktuellen Daten werden gelöscht! Fortfahren?')) {
+        e.target.checked = false;
+        return;
+      }
+      await loadDemoData();
+      localStorage.setItem('demoMode', '1');
+      window.location.hash = 'today';
+      window.location.reload();
+    } else {
+      await clearDemoData();
+      localStorage.removeItem('demoMode');
+      window.location.hash = 'today';
+      window.location.reload();
+    }
   });
 
   // Debug toggle
