@@ -8,21 +8,23 @@ import { playSound } from '../utils/sounds.js';
 import { loadDemoData, clearDemoData } from '../utils/demoData.js';
 
 export async function renderSettings(container) {
-  const isDark = localStorage.getItem('theme') === 'dark';
+  const currentTheme = localStorage.getItem('theme') || 'light';
 
   container.innerHTML = `
     <div class="settings-screen">
       <div class="header-row"><h1 class="settings-title">Einstellungen</h1><button class="help-btn" aria-label="Hilfe">❓</button></div>
 
       <section class="settings-section">
-        <h2>Darstellung</h2>
-        <div class="dark-mode-toggle">
-          <span class="dark-mode-toggle-label">🌙 Dark Mode</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="dark-mode-checkbox" ${isDark ? 'checked' : ''}>
-            <span class="toggle-slider"></span>
-          </label>
+        <h2>Design</h2>
+        <div class="theme-picker">
+          <button class="theme-option ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">🌸 Dreamgarden</button>
+          <button class="theme-option ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">🌙 Dunkel</button>
+          <button class="theme-option ${currentTheme === 'midnightsky' ? 'active' : ''}" data-theme="midnightsky">🖤 Midnightsky</button>
         </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Darstellung</h2>
         <div class="dark-mode-toggle">
           <span class="dark-mode-toggle-label">🔊 Sound-Effekte</span>
           <label class="toggle-switch">
@@ -120,11 +122,15 @@ export async function renderSettings(container) {
     localStorage.setItem('debug', e.target.checked ? '1' : '0');
   });
 
-  // Dark mode toggle
-  container.querySelector('#dark-mode-checkbox').addEventListener('change', (e) => {
-    const theme = e.target.checked ? 'dark' : 'light';
-    localStorage.setItem('theme', theme);
-    document.documentElement.dataset.theme = theme;
+  // Theme picker
+  container.querySelectorAll('.theme-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.dataset.theme;
+      localStorage.setItem('theme', theme);
+      document.documentElement.dataset.theme = theme;
+      container.querySelectorAll('.theme-option').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
   });
 
   // Export

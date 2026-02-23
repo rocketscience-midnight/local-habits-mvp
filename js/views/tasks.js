@@ -9,6 +9,7 @@ import { escapeHtml } from '../utils/sanitize.js';
 import { showHelp } from './help.js';
 import { awardDeco } from '../utils/decoRewards.js';
 import { playPling } from '../utils/sounds.js';
+import { burstConfetti } from '../utils/confetti.js';
 
 const FREQUENCY_GROUPS = [
   { key: 'once', label: 'Einmalig' },
@@ -126,7 +127,10 @@ function createTaskCard(task, completions, period, mainContainer) {
         showDecoReward(card, deco);
         setTimeout(() => rerender(mainContainer), 3800);
       } else {
-        rerender(mainContainer);
+        // Easy tasks: confetti instead of deco reward
+        const rect = card.getBoundingClientRect();
+        burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 'small');
+        setTimeout(() => rerender(mainContainer), 1200);
       }
     }
   });
