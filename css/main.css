@@ -75,8 +75,9 @@
 }
 
 [data-theme="dark"] .habit-card.completed {
-  background: linear-gradient(135deg, #1E1E3A, #252550);
-  border-color: var(--rich-purple);
+  background: var(--white);
+  border-color: transparent;
+  opacity: 0.5;
 }
 
 [data-theme="dark"] .form-input {
@@ -384,8 +385,9 @@ body {
 }
 
 .habit-card.completed {
-  background: linear-gradient(135deg, #F5F0FF, #EDE5FF);
-  border-color: var(--rich-purple);
+  background: var(--white);
+  border-color: transparent;
+  opacity: 0.5;
 }
 
 .habit-card.just-completed {
@@ -1734,8 +1736,9 @@ body {
 }
 
 [data-theme="midnightsky"] .habit-card.completed {
-  background: linear-gradient(135deg, #1A0A0A, #200E15);
-  border-color: #FF575A;
+  background: var(--white);
+  border-color: transparent;
+  opacity: 0.5;
 }
 
 [data-theme="midnightsky"] .form-input {
