@@ -50,48 +50,7 @@ export async function renderGarden(container) {
 
   // Debug buttons (only visible when debug mode is enabled in settings)
   if (localStorage.getItem('debug') !== '0') {
-    const debugWrap = document.createElement('div');
-    debugWrap.style.cssText = 'display:flex;gap:8px;justify-content:center;margin-bottom:8px;';
-
-    const debugBtn = document.createElement('button');
-    debugBtn.className = 'garden-debug-btn';
-    debugBtn.textContent = '🎁 Test-Pflanze';
-    debugBtn.addEventListener('click', async () => {
-      await addTestPlant();
-      renderGarden(container);
-    });
-    debugWrap.appendChild(debugBtn);
-
-    const clearBtn = document.createElement('button');
-    clearBtn.className = 'garden-debug-btn';
-    clearBtn.style.background = '#4A1020';
-    clearBtn.textContent = '🗑️ Alle Pflanzen löschen';
-    clearBtn.addEventListener('click', async () => {
-      if (!confirm('Wirklich ALLE Pflanzen löschen?')) return;
-      await gardenRepo.clearAllPlants();
-      renderGarden(container);
-    });
-    debugWrap.appendChild(clearBtn);
-
-    const carrotBtn = document.createElement('button');
-    carrotBtn.className = 'garden-debug-btn';
-    carrotBtn.style.background = '#6B3B10';
-    carrotBtn.textContent = '🥕 Test-Gemüse';
-    carrotBtn.addEventListener('click', async () => {
-      const types = ['carrot', 'karotte', 'mohrruebe'];
-      const names = ['Möhre', 'Karotte', 'Mohrrübe'];
-      for (let i = 0; i < 3; i++) {
-        await gardenRepo.addGardenPlant({
-          plantType: types[i], rarity: 'uncommon', growthStage: 1,
-          itemType: 'deco', habitId: 'debug-' + types[i], habitName: names[i],
-          weekEarned: new Date().toISOString().slice(0, 10), placed: 0, gridCol: null, gridRow: null,
-        });
-      }
-      renderGarden(container);
-    });
-    debugWrap.appendChild(carrotBtn);
-
-    screen.appendChild(debugWrap);
+    screen.appendChild(buildDebugButtons(container));
   }
 
   // State
@@ -153,15 +112,16 @@ export async function renderGarden(container) {
 
   container.appendChild(screen);
 
-  // Check for unseen deco rewards
-  const seenIds = JSON.parse(localStorage.getItem('seenDecoIds') || '[]');
+  // Check for unseen deco rewards (keep only IDs of existing plants to prevent unbounded growth)
+  const allDecoIds = new Set(allPlants.filter(p => p.itemType === 'deco').map(p => p.id));
+  const seenIds = new Set(JSON.parse(localStorage.getItem('seenDecoIds') || '[]').filter(id => allDecoIds.has(id)));
   const unseenDecos = allPlants.filter(p =>
-    p.itemType === 'deco' && !seenIds.includes(p.id)
+    p.itemType === 'deco' && !seenIds.has(p.id)
   );
   if (unseenDecos.length > 0) {
-    const updatedSeen = [...seenIds, ...unseenDecos.map(d => d.id)];
-    localStorage.setItem('seenDecoIds', JSON.stringify(updatedSeen));
+    for (const d of unseenDecos) seenIds.add(d.id);
   }
+  localStorage.setItem('seenDecoIds', JSON.stringify([...seenIds]));
 
   // Show reward popups: weekly plants first, then unseen decos (sequentially)
   if (newPlants.length > 0) {
@@ -185,7 +145,79 @@ export async function renderGarden(container) {
     getPlacementMode: () => placementMode,
   });
 
-  // --- Canvas click handler ---
+  // Canvas interaction: placement + tooltips
+  setupCanvasInteraction({
+    canvas, wrap, plantGrid, gridCols, gridRows, originX, originY,
+    getPlacementMode: () => placementMode,
+    setPlacementMode: (val) => { placementMode = val; },
+    placementIndicator, refreshInventory,
+  });
+
+  // Store cleanup reference for router to call
+  gardenCleanup = () => {
+    renderer.cleanup();
+  };
+}
+
+// ============================================================
+// Debug buttons (dev mode only)
+// ============================================================
+
+function buildDebugButtons(container) {
+  const debugWrap = document.createElement('div');
+  debugWrap.style.cssText = 'display:flex;gap:8px;justify-content:center;margin-bottom:8px;';
+
+  const debugBtn = document.createElement('button');
+  debugBtn.className = 'garden-debug-btn';
+  debugBtn.textContent = '🎁 Test-Pflanze';
+  debugBtn.addEventListener('click', async () => {
+    await addTestPlant();
+    renderGarden(container);
+  });
+  debugWrap.appendChild(debugBtn);
+
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'garden-debug-btn';
+  clearBtn.style.background = '#4A1020';
+  clearBtn.textContent = '🗑️ Alle Pflanzen löschen';
+  clearBtn.addEventListener('click', async () => {
+    if (!confirm('Wirklich ALLE Pflanzen löschen?')) return;
+    await gardenRepo.clearAllPlants();
+    renderGarden(container);
+  });
+  debugWrap.appendChild(clearBtn);
+
+  const carrotBtn = document.createElement('button');
+  carrotBtn.className = 'garden-debug-btn';
+  carrotBtn.style.background = '#6B3B10';
+  carrotBtn.textContent = '🥕 Test-Gemüse';
+  carrotBtn.addEventListener('click', async () => {
+    const types = ['carrot', 'karotte', 'mohrruebe'];
+    const names = ['Möhre', 'Karotte', 'Mohrrübe'];
+    for (let i = 0; i < 3; i++) {
+      await gardenRepo.addGardenPlant({
+        plantType: types[i], rarity: 'uncommon', growthStage: 1,
+        itemType: 'deco', habitId: 'debug-' + types[i], habitName: names[i],
+        weekEarned: new Date().toISOString().slice(0, 10), placed: 0, gridCol: null, gridRow: null,
+      });
+    }
+    renderGarden(container);
+  });
+  debugWrap.appendChild(carrotBtn);
+
+  return debugWrap;
+}
+
+// ============================================================
+// Canvas interaction: placement + tooltips
+// ============================================================
+
+/**
+ * Set up click handling on the garden canvas for plant placement and tooltips.
+ */
+function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, originX, originY,
+  getPlacementMode, setPlacementMode, placementIndicator, refreshInventory }) {
+
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -200,12 +232,13 @@ export async function renderGarden(container) {
     if (iso.row < 0 || iso.row >= gridRows || iso.col < 0 || iso.col >= gridCols) return;
 
     const key = `${iso.col},${iso.row}`;
+    const placementMode = getPlacementMode();
 
     if (placementMode) {
       if (!plantGrid[key]) {
         gardenRepo.placePlant(placementMode.id, iso.col, iso.row).then(() => {
           plantGrid[key] = { ...placementMode, gridCol: iso.col, gridRow: iso.row, placed: 1 };
-          placementMode = null;
+          setPlacementMode(null);
           placementIndicator.classList.add('hidden');
           refreshInventory();
         });
@@ -216,48 +249,51 @@ export async function renderGarden(container) {
     // Show tooltip for placed plant
     const plant = plantGrid[key];
     if (plant) {
-      const { x, y } = isoToScreen(iso.col, iso.row, originX, originY);
-      const screenX = x / scaleX;
-      const screenY = (y - TILE_H * 2) / scaleY;
-
-      const tip = document.createElement('div');
-      tip.className = 'garden-tooltip';
-      tip.style.left = screenX + 'px';
-      tip.style.top = screenY + 'px';
-      const isDeco = plant.itemType === 'deco';
-      const tooltipEmoji = isDeco ? (DECO_EMOJIS[plant.plantType] || '🎨') : (PLANT_EMOJIS[plant.plantType] || '🌿');
-      const tooltipName = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
-      const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
-      tip.innerHTML = `
-        <div class="garden-tooltip-name">${tooltipEmoji} ${tooltipName}</div>
-        <div class="garden-tooltip-rarity" style="color:${rarityColor}">${isDeco ? 'Dekoration' : (RARITY_LABELS[plant.rarity] || plant.rarity)}</div>
-        <div class="garden-tooltip-detail">Verdient durch: ${escapeHtml(plant.habitName)}</div>
-        <div class="garden-tooltip-detail">Woche: ${plant.weekEarned}</div>
-        <button class="garden-tooltip-remove-btn">↩ Entfernen</button>
-      `;
-      tip.querySelector('.garden-tooltip-remove-btn').addEventListener('click', async (ev) => {
-        ev.stopPropagation();
-        await gardenRepo.unplacePlant(plant.id);
-        delete plantGrid[key];
-        tip.remove();
-        refreshInventory();
-      });
-      wrap.appendChild(tip);
-      setTimeout(() => tip.remove(), 8000);
+      showPlantTooltip({ plant, wrap, iso, originX, originY, scaleX, scaleY, plantGrid, key, refreshInventory });
     }
   });
 
-  // --- Cancel placement ---
+  // Cancel placement button
   placementIndicator.querySelector('.placement-cancel-btn').addEventListener('click', () => {
-    placementMode = null;
+    setPlacementMode(null);
     placementIndicator.classList.add('hidden');
     refreshInventory();
   });
+}
 
-  // Store cleanup reference for router to call
-  gardenCleanup = () => {
-    renderer.cleanup();
-  };
+/**
+ * Show a tooltip for a placed plant/deco with name, rarity, and remove button.
+ */
+function showPlantTooltip({ plant, wrap, iso, originX, originY, scaleX, scaleY, plantGrid, key, refreshInventory }) {
+  const { x, y } = isoToScreen(iso.col, iso.row, originX, originY);
+  const screenX = x / scaleX;
+  const screenY = (y - TILE_H * 2) / scaleY;
+
+  const isDeco = plant.itemType === 'deco';
+  const tooltipEmoji = isDeco ? (DECO_EMOJIS[plant.plantType] || '🎨') : (PLANT_EMOJIS[plant.plantType] || '🌿');
+  const tooltipName = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
+  const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
+
+  const tip = document.createElement('div');
+  tip.className = 'garden-tooltip';
+  tip.style.left = screenX + 'px';
+  tip.style.top = screenY + 'px';
+  tip.innerHTML = `
+    <div class="garden-tooltip-name">${tooltipEmoji} ${tooltipName}</div>
+    <div class="garden-tooltip-rarity" style="color:${rarityColor}">${isDeco ? 'Dekoration' : (RARITY_LABELS[plant.rarity] || plant.rarity)}</div>
+    <div class="garden-tooltip-detail">Verdient durch: ${escapeHtml(plant.habitName)}</div>
+    <div class="garden-tooltip-detail">Woche: ${plant.weekEarned}</div>
+    <button class="garden-tooltip-remove-btn">↩ Entfernen</button>
+  `;
+  tip.querySelector('.garden-tooltip-remove-btn').addEventListener('click', async (ev) => {
+    ev.stopPropagation();
+    await gardenRepo.unplacePlant(plant.id);
+    delete plantGrid[key];
+    tip.remove();
+    refreshInventory();
+  });
+  wrap.appendChild(tip);
+  setTimeout(() => tip.remove(), 8000);
 }
 
 // ============================================================
