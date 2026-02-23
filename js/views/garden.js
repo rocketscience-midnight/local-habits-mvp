@@ -32,10 +32,10 @@ const GARDEN_THEMES = {
     wood: '#6B5040', woodDark: '#4A3528',
   },
   midnightsky: {
-    skyTop: '#050510', skyBottom: '#0A0A0A',
-    grass: '#1A2A1A', grassTiles: ['#1A2A1A', '#152515', '#1F2F1F'],
-    grassEdge: '#0F1F0F', placementTile: '#2A1520',
-    wood: '#4A3030', woodDark: '#2A1A1A',
+    skyTop: '#152C3A', skyBottom: '#0F1A22',
+    grass: '#1A2E28', grassTiles: ['#1A2E28', '#172A24', '#1E3230'],
+    grassEdge: '#142420', placementTile: '#340A22',
+    wood: '#5A3A3A', woodDark: '#3A2020',
   },
 };
 
