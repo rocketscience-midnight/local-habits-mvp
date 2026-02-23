@@ -82,6 +82,10 @@ const habitRepo = {
     return calculateStreak(dates, habit);
   },
 
+  /**
+   * Batch-load all streaks in 2 DB calls (habits + completions).
+   * Returns { habitId: streakCount, ... }
+   */
   async getAllStreaks() {
     const habits = await db.habits.toArray();
     const completions = await db.completions.toArray();

@@ -1,6 +1,10 @@
 /**
  * Today View - Daily habit checklist with FAB, grouping by time-of-day,
- * multi-completion support, and inline edit/delete
+ * multi-completion support, and inline edit/delete.
+ * Uses targeted DOM updates: toggling a habit updates only the affected card
+ * (checkbox, streak, progress ring) without re-rendering the view.
+ * Full re-render only happens on create/edit/delete (via showHabitForm).
+ * Streaks are batch-loaded (getAllStreaks) to avoid N+1 DB queries.
  */
 
 import habitRepo from '../repo/habitRepo.js';

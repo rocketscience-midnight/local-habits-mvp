@@ -163,11 +163,7 @@ export async function renderGarden(container) {
     localStorage.setItem('seenDecoIds', JSON.stringify(updatedSeen));
   }
 
-  // Show reward popup: weekly plants first, then unseen decos
-  const allRewards = [...newPlants];
-  if (unseenDecos.length > 0 && newPlants.length === 0) {
-    showDecoRewardPopup(unseenDecos, () => refreshInventory());
-  }
+  // Show reward popups: weekly plants first, then unseen decos (sequentially)
   if (newPlants.length > 0) {
     showRewardPopup(newPlants, () => {
       if (unseenDecos.length > 0) {
@@ -176,6 +172,8 @@ export async function renderGarden(container) {
         refreshInventory();
       }
     });
+  } else if (unseenDecos.length > 0) {
+    showDecoRewardPopup(unseenDecos, () => refreshInventory());
   }
 
   // Start renderer
@@ -266,22 +264,26 @@ export async function renderGarden(container) {
 // Reward popup
 // ============================================================
 
-function showDecoRewardPopup(decos, onClose) {
+/**
+ * Show a reward popup modal for new plants or decorations.
+ * @param {string} title - Popup headline
+ * @param {Array} items - Array of {emoji, name, subtitle, subtitleColor, source}
+ * @param {Function} onClose - Callback when popup is dismissed
+ */
+function showRewardModal(title, items, onClose) {
   const html = `
-    <div class="reward-popup-title">🎁 ${decos.length} neue Deko${decos.length > 1 ? 's' : ''} für deinen Garten!</div>
+    <div class="reward-popup-title">${title}</div>
     <div class="reward-popup-list">
-      ${decos.map(d => {
-        const emoji = DECO_EMOJIS[d.plantType] || '🎨';
-        const name = DECO_NAMES[d.plantType] || d.plantType;
-        return `<div class="reward-item">
-          <span class="reward-emoji">${emoji}</span>
+      ${items.map(item => `
+        <div class="reward-item">
+          <span class="reward-emoji">${item.emoji}</span>
           <div class="reward-info">
-            <div class="reward-name">${name}</div>
-            <div class="reward-rarity" style="color:#8B5CF6">Dekoration</div>
-            <div class="reward-habit">${escapeHtml(d.habitName)}</div>
+            <div class="reward-name">${item.name}</div>
+            <div class="reward-rarity" style="color:${item.subtitleColor}">${item.subtitle}</div>
+            <div class="reward-habit">${escapeHtml(item.source)}</div>
           </div>
-        </div>`;
-      }).join('')}
+        </div>
+      `).join('')}
     </div>
     <button class="btn btn-primary reward-close-btn">Super! 🌱</button>
   `;
@@ -290,26 +292,28 @@ function showDecoRewardPopup(decos, onClose) {
   overlay.querySelector('.reward-close-btn').addEventListener('click', close);
 }
 
+/** Show popup for newly earned weekly plants */
 function showRewardPopup(plants, onClose) {
-  const html = `
-    <div class="reward-popup-title">🎁 Du hast ${plants.length} neue Pflanze${plants.length > 1 ? 'n' : ''} verdient!</div>
-    <div class="reward-popup-list">
-      ${plants.map(p => {
-        const color = RARITY_COLORS[p.rarity] || '#8ED88E';
-        const emoji = PLANT_EMOJIS[p.plantType] || '🌿';
-        return `<div class="reward-item">
-          <span class="reward-emoji">${emoji}</span>
-          <div class="reward-info">
-            <div class="reward-name">${PLANT_NAMES_DE[p.plantType] || p.plantType}</div>
-            <div class="reward-rarity" style="color:${color}">${RARITY_LABELS[p.rarity]}</div>
-            <div class="reward-habit">${escapeHtml(p.habitName)}</div>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>
-    <button class="btn btn-primary reward-close-btn">Super! 🌱</button>
-  `;
+  const items = plants.map(p => ({
+    emoji: PLANT_EMOJIS[p.plantType] || '🌿',
+    name: PLANT_NAMES_DE[p.plantType] || p.plantType,
+    subtitle: RARITY_LABELS[p.rarity],
+    subtitleColor: RARITY_COLORS[p.rarity] || '#8ED88E',
+    source: p.habitName,
+  }));
+  const title = `🎁 Du hast ${plants.length} neue Pflanze${plants.length > 1 ? 'n' : ''} verdient!`;
+  showRewardModal(title, items, onClose);
+}
 
-  const { overlay, close } = createModal(html, { extraClass: 'reward-popup', onClose });
-  overlay.querySelector('.reward-close-btn').addEventListener('click', close);
+/** Show popup for unseen deco rewards from completed tasks */
+function showDecoRewardPopup(decos, onClose) {
+  const items = decos.map(d => ({
+    emoji: DECO_EMOJIS[d.plantType] || '🎨',
+    name: DECO_NAMES[d.plantType] || d.plantType,
+    subtitle: 'Dekoration',
+    subtitleColor: '#8B5CF6',
+    source: d.habitName,
+  }));
+  const title = `🎁 ${decos.length} neue Deko${decos.length > 1 ? 's' : ''} für deinen Garten!`;
+  showRewardModal(title, items, onClose);
 }

@@ -1,5 +1,8 @@
 /**
- * Tasks View - Recurring household todos grouped by frequency
+ * Tasks View - Recurring household todos grouped by difficulty.
+ * Uses targeted DOM updates: completing/uncompleting a task moves the card
+ * between groups instead of re-rendering the entire view.
+ * Full re-render only happens on create/edit/delete (via showTaskForm).
  */
 
 import taskRepo from '../repo/taskRepo.js';
@@ -142,8 +145,8 @@ function createTaskCard(task, completions, period, mainContainer) {
     </div>
   `;
 
-  let isProcessing = false;
-  let didLongPress = false;
+  let isProcessing = false; // prevents double-click race conditions
+  let didLongPress = false; // prevents click from firing after long-press edit
 
   card.addEventListener('click', async (e) => {
     if (isProcessing || didLongPress) return;

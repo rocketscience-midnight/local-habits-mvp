@@ -1,5 +1,6 @@
 /**
- * Settings View - JSON import/export only
+ * Settings View - Theme picker, sound settings, demo mode,
+ * data export/import, cache clearing, and developer tools.
  */
 
 import habitRepo from '../repo/habitRepo.js';
