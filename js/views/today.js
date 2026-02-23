@@ -94,7 +94,7 @@ export async function renderToday(container) {
       <span class="progress-ring-label">${fullyCompleted}</span>
     </div>
     <div class="progress-info">
-      <span class="progress-title">${fullyCompleted === dueToday.length ? 'Alle erledigt! 🎉' : `${fullyCompleted} von ${dueToday.length}`}</span>
+      <span class="progress-title">${fullyCompleted === dueToday.length ? 'Geschafft! 🎉' : `noch ${dueToday.length - fullyCompleted}`}</span>
       <span class="progress-sub">Gewohnheiten heute</span>
     </div>
   `;
@@ -371,5 +371,5 @@ async function updateProgress(container) {
   const titleEl = container.querySelector('.progress-title');
   if (ringFill) ringFill.style.strokeDashoffset = offset;
   if (ringLabel) ringLabel.textContent = fullyCompleted;
-  if (titleEl) titleEl.textContent = fullyCompleted === dueToday.length ? 'Alle erledigt! 🎉' : `${fullyCompleted} von ${dueToday.length}`;
+  if (titleEl) titleEl.textContent = fullyCompleted === dueToday.length ? 'Geschafft! 🎉' : `noch ${dueToday.length - fullyCompleted}`;
 }
