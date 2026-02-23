@@ -72,6 +72,7 @@ export async function renderSettings(container) {
         <div class="data-buttons">
           <button class="btn btn-secondary" id="export-btn">📤 Daten exportieren</button>
           <button class="btn btn-secondary" id="import-btn">📥 Daten importieren</button>
+          <button class="btn btn-secondary" id="clear-cache-btn">🔄 Cache leeren & neu laden</button>
         </div>
         <input type="file" id="import-file" accept=".json" style="display:none">
       </section>
@@ -144,6 +145,19 @@ export async function renderSettings(container) {
     a.download = `local-habits-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  });
+
+  // Clear cache
+  container.querySelector('#clear-cache-btn').addEventListener('click', async () => {
+    if ('caches' in window) {
+      const names = await caches.keys();
+      await Promise.all(names.map(n => caches.delete(n)));
+    }
+    if (navigator.serviceWorker) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) await reg.unregister();
+    }
+    window.location.reload(true);
   });
 
   // Import
