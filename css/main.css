@@ -432,7 +432,7 @@ body {
   min-height: 64px;
   padding: 14px 16px;
   background: #FFFFFF;
-  border: none;
+  border: 2px solid rgba(139, 92, 246, 0.15);
   border-radius: var(--radius);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02);
   cursor: pointer;
@@ -449,6 +449,7 @@ body {
 .habit-card.completed {
   background: #FCFBFA;
   box-shadow: none;
+  border-color: transparent;
 }
 
 .habit-card.just-completed {
@@ -523,6 +524,11 @@ body {
 }
 
 .habit-check.checked {
+  background: #C4BFD0;
+  border-color: #B5B0BC;
+}
+
+.habit-card:not(.completed) .habit-check.checked {
   background: var(--rich-purple);
   border-color: var(--deep-purple);
 }
@@ -1592,6 +1598,11 @@ body {
 }
 
 .task-check.checked {
+  background: #C4BFD0;
+  border-color: #B5B0BC;
+}
+
+.task-card:not(.completed) .task-check.checked {
   background: var(--rich-purple);
   border-color: var(--deep-purple);
 }
