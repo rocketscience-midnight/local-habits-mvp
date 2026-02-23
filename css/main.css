@@ -79,11 +79,6 @@
   border-color: var(--rich-purple);
 }
 
-
-
-
-}
-
 [data-theme="dark"] .form-input {
   background: #16213E;
   border-color: #2A2A4A;
@@ -391,11 +386,6 @@ body {
 .habit-card.completed {
   background: linear-gradient(135deg, #F5F0FF, #EDE5FF);
   border-color: var(--rich-purple);
-}
-
-
-
-
 }
 
 .habit-card.just-completed {
@@ -1735,22 +1725,17 @@ body {
 
 [data-theme="midnightsky"] .modal {
   background: #0A0A0A;
-[data-theme="midnightsky"] .habit-card.completed {
-  background: linear-gradient(135deg, #1A0A0A, #200E15);
-  border-color: #FF575A;
 }
 
-
-
-
+[data-theme="midnightsky"] .progress-bar,
+[data-theme="midnightsky"] .stats-rate-bar,
 [data-theme="midnightsky"] .heatmap-level-0 {
   background: #1A1A1A;
 }
 
 [data-theme="midnightsky"] .habit-card.completed {
-  background: var(--white);
-  border-color: transparent;
-  opacity: 0.5;
+  background: linear-gradient(135deg, #1A0A0A, #200E15);
+  border-color: #FF575A;
 }
 
 [data-theme="midnightsky"] .form-input {
