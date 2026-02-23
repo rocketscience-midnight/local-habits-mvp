@@ -6,6 +6,7 @@ import habitRepo from '../repo/habitRepo.js';
 import { showHelp } from './help.js';
 import { playSound } from '../utils/sounds.js';
 import { loadDemoData, clearDemoData } from '../utils/demoData.js';
+import { showOnboarding } from './onboarding.js';
 
 export async function renderSettings(container) {
   const currentTheme = localStorage.getItem('theme') || 'light';
@@ -45,6 +46,7 @@ export async function renderSettings(container) {
 
       <section class="settings-section">
         <h2>Entwickler</h2>
+        <button id="show-onboarding-btn" class="garden-debug-btn" style="margin-bottom:8px;width:100%;">📖 Onboarding anzeigen</button>
         <div class="dark-mode-toggle">
           <span class="dark-mode-toggle-label">🐛 Debug-Modus</span>
           <label class="toggle-switch">
@@ -116,6 +118,9 @@ export async function renderSettings(container) {
       window.location.reload();
     }
   });
+
+  // Onboarding button
+  container.querySelector('#show-onboarding-btn').addEventListener('click', () => showOnboarding());
 
   // Debug toggle
   container.querySelector('#debug-checkbox').addEventListener('change', (e) => {

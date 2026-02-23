@@ -71,7 +71,8 @@
     import {
       todayString, getDayOfWeek, getWeekStart, isWeeklyHabit,
       isHabitDueToday, calculateStreak, calculateBestStreak,
-      countByDate, getISOWeekKey, WEEKDAYS_MONDAY
+      countByDate, getISOWeekKey, WEEKDAYS_MONDAY,
+      getWeeklyCompletionCount, getCurrentPeriod, daysAgo
     } from './js/utils/dates.js';
 
     import { escapeHtml } from './js/utils/sanitize.js';
@@ -79,6 +80,14 @@
     import {
       RARITY_LABELS, RARITY_COLORS, RARITY_TO_STAGE
     } from './js/utils/rewards.js';
+
+    import {
+      ALL_DECOS, DECO_NAMES, DECO_EMOJIS, DECO_DIFFICULTY
+    } from './js/utils/decoRewards.js';
+
+    import {
+      HABIT_EMOJI_CATEGORIES, TASK_EMOJI_CATEGORIES, renderEmojiPickerHTML
+    } from './js/components/emojiPicker.js';
 
     // Helper: date string N days ago
     function daysAgoStr(n) {
@@ -257,6 +266,86 @@
     test('rewards.js', 'Given RARITY_COLORS → When checking → expect 5 hex colors', () => {
       eq(Object.keys(RARITY_COLORS).length, 5);
       ok(RARITY_COLORS.legendary.startsWith('#'), 'Should be hex color');
+    });
+
+    // ========== dates.js - getWeeklyCompletionCount ==========
+
+    test('dates.js – Weekly', 'Given 3 completions this week → When getWeeklyCompletionCount → expect 3', () => {
+      const today = todayString();
+      const weekStart = getWeekStart(today);
+      // Create dates within this week
+      const dates = [today, today, today];
+      eq(getWeeklyCompletionCount(dates, today), 3);
+    });
+
+    test('dates.js – Weekly', 'Given completions from last week only → When getWeeklyCompletionCount → expect 0', () => {
+      const dates = [daysAgo(14), daysAgo(15)];
+      eq(getWeeklyCompletionCount(dates, todayString()), 0);
+    });
+
+    // ========== dates.js - getCurrentPeriod ==========
+
+    test('dates.js – Period', 'Given "weekly" → When getCurrentPeriod → expect ISO week format', () => {
+      const result = getCurrentPeriod('weekly');
+      ok(/^\d{4}-W\d{2}$/.test(result), `Expected week format, got ${result}`);
+    });
+
+    test('dates.js – Period', 'Given "monthly" → When getCurrentPeriod → expect YYYY-MM format', () => {
+      const result = getCurrentPeriod('monthly');
+      ok(/^\d{4}-\d{2}$/.test(result), `Expected month format, got ${result}`);
+    });
+
+    test('dates.js – Period', 'Given "quarterly" → When getCurrentPeriod → expect YYYY-Q# format', () => {
+      const result = getCurrentPeriod('quarterly');
+      ok(/^\d{4}-Q[1-4]$/.test(result), `Expected quarter format, got ${result}`);
+    });
+
+    test('dates.js – Period', 'Given "once" → When getCurrentPeriod → expect "once"', () => {
+      eq(getCurrentPeriod('once'), 'once');
+    });
+
+    // ========== dates.js - daysAgo ==========
+
+    test('dates.js', 'Given daysAgo(0) → expect todayString()', () => {
+      eq(daysAgo(0), todayString());
+    });
+
+    // ========== decoRewards.js ==========
+
+    test('decoRewards.js', 'Given ALL_DECOS → expect at least 10 decorations', () => {
+      ok(ALL_DECOS.length >= 10, `Expected ≥10 decos, got ${ALL_DECOS.length}`);
+    });
+
+    test('decoRewards.js', 'Given DECO_NAMES → expect pond_small = "Kleiner Teich"', () => {
+      eq(DECO_NAMES['pond_small'], 'Kleiner Teich');
+    });
+
+    test('decoRewards.js', 'Given DECO_EMOJIS → expect fountain = "⛲"', () => {
+      eq(DECO_EMOJIS['fountain'], '⛲');
+    });
+
+    test('decoRewards.js', 'Given DECO_DIFFICULTY → medium and hard entries exist', () => {
+      eq(DECO_DIFFICULTY['bench'], 'medium');
+      eq(DECO_DIFFICULTY['barn'], 'hard');
+    });
+
+    // ========== emojiPicker.js ==========
+
+    test('emojiPicker.js', 'Given HABIT_EMOJI_CATEGORIES → expect array with emoji arrays', () => {
+      ok(Array.isArray(HABIT_EMOJI_CATEGORIES), 'Should be array');
+      ok(HABIT_EMOJI_CATEGORIES.length > 0, 'Should have entries');
+      ok(Array.isArray(HABIT_EMOJI_CATEGORIES[0]), 'First entry should be array');
+    });
+
+    test('emojiPicker.js', 'Given TASK_EMOJI_CATEGORIES → expect array with emoji arrays', () => {
+      ok(Array.isArray(TASK_EMOJI_CATEGORIES), 'Should be array');
+      ok(TASK_EMOJI_CATEGORIES.length > 0, 'Should have entries');
+    });
+
+    test('emojiPicker.js', 'Given renderEmojiPickerHTML → expect HTML string with buttons', () => {
+      const html = renderEmojiPickerHTML(HABIT_EMOJI_CATEGORIES, '🏃');
+      ok(html.includes('button'), 'Should contain button elements');
+      ok(html.includes('🏃'), 'Should contain selected emoji');
     });
 
     // ========== Summary ==========
