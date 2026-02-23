@@ -17,6 +17,33 @@ import {
 } from '../garden/plantArt.js';
 import { drawDecoPlaced } from '../garden/decoArt.js';
 
+// Theme-aware canvas color palettes
+const GARDEN_THEMES = {
+  light: {
+    skyTop: '#C8E0F4', skyBottom: '#FFF8F0',
+    grass: '#C8E8C0', grassTiles: ['#A8D8A8', '#96CC96', '#B4E0B4'],
+    grassEdge: '#98C898', placementTile: '#D0F0D0',
+    wood: '#9B7B5B', woodDark: '#7B5B3B',
+  },
+  dark: {
+    skyTop: '#0F0F2E', skyBottom: '#1A1A2E',
+    grass: '#2A4A2A', grassTiles: ['#2A4A2A', '#234023', '#305030'],
+    grassEdge: '#1E3A1E', placementTile: '#305030',
+    wood: '#6B5040', woodDark: '#4A3528',
+  },
+  midnightsky: {
+    skyTop: '#050510', skyBottom: '#0A0A0A',
+    grass: '#1A2A1A', grassTiles: ['#1A2A1A', '#152515', '#1F2F1F'],
+    grassEdge: '#0F1F0F', placementTile: '#2A1520',
+    wood: '#4A3030', woodDark: '#2A1A1A',
+  },
+};
+
+function getGardenColors() {
+  const theme = document.documentElement.dataset.theme || 'light';
+  return GARDEN_THEMES[theme] || GARDEN_THEMES.light;
+}
+
 // ============================================================
 // State
 // ============================================================
@@ -297,7 +324,8 @@ export async function renderGarden(container) {
   }
 
   // Grass tile color variation (seeded by position)
-  const GRASS_GREENS = ['#A8D8A8', '#96CC96', '#B4E0B4'];
+  const gc = getGardenColors();
+  const GRASS_GREENS = gc.grassTiles;
   const GRASS_DARK = ['#8EC08E', '#82B882'];
   const grassColorMap = {};
   const grassTuftMap = {};
@@ -406,8 +434,8 @@ export async function renderGarden(container) {
 
   // Fence drawing
   function drawFence(ctx) {
-    const WOOD = '#9B7B5B';
-    const WOOD_DARK = '#7B5B3B';
+    const WOOD = gc.wood;
+    const WOOD_DARK = gc.woodDark;
     const postW = 6;
     const postH = 20;
     const railH = 3;
@@ -522,13 +550,13 @@ export async function renderGarden(container) {
 
     // Sky gradient
     const skyGrad = ctx.createLinearGradient(0, 0, 0, skyH);
-    skyGrad.addColorStop(0, '#C8E0F4');
-    skyGrad.addColorStop(1, '#FFF8F0');
+    skyGrad.addColorStop(0, gc.skyTop);
+    skyGrad.addColorStop(1, gc.skyBottom);
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, canvasW, skyH);
 
     // Grass background
-    ctx.fillStyle = '#C8E8C0';
+    ctx.fillStyle = gc.grass;
     ctx.fillRect(0, skyH, canvasW, canvasH - skyH);
 
     // Draw fence (behind tiles)
@@ -543,12 +571,12 @@ export async function renderGarden(container) {
         const isEmpty = !plant;
 
         // Grass variation tile color
-        let tileColor = grassColorMap[key] || '#A8D8A8';
+        let tileColor = grassColorMap[key] || gc.grassTiles[0];
         if (placementMode && isEmpty) {
-          tileColor = '#D0F0D0';
+          tileColor = gc.placementTile;
         }
 
-        drawTile(ctx, x, y, tileColor, '#98C898');
+        drawTile(ctx, x, y, tileColor, gc.grassEdge);
 
         // Grass tufts (tiny darker spots)
         const tuft = grassTuftMap[key];
