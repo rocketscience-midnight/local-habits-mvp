@@ -28,7 +28,7 @@ export async function renderInfo(container) {
       auch mehrfach am Tag abhaken, zum Beispiel "ein Glas Wasser trinken".
     </p>
     <p>
-      Oben findest du deinen <strong>Wochenfokus</strong> – ein Satz oder Gedanke, 
+      Oben findest du deinen Wochenfokus – ein Satz oder Gedanke, 
       der dich diese Woche begleitet. Vielleicht ein Vorsatz, ein Zitat, oder 
       einfach eine Erinnerung an das, was dir gerade wichtig ist.
     </p>
@@ -49,7 +49,7 @@ export async function renderInfo(container) {
       von kleinen Grashalmen bis zu blühenden Kirschbäumen.
     </p>
     <p>
-      Die Pflanzen landen erst in deinem <strong>Inventar</strong>. Von dort 
+      Die Pflanzen landen erst in deinem Inventar. Von dort 
       kannst du sie antippen und auf einer freien Stelle im Garten platzieren. 
       So gestaltest du deinen Garten ganz nach deinem Geschmack. Jede Pflanze 
       erinnert an den Moment, in dem du drangeblieben bist.
@@ -57,7 +57,7 @@ export async function renderInfo(container) {
 
     <h3>🔨 Aufgaben</h3>
     <p>
-      Neben täglichen Gewohnheiten gibt es auch <strong>Aufgaben</strong> – 
+      Neben täglichen Gewohnheiten gibt es auch Aufgaben – 
       Dinge, die regelmäßig anfallen, aber nicht jeden Tag: Fenster putzen, 
       den Keller aufräumen, die Steuererklärung. Du legst fest, wie oft 
       sie fällig sind (wöchentlich, monatlich, quartalsweise) und wie 
@@ -65,7 +65,7 @@ export async function renderInfo(container) {
     </p>
     <p>
       Mittlere und große Aufgaben belohnen dich mit 
-      <strong>Dekorationen</strong> für deinen Garten – Bänke, Laternen, 
+      Dekorationen für deinen Garten – Bänke, Laternen, 
       Brunnen oder sogar kleine Windmühlen. So wird aus deinem Garten 
       mit der Zeit ein richtiger kleiner Ort.
     </p>
