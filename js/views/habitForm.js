@@ -12,9 +12,9 @@ import { HABIT_EMOJI_CATEGORIES, renderEmojiPickerHTML, attachEmojiPickerHandler
 
 /** Time-of-day options */
 const TIME_OPTIONS = [
-  { value: 'morning', label: 'Vor der Arbeit' },
+  { value: 'morning', label: 'Morgens' },
   { value: 'midday', label: 'Mittag' },
-  { value: 'afternoon', label: 'Nach der Arbeit' },
+  { value: 'afternoon', label: 'Abends' },
   { value: 'evening', label: 'Vor dem Schlafen' },
   { value: 'anytime', label: 'Jederzeit' },
 ];

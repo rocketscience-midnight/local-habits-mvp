@@ -24,6 +24,13 @@
 - Ist Refactoring nötig? (Datei zu groß, duplizierter Code, etc.)
 - Wenn ja → als nächsten Schritt planen, nicht sofort machen
 
+## Transparenz
+
+- **Berechtigungen:** Susanne wird IMMER informiert wenn ein Agent, Claude Code oder Tool erweiterte Berechtigungen bekommt
+- **Installationen:** Nichts installieren ohne Bescheid (npm, brew, etc.)
+- **Kosten:** Nichts das Geld kostet ohne Rückfrage
+- **Claude Code:** Nutzt `--dangerously-skip-permissions` (= darf autonom Dateien schreiben im angegebenen Verzeichnis). Arbeitsverzeichnis immer benennen. Ergebnisse werden reviewed bevor committed wird.
+
 ## Grundsätze
 
 - **Kein Over-Engineering** – pragmatisch bleiben

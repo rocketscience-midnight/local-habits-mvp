@@ -500,7 +500,7 @@ body {
 
 /* ========== Settings ========== */
 .settings-screen {
-  padding-bottom: 20px;
+  padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
 }
 
 .settings-title {
@@ -713,12 +713,12 @@ body {
 }
 
 .emoji-btn {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border: 2px solid transparent;
   border-radius: var(--radius-sm);
   background: var(--white);
-  font-size: 22px;
+  font-size: 28px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -931,6 +931,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
+  text-align: center;
 }
 
 .emoji-cat-grid {

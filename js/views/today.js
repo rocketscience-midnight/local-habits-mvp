@@ -14,9 +14,9 @@ import { createFAB } from '../components/fab.js';
 
 /** Time-of-day categories in display order */
 const TIME_CATEGORIES = [
-  { key: 'morning', label: 'Vor der Arbeit', icon: '🌅' },
+  { key: 'morning', label: 'Morgens', icon: '🌅' },
   { key: 'midday', label: 'Mittag', icon: '☀️' },
-  { key: 'afternoon', label: 'Nach der Arbeit', icon: '🌆' },
+  { key: 'afternoon', label: 'Abends', icon: '🌆' },
   { key: 'evening', label: 'Vor dem Schlafen', icon: '🌙' },
   { key: 'anytime', label: 'Jederzeit', icon: '⏰' },
 ];
@@ -265,7 +265,6 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
     </div>
     <div class="habit-card-right">
       ${streak > 0 ? `<span class="habit-streak">🔥 ${streak}</span>` : ''}
-      <button class="btn-icon habit-edit-btn" data-habit-id="${habit.id}" aria-label="Bearbeiten">✏️</button>
       ${isMulti
         ? `<div class="habit-progress-ring">
             <svg viewBox="0 0 36 36" class="progress-ring-svg">
@@ -280,16 +279,31 @@ function createHabitCard(habit, count, target, streak, mainContainer, weeklyInfo
     </div>
   `;
 
-  // Tap to increment/toggle
-  card.addEventListener('click', async (e) => {
-    if (e.target.closest('.habit-edit-btn')) return;
-    await handleHabitToggle(habit, card, mainContainer);
+  // Long-press to edit
+  let pressTimer = null;
+  let didLongPress = false;
+
+  card.addEventListener('touchstart', (e) => {
+    didLongPress = false;
+    pressTimer = setTimeout(async () => {
+      didLongPress = true;
+      if (navigator.vibrate) navigator.vibrate(30);
+      await showHabitForm(habit.id, () => rerender(mainContainer));
+    }, 500);
+  }, { passive: true });
+
+  card.addEventListener('touchend', () => {
+    clearTimeout(pressTimer);
   });
 
-  // Edit button
-  card.querySelector('.habit-edit-btn').addEventListener('click', async (e) => {
-    e.stopPropagation();
-    await showHabitForm(habit.id, () => rerender(mainContainer));
+  card.addEventListener('touchmove', () => {
+    clearTimeout(pressTimer);
+  });
+
+  // Tap to increment/toggle
+  card.addEventListener('click', async (e) => {
+    if (didLongPress) return;
+    await handleHabitToggle(habit, card, mainContainer);
   });
 
   return card;
