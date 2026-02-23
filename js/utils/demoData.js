@@ -134,22 +134,22 @@ export async function loadDemoData() {
   // 3. Generate completions
   const completions = generateCompletions(habits);
 
-  // 4. Garden plants (15 total: 8 placed, 7 in inventory)
+  // 4. Garden plants (15 total: 13 placed, 2 in inventory)
   const plants = [
     // 5× common (stage 1)
     { plantType: 'bush', rarity: 'common', growthStage: 1, placed: 1, gridCol: 0, gridRow: 0 },
     { plantType: 'mushroom', rarity: 'common', growthStage: 1, placed: 1, gridCol: 2, gridRow: 1 },
-    { plantType: 'grass', rarity: 'common', growthStage: 1, placed: 0, gridCol: null, gridRow: null },
-    { plantType: 'clover', rarity: 'common', growthStage: 1, placed: 0, gridCol: null, gridRow: null },
-    { plantType: 'bush', rarity: 'common', growthStage: 1, placed: 0, gridCol: null, gridRow: null },
+    { plantType: 'grass', rarity: 'common', growthStage: 1, placed: 1, gridCol: 5, gridRow: 0 },
+    { plantType: 'clover', rarity: 'common', growthStage: 1, placed: 1, gridCol: 0, gridRow: 2 },
+    { plantType: 'bush', rarity: 'common', growthStage: 1, placed: 1, gridCol: 4, gridRow: 0 },
     // 4× uncommon (stage 2)
     { plantType: 'tulip', rarity: 'uncommon', growthStage: 2, placed: 1, gridCol: 1, gridRow: 2 },
     { plantType: 'fern', rarity: 'uncommon', growthStage: 2, placed: 1, gridCol: 3, gridRow: 0 },
-    { plantType: 'daisy', rarity: 'uncommon', growthStage: 2, placed: 0, gridCol: null, gridRow: null },
-    { plantType: 'mushroom', rarity: 'uncommon', growthStage: 2, placed: 0, gridCol: null, gridRow: null },
+    { plantType: 'daisy', rarity: 'uncommon', growthStage: 2, placed: 1, gridCol: 5, gridRow: 2 },
+    { plantType: 'mushroom', rarity: 'uncommon', growthStage: 2, placed: 1, gridCol: 1, gridRow: 3 },
     // 3× rare (stage 3)
     { plantType: 'sunflower', rarity: 'rare', growthStage: 3, placed: 1, gridCol: 4, gridRow: 1 },
-    { plantType: 'bush', rarity: 'rare', growthStage: 3, placed: 0, gridCol: null, gridRow: null },
+    { plantType: 'bush', rarity: 'rare', growthStage: 3, placed: 1, gridCol: 5, gridRow: 3 },
     { plantType: 'sunflower', rarity: 'rare', growthStage: 3, placed: 0, gridCol: null, gridRow: null },
     // 2× epic (stage 4)
     { plantType: 'cherry', rarity: 'epic', growthStage: 4, placed: 1, gridCol: 2, gridRow: 3 },
@@ -165,12 +165,10 @@ export async function loadDemoData() {
     weekEarned: dateStr(-7 * (15 - i)),
   }));
 
-  // 4 Decos: all placed
+  // 2 Decos: all placed
   const decos = [
     { plantType: 'pond_small', rarity: 'uncommon', placed: 1, gridCol: 1, gridRow: 0 },
     { plantType: 'lantern', rarity: 'uncommon', placed: 1, gridCol: 4, gridRow: 3 },
-    { plantType: 'bench', rarity: 'uncommon', placed: 1, gridCol: 0, gridRow: 3 },
-    { plantType: 'birdhouse', rarity: 'uncommon', placed: 1, gridCol: 5, gridRow: 1 },
   ].map(d => ({
     ...d,
     id: uuid(),
