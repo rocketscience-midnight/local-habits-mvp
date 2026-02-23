@@ -39,7 +39,9 @@ const ASSETS = [
   './js/utils/sounds.js',
   './js/garden/plantArt.js',
   './js/garden/decoArt.js',
-  './js/utils/demoData.js'
+  './js/utils/demoData.js',
+  './js/views/info.js',
+  './js/utils/installPrompt.js'
 ];
 
 // Install: cache all app assets + Dexie from CDN

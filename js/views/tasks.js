@@ -134,7 +134,6 @@ function createTaskCard(task, completions, period, mainContainer) {
       </div>
     </div>
     <div class="task-card-right">
-      <span class="difficulty-dot">${DIFFICULTY_DOT[task.difficulty] || '🟢'}</span>
       <span class="task-check ${isCompleted ? 'checked' : ''}">${isCompleted ? '✓' : ''}</span>
     </div>
   `;
