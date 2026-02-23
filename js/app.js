@@ -26,6 +26,7 @@ registerRoute('settings', renderSettings);
 
 // Register cleanup functions
 registerCleanup(cleanupGarden);
+registerCleanup(() => document.querySelector('.fab')?.remove());
 
 // Initialize router when DOM is ready, show onboarding if first launch
 async function boot() {
