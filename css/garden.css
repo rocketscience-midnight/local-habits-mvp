@@ -185,17 +185,18 @@
   min-width: 56px;
   padding: 6px;
   border-radius: 10px;
-  border: 2px solid transparent;
+  border: none;
   background: #F0F8F0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: box-shadow 0.15s, background 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
 .inventory-item:active,
 .inventory-item.selected {
-  border-color: #8B5CF6;
   background: #EDE5FF;
+  box-shadow: 0 0 0 2px #8B5CF6;
 }
 
 .inventory-icon-canvas {
@@ -303,13 +304,14 @@
   max-width: 70px;
   background: rgba(255, 248, 240, 0.8);
   border-radius: 10px;
-  border: 2px solid #E8E0D8;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02);
   text-align: center;
 }
 
 .collection-item.locked {
-  border-color: #E0D8D0;
   background: rgba(230, 225, 218, 0.3);
+  box-shadow: none;
 }
 
 .collection-item-label {
@@ -335,12 +337,13 @@
 
 [data-theme="dark"] .inventory-item {
   background: #1A2A3A;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1);
 }
 
 [data-theme="dark"] .inventory-item:active,
 [data-theme="dark"] .inventory-item.selected {
   background: #252550;
-  border-color: #8B5CF6;
+  box-shadow: 0 0 0 2px #8B5CF6;
 }
 
 [data-theme="dark"] .garden-tooltip {
@@ -363,12 +366,12 @@
 
 [data-theme="dark"] .collection-item {
   background: rgba(22, 33, 62, 0.8);
-  border-color: #2A2A4A;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1);
 }
 
 [data-theme="dark"] .collection-item.locked {
   background: rgba(22, 33, 62, 0.3);
-  border-color: #1E1E3A;
+  box-shadow: none;
 }
 
 [data-theme="dark"] .collection-item-label {
@@ -504,12 +507,13 @@
 
 [data-theme="midnightsky"] .inventory-item {
   background: #111111;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
 }
 
 [data-theme="midnightsky"] .inventory-item:active,
 [data-theme="midnightsky"] .inventory-item.selected {
-  border-color: #FF575A;
   background: #340A22;
+  box-shadow: 0 0 0 2px #FF575A;
 }
 
 [data-theme="midnightsky"] .reward-popup-title {
@@ -538,12 +542,12 @@
 
 [data-theme="midnightsky"] .collection-item {
   background: rgba(17, 17, 17, 0.8);
-  border-color: #1A1A1A;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
 }
 
 [data-theme="midnightsky"] .collection-item.locked {
   background: rgba(17, 17, 17, 0.3);
-  border-color: #1A1A1A;
+  box-shadow: none;
 }
 
 [data-theme="midnightsky"] .collection-item-label {

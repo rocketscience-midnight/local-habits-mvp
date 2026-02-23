@@ -69,13 +69,29 @@ export async function renderToday(container) {
     const t = h.targetPerDay || 1;
     return (completionCounts[h.id] || 0) >= t;
   }).length;
+  const pct = dueToday.length ? (fullyCompleted / dueToday.length * 100) : 0;
+  const circumference = 2 * Math.PI * 22; // r=22
+  const offset = circumference - (pct / 100) * circumference;
   const progress = document.createElement('div');
   progress.className = 'today-progress';
   progress.innerHTML = `
-    <div class="progress-bar">
-      <div class="progress-fill" style="width: ${dueToday.length ? (fullyCompleted / dueToday.length * 100) : 0}%"></div>
+    <div class="progress-ring-wrap">
+      <svg width="52" height="52" viewBox="0 0 52 52">
+        <defs><linearGradient id="progress-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#8B5CF6"/>
+          <stop offset="100%" stop-color="#F472B6"/>
+        </linearGradient></defs>
+        <circle class="progress-ring-bg-circle" cx="26" cy="26" r="22" fill="none" stroke="#EDE9F3" stroke-width="5"/>
+        <circle class="progress-ring-fill-circle" cx="26" cy="26" r="22" fill="none" stroke="url(#progress-grad)" stroke-width="5"
+          stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+          style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 0.6s ease"/>
+      </svg>
+      <span class="progress-ring-label">${fullyCompleted}</span>
     </div>
-    <span class="progress-text">${fullyCompleted} / ${dueToday.length}</span>
+    <div class="progress-info">
+      <span class="progress-title">${fullyCompleted === dueToday.length ? 'Alle erledigt! 🎉' : `${fullyCompleted} von ${dueToday.length}`}</span>
+      <span class="progress-sub">Gewohnheiten heute</span>
+    </div>
   `;
   container.appendChild(progress);
 
@@ -342,10 +358,13 @@ async function updateProgress(container) {
     return (completionCounts[h.id] || 0) >= t;
   }).length;
 
-  const fill = container.querySelector('.progress-fill');
-  const text = container.querySelector('.progress-text');
-  if (fill && text) {
-    fill.style.width = `${dueToday.length ? (fullyCompleted / dueToday.length * 100) : 0}%`;
-    text.textContent = `${fullyCompleted} / ${dueToday.length}`;
-  }
+  const circumference = 2 * Math.PI * 22;
+  const pct = dueToday.length ? (fullyCompleted / dueToday.length * 100) : 0;
+  const offset = circumference - (pct / 100) * circumference;
+  const ringFill = container.querySelector('.progress-ring-fill-circle');
+  const ringLabel = container.querySelector('.progress-ring-label');
+  const titleEl = container.querySelector('.progress-title');
+  if (ringFill) ringFill.style.strokeDashoffset = offset;
+  if (ringLabel) ringLabel.textContent = fullyCompleted;
+  if (titleEl) titleEl.textContent = fullyCompleted === dueToday.length ? 'Alle erledigt! 🎉' : `${fullyCompleted} von ${dueToday.length}`;
 }
