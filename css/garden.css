@@ -467,6 +467,35 @@
 
 /* ========== Garden Sakura Mode ========== */
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ========== Garden Sakura Mode ========== */
+
 [data-theme="sakura"] .garden-debug-btn {
   background: #252542;
   border-color: #D946EF;
@@ -494,13 +523,13 @@
 }
 
 [data-theme="sakura"] .garden-tooltip {
-  background: rgba(37, 37, 66, 0.96);
+  background: rgba(255, 240, 248, 0.96);
   border-color: #D946EF;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 [data-theme="sakura"] .garden-tooltip-name {
-  color: #F5F0FF;
+  color: #2A2A4A;
 }
 
 [data-theme="sakura"] .garden-tooltip-rarity {
@@ -508,11 +537,11 @@
 }
 
 [data-theme="sakura"] .garden-tooltip-detail {
-  color: #A8A0B8;
+  color: #6A6080;
 }
 
 [data-theme="sakura"] .garden-tooltip-remove-btn {
-  background: #1B1B2F;
+  background: #FFF0F8;
   border-color: #E84545;
   color: #E84545;
 }
@@ -522,27 +551,26 @@
 }
 
 [data-theme="sakura"] .garden-inventory {
-  background: rgba(27, 27, 47, 0.95);
-  border-top-color: #2A2A4A;
+  background: rgba(255, 240, 248, 0.95);
+  border-top-color: #F0D0E8;
 }
 
 [data-theme="sakura"] .garden-inventory-title {
-  color: #F5F0FF;
+  color: #4A4A4A;
 }
 
 [data-theme="sakura"] .inventory-empty {
-  color: #A8A0B8;
+  color: #8A8A8A;
 }
 
 [data-theme="sakura"] .inventory-item {
-  background: #252542;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
+  background: #FFF8FC;
 }
 
 [data-theme="sakura"] .inventory-item:active,
 [data-theme="sakura"] .inventory-item.selected {
-  background: #2A1040;
-  box-shadow: 0 0 0 2px #D946EF;
+  border-color: #D946EF;
+  background: #F8E0F4;
 }
 
 [data-theme="sakura"] .reward-popup-title {
@@ -566,25 +594,25 @@
 }
 
 [data-theme="sakura"] .garden-collection-title {
-  color: #F5F0FF;
+  color: #4A4A4A;
 }
 
 [data-theme="sakura"] .collection-item {
-  background: rgba(37, 37, 66, 0.8);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
+  background: rgba(255, 248, 252, 0.8);
+  border-color: #F0D0E8;
 }
 
 [data-theme="sakura"] .collection-item.locked {
-  background: rgba(37, 37, 66, 0.3);
-  box-shadow: none;
+  background: rgba(240, 208, 232, 0.2);
+  border-color: #E8D0E0;
 }
 
 [data-theme="sakura"] .collection-item-label {
-  color: #F5F0FF;
+  color: #4A4A4A;
 }
 
 [data-theme="sakura"] .collection-item.locked .collection-item-label {
-  color: #555;
+  color: #BBB;
 }
 
 [data-theme="sakura"] .garden-title {
