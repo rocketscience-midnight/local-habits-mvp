@@ -26,10 +26,10 @@ const GARDEN_THEMES = {
     wood: '#9B7B5B', woodDark: '#7B5B3B',
   },
   sakura: {
-    skyTop: '#1B1B2F', skyBottom: '#2A1040',
-    grass: '#2A2A4A', grassTiles: ['#2A2A4A', '#272745', '#2D2D50'],
-    grassEdge: '#353560', placementTile: '#2A1040',
-    wood: '#4A3A5A', woodDark: '#3A2A4A',
+    skyTop: '#F0D0E8', skyBottom: '#FFF0F8',
+    grass: '#C8E8C0', grassTiles: ['#A8D8A8', '#96CC96', '#B4E0B4'],
+    grassEdge: '#98C898', placementTile: '#F0D0F0',
+    wood: '#9B7B5B', woodDark: '#7B5B3B',
   },
 };
 
