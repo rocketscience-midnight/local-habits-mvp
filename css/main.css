@@ -408,14 +408,7 @@ body {
   background: #1A2A3A;
 }
 
-[data-theme="midnightsky"] .progress-ring-bg-circle {
-  stroke: #1A1A1A;
-}
 
-[data-theme="midnightsky"] .habit-emoji,
-[data-theme="midnightsky"] .task-emoji {
-  background: #1A1A1A;
-}
 
 [data-theme="sakura"] .progress-ring-bg-circle {
   stroke: #2A2A4A;
@@ -1825,224 +1818,50 @@ body {
 }
 
 /* ========== Midnightsky Theme ========== */
-[data-theme="midnightsky"] {
-  --bg: #0A0A0A;
-  --primary: #FF575A;
-  --primary-dark: #E04448;
-  --secondary: #7B8CFF;
-  --accent-pink: #FF575A;
-  --accent-purple: #7B8CFF;
-  --accent-yellow: #F9F8F2;
-  --sky: #152C3A;
-  --wood: #340A22;
-  --orange: #FF575A;
-  --coral: #FF575A;
-  --deep-purple: #7B8CFF;
-  --rich-purple: #FF575A;
-  --soft-purple: #7B8CFF;
-  --garden-green: #5A8A5A;
-  --garden-green-dark: #4A7A4A;
-  --text: #F9F8F2;
-  --text-light: #8A8A8A;
-  --white: #111111;
-  --shadow: rgba(0, 0, 0, 0.5);
-}
 
-[data-theme="midnightsky"] .bottom-nav {
-  background: rgba(5, 5, 5, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: none;
-  box-shadow: 0 -1px 0 rgba(255, 87, 90, 0.08);
-}
 
-[data-theme="midnightsky"] .nav-tab.active {
-  background: rgba(255, 87, 90, 0.1);
-}
 
 [data-theme="dark"] .nav-tab.active {
   background: rgba(139, 92, 246, 0.15);
 }
 
-[data-theme="midnightsky"] .modal-overlay {
-  background: rgba(0, 0, 0, 0.85);
-}
 
-[data-theme="midnightsky"] .modal {
-  background: #0A0A0A;
-}
 
-[data-theme="midnightsky"] .progress-bar,
-[data-theme="midnightsky"] .stats-rate-bar,
-[data-theme="midnightsky"] .heatmap-level-0 {
-  background: #1A1A1A;
-}
 
-[data-theme="midnightsky"] .habit-card {
-  background: #111111;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
-}
 
-[data-theme="midnightsky"] .habit-card.completed {
-  background: #0E0E0E;
-  box-shadow: none;
-}
 
-[data-theme="midnightsky"] .form-input {
-  background: #111111;
-  border-color: #1A1A1A;
-  color: #F9F8F2;
-}
 
-[data-theme="midnightsky"] .form-input:focus {
-  border-color: #FF575A;
-}
 
-[data-theme="midnightsky"] .btn-secondary {
-  background: #111111;
-  color: #F9F8F2;
-  border-color: #1A1A1A;
-}
 
-[data-theme="midnightsky"] .btn-icon:active {
-  background: rgba(255, 87, 90, 0.12);
-}
 
-[data-theme="midnightsky"] .emoji-btn {
-  background: #111111;
-}
 
-[data-theme="midnightsky"] .emoji-btn.selected {
-  background: #200E15;
-  border-color: #FF575A;
-}
 
-[data-theme="midnightsky"] .emoji-picker-categories {
-  background: #111111;
-  border-color: #1A1A1A;
-}
 
-[data-theme="midnightsky"] .freq-btn {
-  background: #111111;
-  border-color: #1A1A1A;
-  color: #8A8A8A;
-}
 
-[data-theme="midnightsky"] .weekday-btn {
-  background: #111111;
-  border-color: #1A1A1A;
-  color: #8A8A8A;
-}
 
-[data-theme="midnightsky"] .target-dec,
-[data-theme="midnightsky"] .target-inc {
-  background: #111111 !important;
-  border-color: #1A1A1A !important;
-}
 
-[data-theme="midnightsky"] .progress-ring-bg {
-  stroke: #1A1A1A;
-}
 
-[data-theme="midnightsky"] .habit-check {
-  border-color: #2A2A2A;
-}
 
-[data-theme="midnightsky"] .time-divider-banner {
-  background: linear-gradient(135deg, rgba(255,87,90,0.15) 0%, rgba(123,140,255,0.12) 50%, rgba(255,87,90,0.10) 100%);
-}
 
-[data-theme="midnightsky"] .time-btn {
-  background: #111111;
-  border-color: #1A1A1A;
-  color: #8A8A8A;
-}
 
-[data-theme="midnightsky"] .weekly-focus-card {
-  background: linear-gradient(135deg, rgba(255, 87, 90, 0.12), rgba(17, 17, 17, 0.4));
-}
 
-[data-theme="midnightsky"] .weekly-focus-input {
-  background: #111111;
-  border-color: #1A1A1A;
-  color: #F9F8F2;
-}
 
-[data-theme="midnightsky"] .focus-archive-item {
-  background: #111111;
-}
 
-[data-theme="midnightsky"] .heatmap-future {
-  background: transparent;
-}
 
-[data-theme="midnightsky"] .onboarding-card {
-  background: #111111;
-}
 
-[data-theme="midnightsky"] .onboarding-text {
-  color: #B0B0B0;
-}
 
-[data-theme="midnightsky"] .dev-banner {
-  background: rgba(255, 193, 7, 0.1);
-  color: #FFD54F;
-  border-color: rgba(255, 193, 7, 0.2);
-}
 
-[data-theme="midnightsky"] .task-card {
-  background: #111111;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
-}
 
-[data-theme="midnightsky"] .task-card.completed {
-  background: #0E0E0E;
-  box-shadow: none;
-}
 
-[data-theme="midnightsky"] .task-card.overdue {
-  background: linear-gradient(135deg, #2A0A0A, #3A1010);
-  box-shadow: 0 1px 3px rgba(255,87,90,0.15), 0 4px 12px rgba(255,87,90,0.08);
-}
 
-[data-theme="midnightsky"] .task-check {
-  border-color: #2A2A2A;
-}
 
-[data-theme="midnightsky"] .deco-reward-text {
-  color: #FF575A;
-  text-shadow: 0 0 15px rgba(255, 87, 90, 0.6);
-}
 
-[data-theme="midnightsky"] .help-btn {
-  border-color: #2A2A2A;
-}
 
-[data-theme="midnightsky"] .help-title {
-  color: #F9F8F2;
-}
 
-[data-theme="midnightsky"] .help-content p {
-  color: #8A8A8A;
-}
 
-[data-theme="midnightsky"] .help-close-btn {
-  color: #8A8A8A;
-}
 
-[data-theme="midnightsky"] .sound-pick-btn {
-  background: #111111;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
-}
 
-[data-theme="midnightsky"] .sound-pick-btn.active {
-  background: rgba(255, 87, 90, 0.2);
-  box-shadow: 0 0 0 2px #FF575A;
-}
 
-[data-theme="midnightsky"] .task-overdue-hint {
-  color: #E8A654;
-}
 
 /* ========== Sakura Theme ========== */
 [data-theme="sakura"] {
@@ -2298,15 +2117,7 @@ body {
   box-shadow: 0 0 0 2px #8B5CF6;
 }
 
-[data-theme="midnightsky"] .theme-option {
-  background: #111111;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
-}
 
-[data-theme="midnightsky"] .theme-option.active {
-  background: rgba(255, 87, 90, 0.2);
-  box-shadow: 0 0 0 2px #FF575A;
-}
 
 [data-theme="sakura"] .theme-option {
   background: #252542;

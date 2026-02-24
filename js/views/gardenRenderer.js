@@ -25,12 +25,6 @@ const GARDEN_THEMES = {
     grassEdge: '#98C898', placementTile: '#D0F0D0',
     wood: '#9B7B5B', woodDark: '#7B5B3B',
   },
-  midnightsky: {
-    skyTop: '#152C3A', skyBottom: '#0F1A22',
-    grass: '#1A2E28', grassTiles: ['#1A2E28', '#172A24', '#1E3230'],
-    grassEdge: '#142420', placementTile: '#340A22',
-    wood: '#5A3A3A', woodDark: '#3A2020',
-  },
   sakura: {
     skyTop: '#1B1B2F', skyBottom: '#2A1040',
     grass: '#2A2A4A', grassTiles: ['#2A2A4A', '#272745', '#2D2D50'],
