@@ -417,6 +417,15 @@ body {
   background: #1A1A1A;
 }
 
+[data-theme="sakura"] .progress-ring-bg-circle {
+  stroke: #2A2A4A;
+}
+
+[data-theme="sakura"] .habit-emoji,
+[data-theme="sakura"] .task-emoji {
+  background: #2A2A4A;
+}
+
 /* Habit Cards */
 .habit-list {
   display: flex;
@@ -2035,6 +2044,222 @@ body {
   color: #E8A654;
 }
 
+/* ========== Sakura Theme ========== */
+[data-theme="sakura"] {
+  --bg: #1B1B2F;
+  --primary: #D946EF;
+  --primary-dark: #C026D3;
+  --secondary: #D946EF;
+  --accent-pink: #D946EF;
+  --accent-purple: #D946EF;
+  --accent-yellow: #F5F0FF;
+  --sky: #2A1040;
+  --wood: #4A3A5A;
+  --orange: #FF6B35;
+  --coral: #E84545;
+  --deep-purple: #C026D3;
+  --rich-purple: #D946EF;
+  --soft-purple: #D946EF;
+  --garden-green: #5A8A5A;
+  --garden-green-dark: #4A7A4A;
+  --text: #F5F0FF;
+  --text-light: #A8A0B8;
+  --white: #252542;
+  --shadow: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="sakura"] .bottom-nav {
+  background: rgba(20, 20, 40, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: none;
+  box-shadow: 0 -1px 0 rgba(217, 70, 239, 0.08);
+}
+
+[data-theme="sakura"] .nav-tab.active {
+  background: rgba(217, 70, 239, 0.12);
+}
+
+[data-theme="sakura"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+[data-theme="sakura"] .modal {
+  background: #1B1B2F;
+}
+
+[data-theme="sakura"] .progress-bar,
+[data-theme="sakura"] .stats-rate-bar,
+[data-theme="sakura"] .heatmap-level-0 {
+  background: #2A2A4A;
+}
+
+[data-theme="sakura"] .habit-card {
+  background: #252542;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
+}
+
+[data-theme="sakura"] .habit-card.completed {
+  background: #1E1E38;
+  box-shadow: none;
+}
+
+[data-theme="sakura"] .form-input {
+  background: #252542;
+  border-color: #2A2A4A;
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .form-input:focus {
+  border-color: #D946EF;
+}
+
+[data-theme="sakura"] .btn-secondary {
+  background: #252542;
+  color: #F5F0FF;
+  border-color: #2A2A4A;
+}
+
+[data-theme="sakura"] .btn-icon:active {
+  background: rgba(217, 70, 239, 0.12);
+}
+
+[data-theme="sakura"] .emoji-btn {
+  background: #252542;
+}
+
+[data-theme="sakura"] .emoji-btn.selected {
+  background: #2A1040;
+  border-color: #D946EF;
+}
+
+[data-theme="sakura"] .emoji-picker-categories {
+  background: #252542;
+  border-color: #2A2A4A;
+}
+
+[data-theme="sakura"] .freq-btn {
+  background: #252542;
+  border-color: #2A2A4A;
+  color: #A8A0B8;
+}
+
+[data-theme="sakura"] .weekday-btn {
+  background: #252542;
+  border-color: #2A2A4A;
+  color: #A8A0B8;
+}
+
+[data-theme="sakura"] .target-dec,
+[data-theme="sakura"] .target-inc {
+  background: #252542 !important;
+  border-color: #2A2A4A !important;
+}
+
+[data-theme="sakura"] .progress-ring-bg {
+  stroke: #2A2A4A;
+}
+
+[data-theme="sakura"] .habit-check {
+  border-color: #3A3A5A;
+}
+
+[data-theme="sakura"] .time-divider-banner {
+  background: linear-gradient(135deg, rgba(217,70,239,0.15) 0%, rgba(192,38,211,0.12) 50%, rgba(217,70,239,0.10) 100%);
+}
+
+[data-theme="sakura"] .time-btn {
+  background: #252542;
+  border-color: #2A2A4A;
+  color: #A8A0B8;
+}
+
+[data-theme="sakura"] .weekly-focus-card {
+  background: linear-gradient(135deg, rgba(217, 70, 239, 0.12), rgba(37, 37, 66, 0.4));
+}
+
+[data-theme="sakura"] .weekly-focus-input {
+  background: #252542;
+  border-color: #2A2A4A;
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .focus-archive-item {
+  background: #252542;
+}
+
+[data-theme="sakura"] .heatmap-future {
+  background: transparent;
+}
+
+[data-theme="sakura"] .onboarding-card {
+  background: #252542;
+}
+
+[data-theme="sakura"] .onboarding-text {
+  color: #C0B0D0;
+}
+
+[data-theme="sakura"] .dev-banner {
+  background: rgba(255, 193, 7, 0.1);
+  color: #FFD54F;
+  border-color: rgba(255, 193, 7, 0.2);
+}
+
+[data-theme="sakura"] .task-card {
+  background: #252542;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
+}
+
+[data-theme="sakura"] .task-card.completed {
+  background: #1E1E38;
+  box-shadow: none;
+}
+
+[data-theme="sakura"] .task-card.overdue {
+  background: linear-gradient(135deg, #2A0A0A, #3A1010);
+  box-shadow: 0 1px 3px rgba(232,69,69,0.15), 0 4px 12px rgba(232,69,69,0.08);
+}
+
+[data-theme="sakura"] .task-check {
+  border-color: #3A3A5A;
+}
+
+[data-theme="sakura"] .deco-reward-text {
+  color: #D946EF;
+  text-shadow: 0 0 15px rgba(217, 70, 239, 0.6);
+}
+
+[data-theme="sakura"] .help-btn {
+  border-color: #3A3A5A;
+}
+
+[data-theme="sakura"] .help-title {
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .help-content p {
+  color: #A8A0B8;
+}
+
+[data-theme="sakura"] .help-close-btn {
+  color: #A8A0B8;
+}
+
+[data-theme="sakura"] .sound-pick-btn {
+  background: #252542;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
+}
+
+[data-theme="sakura"] .sound-pick-btn.active {
+  background: rgba(217, 70, 239, 0.2);
+  box-shadow: 0 0 0 2px #D946EF;
+}
+
+[data-theme="sakura"] .task-overdue-hint {
+  color: #E8A654;
+}
+
 /* ========== Theme Picker ========== */
 .theme-picker {
   display: flex;
@@ -2081,6 +2306,16 @@ body {
 [data-theme="midnightsky"] .theme-option.active {
   background: rgba(255, 87, 90, 0.2);
   box-shadow: 0 0 0 2px #FF575A;
+}
+
+[data-theme="sakura"] .theme-option {
+  background: #252542;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
+}
+
+[data-theme="sakura"] .theme-option.active {
+  background: rgba(217, 70, 239, 0.2);
+  box-shadow: 0 0 0 2px #D946EF;
 }
 
 /* === Install Banner === */

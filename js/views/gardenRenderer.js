@@ -31,6 +31,12 @@ const GARDEN_THEMES = {
     grassEdge: '#142420', placementTile: '#340A22',
     wood: '#5A3A3A', woodDark: '#3A2020',
   },
+  sakura: {
+    skyTop: '#1B1B2F', skyBottom: '#2A1040',
+    grass: '#2A2A4A', grassTiles: ['#2A2A4A', '#272745', '#2D2D50'],
+    grassEdge: '#353560', placementTile: '#2A1040',
+    wood: '#4A3A5A', woodDark: '#3A2A4A',
+  },
 };
 
 function getGardenColors() {

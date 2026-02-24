@@ -561,3 +561,129 @@
 [data-theme="midnightsky"] .garden-title {
   color: #F9F8F2;
 }
+
+/* ========== Garden Sakura Mode ========== */
+
+[data-theme="sakura"] .garden-debug-btn {
+  background: #252542;
+  border-color: #D946EF;
+  color: #D946EF;
+}
+
+[data-theme="sakura"] .garden-debug-btn:active {
+  background: #D946EF;
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .garden-placement-indicator {
+  background: rgba(217, 70, 239, 0.12);
+  border-top-color: #D946EF;
+}
+
+[data-theme="sakura"] .placement-text {
+  color: #D946EF;
+}
+
+[data-theme="sakura"] .placement-cancel-btn {
+  background: #252542;
+  border-color: #E84545;
+  color: #E84545;
+}
+
+[data-theme="sakura"] .garden-tooltip {
+  background: rgba(37, 37, 66, 0.96);
+  border-color: #D946EF;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="sakura"] .garden-tooltip-name {
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .garden-tooltip-rarity {
+  color: #D946EF;
+}
+
+[data-theme="sakura"] .garden-tooltip-detail {
+  color: #A8A0B8;
+}
+
+[data-theme="sakura"] .garden-tooltip-remove-btn {
+  background: #1B1B2F;
+  border-color: #E84545;
+  color: #E84545;
+}
+
+[data-theme="sakura"] .garden-empty {
+  color: #A8A0B8;
+}
+
+[data-theme="sakura"] .garden-inventory {
+  background: rgba(27, 27, 47, 0.95);
+  border-top-color: #2A2A4A;
+}
+
+[data-theme="sakura"] .garden-inventory-title {
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .inventory-empty {
+  color: #A8A0B8;
+}
+
+[data-theme="sakura"] .inventory-item {
+  background: #252542;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
+}
+
+[data-theme="sakura"] .inventory-item:active,
+[data-theme="sakura"] .inventory-item.selected {
+  background: #2A1040;
+  box-shadow: 0 0 0 2px #D946EF;
+}
+
+[data-theme="sakura"] .reward-popup-title {
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .reward-item {
+  background: #252542;
+}
+
+[data-theme="sakura"] .reward-name {
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .reward-rarity {
+  color: #D946EF;
+}
+
+[data-theme="sakura"] .reward-habit {
+  color: #A8A0B8;
+}
+
+[data-theme="sakura"] .garden-collection-title {
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .collection-item {
+  background: rgba(37, 37, 66, 0.8);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.15);
+}
+
+[data-theme="sakura"] .collection-item.locked {
+  background: rgba(37, 37, 66, 0.3);
+  box-shadow: none;
+}
+
+[data-theme="sakura"] .collection-item-label {
+  color: #F5F0FF;
+}
+
+[data-theme="sakura"] .collection-item.locked .collection-item-label {
+  color: #555;
+}
+
+[data-theme="sakura"] .garden-title {
+  color: #F5F0FF;
+}

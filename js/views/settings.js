@@ -21,6 +21,7 @@ export async function renderSettings(container) {
           <button class="theme-option ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">🌸 Dreamgarden</button>
           <button class="theme-option ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">🌙 Dunkel</button>
           <button class="theme-option ${currentTheme === 'midnightsky' ? 'active' : ''}" data-theme="midnightsky">🖤 Midnightsky</button>
+          <button class="theme-option ${currentTheme === 'sakura' ? 'active' : ''}" data-theme="sakura">🌸 Sakura</button>
         </div>
         <div class="dark-mode-toggle" style="margin-top:12px;">
           <span class="dark-mode-toggle-label">Sound-Effekte</span>
