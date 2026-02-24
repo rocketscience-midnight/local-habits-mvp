@@ -169,13 +169,13 @@ function drawPlant(ctx, cx, cy, plantType, stage, animOffset, pixelSize = PIXEL,
 
   switch (plantType) {
     case 'tulip': drawTulip(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
-    case 'daisy': drawTulip(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
-    case 'orchid': drawTulip(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'daisy': drawDaisy(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'orchid': drawOrchid(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'sunflower': drawSunflower(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'bush': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
-    case 'grass': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'grass': drawGrass(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'clover': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
-    case 'fern': drawBush(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
+    case 'fern': drawFern(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'cherry': drawCherry(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'appletree': drawCherry(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
     case 'mushroom': drawMushroom(ctx, bx, by, stage, p, stem, leaf, b1, b2, b3, soil, droop); break;
@@ -270,6 +270,167 @@ function drawMushroom(ctx, x, y, stage, p, stem, leaf, b1, b2, b3, soil, droop) 
   drawPixelRect(ctx, x-p/2, y-p*5, p*2, p*4, stem); drawPixelRect(ctx, x-p*3, y-p*7-droop, p*7, p*3, b1); drawPixelRect(ctx, x-p*2, y-p*8-droop, p*5, p, b2);
   drawPixel(ctx, x-p*2, y-p*7-droop, leaf); drawPixel(ctx, x+p*2, y-p*6-droop, leaf); drawPixel(ctx, x, y-p*8-droop, leaf);
   drawPixelRect(ctx, x+p*3, y-p*2, p, p*2, stem); drawPixelRect(ctx, x+p*2, y-p*3, p*3, p*2, b3);
+}
+
+// --- Daisy: flat, wide, radiating petals ---
+function drawDaisy(ctx, x, y, stage, p, stem, leaf, b1, b2, b3, soil, droop) {
+  if (stage === 0) { drawPixelRect(ctx, x-p, y-p, p*3, p, soil); drawPixel(ctx, x, y-p*2, '#6B5B3B'); return; }
+  if (stage === 1) { drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x-p, y-p*2, leaf); return; }
+  if (stage === 2) {
+    drawPixelRect(ctx, x, y-p*4, p, p*3, stem); drawPixel(ctx, x-p, y-p*3, leaf); drawPixel(ctx, x+p, y-p*2, leaf);
+    drawPixel(ctx, x, y-p*4-droop, b2); drawPixel(ctx, x-p, y-p*4-droop, b1); drawPixel(ctx, x+p, y-p*4-droop, b1); return;
+  }
+  if (stage === 3) {
+    drawPixelRect(ctx, x, y-p*5, p, p*4, stem); drawPixel(ctx, x-p, y-p*3, leaf); drawPixel(ctx, x+p, y-p*4, leaf);
+    // Radiating petals around center
+    drawPixel(ctx, x, y-p*6-droop, b1); drawPixel(ctx, x-p, y-p*5-droop, b1); drawPixel(ctx, x+p, y-p*5-droop, b1);
+    drawPixel(ctx, x, y-p*4-droop, b1); drawPixel(ctx, x, y-p*5-droop, b2); return;
+  }
+  if (stage === 4) {
+    drawPixelRect(ctx, x, y-p*6, p, p*5, stem); drawPixel(ctx, x-p, y-p*3, leaf); drawPixel(ctx, x+p, y-p*4, leaf); drawPixel(ctx, x-p*2, y-p*5, leaf);
+    // Full daisy with radiating petals
+    drawPixel(ctx, x, y-p*8-droop, b1); drawPixel(ctx, x-p, y-p*7-droop, b1); drawPixel(ctx, x+p, y-p*7-droop, b1);
+    drawPixel(ctx, x-p*2, y-p*6-droop, b1); drawPixel(ctx, x+p*2, y-p*6-droop, b1);
+    drawPixel(ctx, x, y-p*5-droop, b1); drawPixel(ctx, x, y-p*7-droop, b2); drawPixel(ctx, x, y-p*6-droop, b2); return;
+  }
+  // Stage 5: Cluster of 2-3 daisies
+  drawPixelRect(ctx, x, y-p*6, p, p*5, stem); drawPixelRect(ctx, x-p*3, y-p*5, p, p*4, stem);
+  drawPixel(ctx, x-p, y-p*3, leaf); drawPixel(ctx, x+p, y-p*4, leaf); drawPixel(ctx, x-p*2, y-p*4, leaf);
+  // Main daisy
+  drawPixel(ctx, x, y-p*8-droop, b1); drawPixel(ctx, x-p, y-p*7-droop, b1); drawPixel(ctx, x+p, y-p*7-droop, b1);
+  drawPixel(ctx, x-p*2, y-p*6-droop, b1); drawPixel(ctx, x+p*2, y-p*6-droop, b1);
+  drawPixel(ctx, x, y-p*5-droop, b1); drawPixel(ctx, x, y-p*7-droop, b2); drawPixel(ctx, x, y-p*6-droop, b2);
+  // Second daisy (smaller, left)
+  drawPixel(ctx, x-p*3, y-p*7-droop, b1); drawPixel(ctx, x-p*4, y-p*6-droop, b1); drawPixel(ctx, x-p*2, y-p*6-droop, b1);
+  drawPixel(ctx, x-p*3, y-p*5-droop, b1); drawPixel(ctx, x-p*3, y-p*6-droop, b2);
+  // Sparkle
+  drawPixel(ctx, x+p, y-p*8-droop, '#FFFDE8');
+}
+
+// --- Orchid: elegant hanging blooms on curved stem ---
+function drawOrchid(ctx, x, y, stage, p, stem, leaf, b1, b2, b3, soil, droop) {
+  if (stage === 0) { drawPixelRect(ctx, x-p, y-p, p*3, p, soil); drawPixel(ctx, x, y-p*2, '#6B5B3B'); return; }
+  if (stage === 1) { drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, leaf); drawPixel(ctx, x+p, y-p*2, leaf); return; }
+  if (stage === 2) {
+    // Stem curves right
+    drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem); drawPixel(ctx, x+p, y-p*5, stem);
+    drawPixel(ctx, x-p, y-p*3, leaf); drawPixel(ctx, x+p, y-p*3, leaf); return;
+  }
+  if (stage === 3) {
+    // Curved stem with one hanging bloom
+    drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem);
+    drawPixel(ctx, x+p, y-p*5, stem); drawPixel(ctx, x+p, y-p*6, stem);
+    drawPixel(ctx, x-p, y-p*3, leaf); drawPixel(ctx, x+p, y-p*3, leaf);
+    // Hanging bloom
+    drawPixel(ctx, x+p*2, y-p*5-droop, b1); drawPixel(ctx, x+p*2, y-p*4-droop, b2); drawPixel(ctx, x+p, y-p*4-droop, b3); return;
+  }
+  if (stage === 4) {
+    // Taller curved stem with 2-3 blooms
+    drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem);
+    drawPixel(ctx, x, y-p*5, stem); drawPixel(ctx, x+p, y-p*6, stem); drawPixel(ctx, x+p, y-p*7, stem);
+    drawPixel(ctx, x-p, y-p*3, leaf); drawPixel(ctx, x+p, y-p*3, leaf); drawPixel(ctx, x-p, y-p*5, leaf);
+    // Bloom 1
+    drawPixel(ctx, x+p*2, y-p*7-droop, b1); drawPixel(ctx, x+p*2, y-p*6-droop, b2); drawPixel(ctx, x+p, y-p*6-droop, b3);
+    // Bloom 2
+    drawPixel(ctx, x+p*2, y-p*5-droop, b1); drawPixel(ctx, x+p*2, y-p*4-droop, b2);
+    // Bloom 3
+    drawPixel(ctx, x, y-p*7-droop, b1); drawPixel(ctx, x-p, y-p*7-droop, b3); return;
+  }
+  // Stage 5: Full cascade with sparkles
+  drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem);
+  drawPixel(ctx, x, y-p*5, stem); drawPixel(ctx, x, y-p*6, stem); drawPixel(ctx, x+p, y-p*7, stem); drawPixel(ctx, x+p, y-p*8, stem);
+  drawPixel(ctx, x-p, y-p*3, leaf); drawPixel(ctx, x+p, y-p*3, leaf); drawPixel(ctx, x-p, y-p*5, leaf); drawPixel(ctx, x-p*2, y-p*6, leaf);
+  // Cascade of blooms
+  drawPixel(ctx, x+p*2, y-p*8-droop, b1); drawPixel(ctx, x+p*2, y-p*7-droop, b2); drawPixel(ctx, x+p, y-p*7-droop, b3);
+  drawPixel(ctx, x+p*2, y-p*6-droop, b1); drawPixel(ctx, x+p*2, y-p*5-droop, b2);
+  drawPixel(ctx, x, y-p*8-droop, b1); drawPixel(ctx, x-p, y-p*8-droop, b3);
+  drawPixel(ctx, x-p, y-p*7-droop, b1); drawPixel(ctx, x-p*2, y-p*7-droop, b2);
+  // Sparkles
+  drawPixel(ctx, x+p*3, y-p*8-droop, '#FFF8E0'); drawPixel(ctx, x-p*2, y-p*8-droop, '#FFFDE8');
+}
+
+// --- Fern: feathery fronds fanning out ---
+function drawFern(ctx, x, y, stage, p, stem, leaf, b1, b2, b3, soil, droop) {
+  if (stage === 0) { drawPixelRect(ctx, x-p, y-p, p*3, p, soil); drawPixel(ctx, x, y-p*2, '#4A8F4A'); return; }
+  if (stage === 1) {
+    // Curled fiddlehead
+    drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, leaf); drawPixel(ctx, x+p, y-p*3, leaf); return;
+  }
+  if (stage === 2) {
+    // Unfurling
+    drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem);
+    drawPixel(ctx, x-p, y-p*4, leaf); drawPixel(ctx, x+p, y-p*4, leaf);
+    drawPixel(ctx, x-p, y-p*3, b1); drawPixel(ctx, x+p, y-p*3, b1); return;
+  }
+  if (stage === 3) {
+    // 2-3 fronds
+    drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem); drawPixel(ctx, x, y-p*5, stem);
+    // Left frond
+    drawPixel(ctx, x-p, y-p*4, leaf); drawPixel(ctx, x-p*2, y-p*3, leaf); drawPixel(ctx, x-p, y-p*5, b1);
+    // Right frond
+    drawPixel(ctx, x+p, y-p*4, leaf); drawPixel(ctx, x+p*2, y-p*3, leaf); drawPixel(ctx, x+p, y-p*5, b1);
+    // Top frond
+    drawPixel(ctx, x, y-p*6, b1); drawPixel(ctx, x-p, y-p*6, leaf); drawPixel(ctx, x+p, y-p*6, leaf); return;
+  }
+  if (stage === 4) {
+    // Full fan of fronds
+    drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem);
+    drawPixel(ctx, x, y-p*5, stem); drawPixel(ctx, x, y-p*6, stem);
+    // Fronds fanning out
+    drawPixel(ctx, x-p, y-p*4, leaf); drawPixel(ctx, x-p*2, y-p*3, leaf); drawPixel(ctx, x-p*3, y-p*2, leaf);
+    drawPixel(ctx, x+p, y-p*4, leaf); drawPixel(ctx, x+p*2, y-p*3, leaf); drawPixel(ctx, x+p*3, y-p*2, leaf);
+    drawPixel(ctx, x-p, y-p*6, b1); drawPixel(ctx, x-p*2, y-p*5, b1); drawPixel(ctx, x-p*3, y-p*4, b1);
+    drawPixel(ctx, x+p, y-p*6, b1); drawPixel(ctx, x+p*2, y-p*5, b1); drawPixel(ctx, x+p*3, y-p*4, b1);
+    drawPixel(ctx, x, y-p*7, b2); drawPixel(ctx, x-p, y-p*7, leaf); drawPixel(ctx, x+p, y-p*7, leaf); return;
+  }
+  // Stage 5: Lush fern with tiny spores
+  drawPixel(ctx, x, y-p*2, stem); drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem);
+  drawPixel(ctx, x, y-p*5, stem); drawPixel(ctx, x, y-p*6, stem); drawPixel(ctx, x, y-p*7, stem);
+  // Wide fronds
+  drawPixel(ctx, x-p, y-p*4, leaf); drawPixel(ctx, x-p*2, y-p*3, leaf); drawPixel(ctx, x-p*3, y-p*2, leaf); drawPixel(ctx, x-p*4, y-p, leaf);
+  drawPixel(ctx, x+p, y-p*4, leaf); drawPixel(ctx, x+p*2, y-p*3, leaf); drawPixel(ctx, x+p*3, y-p*2, leaf); drawPixel(ctx, x+p*4, y-p, leaf);
+  drawPixel(ctx, x-p, y-p*6, b1); drawPixel(ctx, x-p*2, y-p*5, b1); drawPixel(ctx, x-p*3, y-p*4, b1);
+  drawPixel(ctx, x+p, y-p*6, b1); drawPixel(ctx, x+p*2, y-p*5, b1); drawPixel(ctx, x+p*3, y-p*4, b1);
+  drawPixel(ctx, x, y-p*8, b2); drawPixel(ctx, x-p, y-p*8, leaf); drawPixel(ctx, x+p, y-p*8, leaf);
+  drawPixel(ctx, x-p*2, y-p*7, b1); drawPixel(ctx, x+p*2, y-p*7, b1);
+  // Tiny spores
+  drawPixel(ctx, x-p*2, y-p*6, b3); drawPixel(ctx, x+p*3, y-p*5, b3); drawPixel(ctx, x, y-p*9, '#FFFDE8');
+}
+
+// --- Grass: thin blades of varying height ---
+function drawGrass(ctx, x, y, stage, p, stem, leaf, b1, b2, b3, soil, droop) {
+  if (stage === 0) { drawPixelRect(ctx, x-p, y-p, p*3, p, soil); drawPixel(ctx, x, y-p*2, '#7BC47B'); return; }
+  if (stage === 1) {
+    // 1-2 tiny blades
+    drawPixel(ctx, x, y-p*2, leaf); drawPixel(ctx, x+p, y-p*2, b1); return;
+  }
+  if (stage === 2) {
+    // 3-4 blades
+    drawPixel(ctx, x-p, y-p*2, leaf); drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x+p, y-p*2, leaf); drawPixel(ctx, x+p*2, y-p*3, b1); return;
+  }
+  if (stage === 3) {
+    // Small tuft
+    drawPixel(ctx, x-p*2, y-p*2, leaf); drawPixel(ctx, x-p, y-p*3, stem); drawPixel(ctx, x-p, y-p*4, b1);
+    drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem); drawPixel(ctx, x, y-p*5, b1);
+    drawPixel(ctx, x+p, y-p*3, leaf); drawPixel(ctx, x+p, y-p*4, b1);
+    drawPixel(ctx, x+p*2, y-p*2, leaf); return;
+  }
+  if (stage === 4) {
+    // Full tuft
+    drawPixel(ctx, x-p*2, y-p*2, leaf); drawPixel(ctx, x-p*2, y-p*3, leaf);
+    drawPixel(ctx, x-p, y-p*3, stem); drawPixel(ctx, x-p, y-p*4, stem); drawPixel(ctx, x-p, y-p*5, b1);
+    drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem); drawPixel(ctx, x, y-p*5, stem); drawPixel(ctx, x, y-p*6, b1);
+    drawPixel(ctx, x+p, y-p*3, stem); drawPixel(ctx, x+p, y-p*4, stem); drawPixel(ctx, x+p, y-p*5, b1);
+    drawPixel(ctx, x+p*2, y-p*2, leaf); drawPixel(ctx, x+p*2, y-p*3, leaf); return;
+  }
+  // Stage 5: Tall lush grass with seed heads
+  drawPixel(ctx, x-p*3, y-p*2, leaf); drawPixel(ctx, x-p*2, y-p*3, leaf); drawPixel(ctx, x-p*2, y-p*4, stem);
+  drawPixel(ctx, x-p, y-p*3, stem); drawPixel(ctx, x-p, y-p*4, stem); drawPixel(ctx, x-p, y-p*5, stem); drawPixel(ctx, x-p, y-p*6, b1);
+  drawPixel(ctx, x, y-p*3, stem); drawPixel(ctx, x, y-p*4, stem); drawPixel(ctx, x, y-p*5, stem); drawPixel(ctx, x, y-p*6, stem); drawPixel(ctx, x, y-p*7, b2);
+  drawPixel(ctx, x+p, y-p*3, stem); drawPixel(ctx, x+p, y-p*4, stem); drawPixel(ctx, x+p, y-p*5, stem); drawPixel(ctx, x+p, y-p*6, b1);
+  drawPixel(ctx, x+p*2, y-p*3, leaf); drawPixel(ctx, x+p*2, y-p*4, stem); drawPixel(ctx, x+p*3, y-p*2, leaf);
+  // Seed heads
+  drawPixel(ctx, x-p, y-p*7, b3); drawPixel(ctx, x, y-p*8, b3); drawPixel(ctx, x+p, y-p*7, b3);
 }
 
 // Decorative elements for empty tiles

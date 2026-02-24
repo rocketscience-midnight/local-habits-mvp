@@ -4,7 +4,7 @@
  */
 
 import gardenRepo from '../repo/gardenRepo.js';
-import { checkWeeklyRewards, addTestPlant, RARITY_LABELS, RARITY_COLORS } from '../utils/rewards.js';
+import { checkWeeklyRewards, updatePlantGrowth, addTestPlant, RARITY_LABELS, RARITY_COLORS } from '../utils/rewards.js';
 import { DECO_NAMES, DECO_EMOJIS } from '../utils/decoRewards.js';
 import { escapeHtml } from '../utils/sanitize.js';
 import {
@@ -37,8 +37,9 @@ export function cleanupGarden() {
 export async function renderGarden(container) {
   container.innerHTML = '';
 
-  // Check for weekly rewards
+  // Check for weekly rewards, then update growth for current-week plants
   const newPlants = await checkWeeklyRewards();
+  await updatePlantGrowth();
 
   const screen = document.createElement('div');
   screen.className = 'garden-screen';

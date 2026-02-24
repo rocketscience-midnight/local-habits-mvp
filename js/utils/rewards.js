@@ -175,7 +175,7 @@ export async function checkWeeklyRewards() {
     const plant = await gardenRepo.addGardenPlant({
       plantType,
       rarity,
-      growthStage: RARITY_TO_STAGE[rarity],
+      growthStage: 1,
       habitId: habit.id,
       habitName: habit.name,
       weekEarned: lastWeekISO,
@@ -188,6 +188,63 @@ export async function checkWeeklyRewards() {
   }
 
   return newPlants;
+}
+
+/**
+ * Map completed days (0-7 scale) to growth stage (1-5).
+ * Day 1 = seed, Day 2-3 = sprout, Day 4-5 = small, Day 6 = bloom, Day 7 = full
+ */
+function completionsToStage(daysCompleted) {
+  if (daysCompleted <= 1) return 1;
+  if (daysCompleted <= 3) return 2;
+  if (daysCompleted <= 5) return 3;
+  if (daysCompleted <= 6) return 4;
+  return 5;
+}
+
+/**
+ * Update growth stages for plants earned last week based on this week's habit completions.
+ * Plants start at stage 1 (seed) and grow as the user completes their habit during the current week.
+ */
+export async function updatePlantGrowth() {
+  const today = todayString();
+  const currentWeekStart = getWeekStart(today);
+  const lastWeekStart = getWeekStartNWeeksAgo(1, today);
+  const lastWeekISO = getISOWeekKey(lastWeekStart);
+
+  const allPlants = await gardenRepo.getAllGardenPlants();
+  const plantsToGrow = allPlants.filter(p => p.weekEarned === lastWeekISO && p.growthStage < 5);
+  if (plantsToGrow.length === 0) return;
+
+  const habits = await habitRepo.getAll();
+  const habitMap = {};
+  for (const h of habits) habitMap[h.id] = h;
+
+  for (const plant of plantsToGrow) {
+    const habit = habitMap[plant.habitId];
+    if (!habit) continue;
+
+    const completions = await habitRepo.getCompletionsForHabit(plant.habitId);
+    const weekCompletions = completions.filter(c => getWeekStart(c.date) === currentWeekStart);
+
+    let daysCompleted;
+    if (isWeeklyHabit(habit)) {
+      const target = habit.frequency.timesPerWeek || 1;
+      daysCompleted = Math.min(7, Math.round(weekCompletions.length / target * 7));
+    } else {
+      const target = habit.targetPerDay || 1;
+      const dayCounts = {};
+      for (const c of weekCompletions) {
+        dayCounts[c.date] = (dayCounts[c.date] || 0) + 1;
+      }
+      daysCompleted = Object.values(dayCounts).filter(c => c >= target).length;
+    }
+
+    const newStage = completionsToStage(daysCompleted);
+    if (newStage > plant.growthStage) {
+      await gardenRepo.gardenPlants.update(plant.id, { growthStage: newStage });
+    }
+  }
 }
 
 /**
