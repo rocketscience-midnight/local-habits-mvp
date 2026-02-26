@@ -92,7 +92,12 @@ db.version(8).stores({
     }
     if (plant.totalGrowth === undefined) {
       // Convert existing growthStage to totalGrowth
-      plant.totalGrowth = plant.growthStage || 1;
+      const currentStage = plant.growthStage;
+      if (typeof currentStage === 'number' && currentStage >= 1) {
+        plant.totalGrowth = currentStage;
+      } else {
+        plant.totalGrowth = 1;
+      }
     }
     if (plant.plantedDate === undefined) {
       plant.plantedDate = plant.weekEarned; // use weekEarned as fallback
