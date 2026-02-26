@@ -277,8 +277,11 @@ function showPlantTooltip({ plant, wrap, iso, originX, originY, scaleX, scaleY, 
 
   const tip = document.createElement('div');
   tip.className = 'garden-tooltip';
-  tip.style.left = screenX + 'px';
-  tip.style.top = screenY + 'px';
+  
+  // Add to DOM first to measure dimensions (temporarily for measurement)
+  tip.style.visibility = 'hidden';
+  tip.style.position = 'absolute';
+  document.body.appendChild(tip);
   // Show adoption info if adopted
   const adoptionInfo = plant.isAdopted && plant.originalHabitName ? 
     `<div class="garden-tooltip-detail">Adoptiert von: ${escapeHtml(plant.originalHabitName)}</div>` : '';
@@ -296,6 +299,42 @@ function showPlantTooltip({ plant, wrap, iso, originX, originY, scaleX, scaleY, 
     <div class="garden-tooltip-detail">Woche: ${plant.weekEarned}</div>
     <button class="garden-tooltip-remove-btn">↩ Entfernen</button>
   `;
+  
+  // Smart positioning to avoid screen edges
+  const tipRect = tip.getBoundingClientRect();
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  
+  let finalX = screenX;
+  let finalY = screenY;
+  
+  // Check right edge - if tooltip would go off screen, move it left
+  if (finalX + tipRect.width > viewportWidth - 10) {
+    finalX = viewportWidth - tipRect.width - 10;
+  }
+  
+  // Check left edge
+  if (finalX < 10) {
+    finalX = 10;
+  }
+  
+  // Check bottom edge - if tooltip would go off screen, move it up
+  if (finalY + tipRect.height > viewportHeight - 10) {
+    finalY = screenY - tipRect.height - 20; // position above the plant
+  }
+  
+  // Check top edge  
+  if (finalY < 10) {
+    finalY = 10;
+  }
+  
+  tip.style.left = finalX + 'px';
+  tip.style.top = finalY + 'px';
+  
+  // Remove from body and add to wrap, make visible
+  document.body.removeChild(tip);
+  tip.style.visibility = 'visible';
+  
   tip.querySelector('.garden-tooltip-remove-btn').addEventListener('click', async (ev) => {
     ev.stopPropagation();
     await gardenRepo.unplacePlant(plant.id);
