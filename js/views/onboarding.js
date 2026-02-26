@@ -46,7 +46,23 @@ export async function showOnboarding() {
     requestAnimationFrame(() => overlay.classList.add('visible'));
 
     overlay.querySelector('#onboarding-go').addEventListener('click', async () => {
-      // Add 3 starter plants in different growth stages
+      // Add starter habits first (need their IDs for plants)
+      const waterHabit = await habitRepo.save({
+        name: 'Wasser trinken',
+        emoji: '💧',
+        frequency: 'daily',
+        targetPerDay: 6,
+        timeOfDay: 'anytime',
+      });
+      const showerHabit = await habitRepo.save({
+        name: 'Kalt duschen',
+        emoji: '🚿',
+        frequency: { type: 'weekly', timesPerWeek: 5 },
+        targetPerDay: 1,
+        timeOfDay: 'morning',
+      });
+
+      // Add 3 starter plants assigned to the habits
       const starterPlants = [
         {
           plantType: 'daisy',
@@ -54,7 +70,7 @@ export async function showOnboarding() {
           growthStage: 2,
           totalGrowth: 2,
           maxGrowth: 5,
-          habitName: 'Willkommensgeschenk',
+          habit: waterHabit,
           stage: 'Keimling'
         },
         {
@@ -63,7 +79,7 @@ export async function showOnboarding() {
           growthStage: 3,
           totalGrowth: 3, 
           maxGrowth: 4,
-          habitName: 'Willkommensgeschenk',
+          habit: showerHabit,
           stage: 'Jungpflanze'
         },
         {
@@ -72,7 +88,7 @@ export async function showOnboarding() {
           growthStage: 4,
           totalGrowth: 6,
           maxGrowth: 7, 
-          habitName: 'Willkommensgeschenk',
+          habit: waterHabit, // 2 Pflanzen für Wasser trinken
           stage: 'Ausgewachsen'
         }
       ];
@@ -84,8 +100,8 @@ export async function showOnboarding() {
           growthStage: plant.growthStage,
           totalGrowth: plant.totalGrowth,
           maxGrowth: plant.maxGrowth,
-          habitId: 'welcome-gift',
-          habitName: plant.habitName,
+          habitId: plant.habit.id,
+          habitName: plant.habit.name,
           weekEarned: 'welcome',
           placed: 0,
           gridCol: null,
@@ -96,22 +112,6 @@ export async function showOnboarding() {
           adoptedDate: null
         });
       }
-
-      // Add starter habits
-      await habitRepo.save({
-        name: 'Wasser trinken',
-        emoji: '💧',
-        frequency: 'daily',
-        targetPerDay: 6,
-        timeOfDay: 'anytime',
-      });
-      await habitRepo.save({
-        name: 'Kalt duschen',
-        emoji: '🚿',
-        frequency: { type: 'weekly', timesPerWeek: 5 },
-        targetPerDay: 1,
-        timeOfDay: 'morning',
-      });
 
       // Add starter tasks
       await taskRepo.saveTask({
