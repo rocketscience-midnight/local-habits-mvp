@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hochbeet-Planer 🌱</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  background: #C8E8C0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.garden-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+}
+canvas { display: block; }
+#tooltip {
+  position: fixed;
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  pointer-events: none;
+  display: none;
+  z-index: 100;
+  white-space: nowrap;
+}
+.palette {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  border-top: 2px solid #b8d8b0;
+  padding: 8px 12px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.palette button {
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background: #f8f8f0;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 64px;
+  font-size: 10px;
+  color: #555;
+  transition: all 0.15s;
+}
+.palette button:hover { border-color: #8BC48B; background: #f0fff0; }
+.palette button.selected { border-color: #4A8F4A; background: #d0f0d0; box-shadow: 0 0 6px #8BC48B; }
+.palette button canvas { border-radius: 4px; }
+.palette .eraser {
+  font-size: 18px;
+  min-width: 56px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+h2 {
+  text-align: center;
+  color: #5A4A3A;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 12px 0 4px;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+</style>
+</head>
+<body>
+<div id="tooltip"></div>
+<div class="garden-wrap">
+  <div>
+    <h2>Hochbeet 1 · Mittelzehrer</h2>
+    <canvas id="bed1"></canvas>
+  </div>
+  <div>
+    <h2>Hochbeet 2 · Starkzehrer</h2>
+    <canvas id="bed2"></canvas>
+  </div>
+</div>
+<div class="palette" id="palette"></div>
+
+<script>
+// ============================================================
+// Constants
+// ============================================================
+const TILE_W = 112, TILE_H = 56, PIXEL = 8;
+const COLS = 7, ROWS = 4;
+const SKY_H = 100;
+const PADDING_TOP = 32;
+const PADDING_SIDE = 64;
+const PADDING_BOTTOM = 48;
+
+// ============================================================
+// Plant definitions
+// ============================================================
+const PLANTS = {
+  carrot:        { name: 'Möhre',           emoji: '🥕' },
+  lettuce:       { name: 'Salat/Batavia',   emoji: '🥬' },
+  cucumber:      { name: 'Gurke',           emoji: '🥒' },
+  onion:         { name: 'Zwiebel',         emoji: '🧅' },
+  spring_onion:  { name: 'Lauchzwiebel',   emoji: '🧅' },
+  bush_bean:     { name: 'Buschbohne',     emoji: '🫘' },
+  pole_bean:     { name: 'Stangenbohne',   emoji: '🫛' },
+  spinach:       { name: 'Spinat',          emoji: '🥬' },
+  chard:         { name: 'Mangold',         emoji: '🥬' },
+  kohlrabi:      { name: 'Kohlrabi',        emoji: '🥦' },
+  radish:        { name: 'Radieschen',      emoji: '🔴' },
+  garlic:        { name: 'Knoblauch',       emoji: '🧄' },
+  asian_greens:  { name: 'Asiasalat',       emoji: '🥗' },
+  arugula:       { name: 'Rucola',          emoji: '🌿' },
+  herbs:         { name: 'Kräuter',         emoji: '🌿' },
+  marigold:      { name: 'Tagetes',         emoji: '🌼' },
+  borage:        { name: 'Borretsch',       emoji: '💙' },
+  nasturtium:    { name: 'Kapuzinerkresse', emoji: '🌺' },
+};
+
+const PLANT_KEYS = Object.keys(PLANTS);
+
+// Default planting plans
+const DEFAULT_BED1 = [
+  ['carrot','carrot','carrot','onion','onion','spring_onion','herbs'],
+  ['spinach','spinach','arugula','chard','chard','herbs','herbs'],
+  ['lettuce','lettuce','lettuce','lettuce','radish','herbs','herbs'],
+  ['asian_greens','asian_greens','bush_bean','bush_bean','bush_bean','herbs','herbs'],
+];
+const DEFAULT_BED2 = [
+  ['garlic','garlic','asian_greens','asian_greens','asian_greens','marigold','marigold'],
+  ['kohlrabi','kohlrabi','spinach','radish','radish','borage','nasturtium'],
+  ['lettuce','spinach','cucumber','cucumber','cucumber','marigold','borage'],
+  ['pole_bean','pole_bean','cucumber','cucumber','cucumber','nasturtium','marigold'],
+];
+
+// ============================================================
+// State
+// ============================================================
+let selectedPlant = null;
+let beds = [createGrid(), createGrid()];
+
+function createGrid() {
+  const g = [];
+  for (let r = 0; r < ROWS; r++) { g[r] = new Array(COLS).fill(null); }
+  return g;
+}
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('gartenV5');
+    if (s) { beds = JSON.parse(s); return; }
+  } catch(e) {}
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      beds[0][r][c] = DEFAULT_BED1[r][c];
+      beds[1][r][c] = DEFAULT_BED2[r][c];
+    }
+}
+
+function saveState() {
+  localStorage.setItem('gartenV5', JSON.stringify(beds));
+}
+
+loadState();
+
+// ============================================================
+// Drawing primitives
+// ============================================================
+function drawPixel(ctx, x, y, color, size) {
+  size = size || PIXEL;
+  ctx.fillStyle = color;
+  ctx.fillRect(Math.round(x), Math.round(y), size, size);
+}
+
+function drawPixelRect(ctx, x, y, w, h, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(Math.round(x), Math.round(y), w, h);
+}
+
+function isoToScreen(col, row, ox, oy) {
+  return {
+    x: ox + (col - row) * (TILE_W / 2),
+    y: oy + (col + row) * (TILE_H / 2)
+  };
+}
+
+function screenToIso(sx, sy, ox, oy) {
+  const dx = sx - ox;
+  const dy = sy - oy + TILE_H / 2;
+  const col = (dx / (TILE_W / 2) + dy / (TILE_H / 2)) / 2;
+  const row = (dy / (TILE_H / 2) - dx / (TILE_W / 2)) / 2;
+  return { col: Math.floor(col), row: Math.floor(row) };
+}
+
+function drawTile(ctx, cx, cy, fill, stroke) {
+  const hw = TILE_W / 2, hh = TILE_H / 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - hh);
+  ctx.lineTo(cx + hw, cy);
+  ctx.lineTo(cx, cy + hh);
+  ctx.lineTo(cx - hw, cy);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+}
+
+// ============================================================
+// Plant sprite drawing (pixel art, p=7, detailed)
+// ============================================================
+function drawShadow(ctx, bx, by, p, w) {
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#2D2D2D';
+  ctx.beginPath();
+  ctx.ellipse(bx, by, p * w, p * 0.9, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawPlantSprite(ctx, cx, cy, type, animOffset) {
+  const sway = Math.sin(animOffset) * 1.2;
+  const p = PIXEL;
+  const bx = cx + sway;
+  const by = cy + p * 2;
+
+  switch (type) {
+    case 'carrot': {
+      drawShadow(ctx, bx, by, p, 1.4);
+      // Feathery green tops - multiple fronds
+      drawPixel(ctx, bx - p*2, by - p*8, '#4A9B4A');
+      drawPixel(ctx, bx - p, by - p*9, '#6BBF6B');
+      drawPixel(ctx, bx, by - p*10, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*9, '#6BBF6B');
+      drawPixel(ctx, bx + p*2, by - p*8, '#4A9B4A');
+      drawPixel(ctx, bx - p*3, by - p*7, '#2D7A2D');
+      drawPixel(ctx, bx + p*3, by - p*7, '#2D7A2D');
+      // Inner fronds
+      drawPixel(ctx, bx - p, by - p*7, '#1E6B1E');
+      drawPixel(ctx, bx, by - p*8, '#2D7A2D');
+      drawPixel(ctx, bx + p, by - p*7, '#1E6B1E');
+      drawPixel(ctx, bx, by - p*7, '#3A8B3A');
+      drawPixel(ctx, bx - p, by - p*6, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*6, '#3A8B3A');
+      // Carrot body - tapered with ridges
+      drawPixelRect(ctx, bx - p, by - p*5, p*3, p, '#FF8C00');
+      drawPixel(ctx, bx, by - p*5, '#FFA020'); // highlight ridge
+      drawPixelRect(ctx, bx - p, by - p*4, p*3, p, '#FF7700');
+      drawPixel(ctx, bx + p, by - p*4, '#E86A00'); // dark side
+      drawPixelRect(ctx, bx - p, by - p*3, p*3, p, '#E86A00');
+      drawPixel(ctx, bx - p, by - p*3, '#D05800'); // dark side
+      drawPixel(ctx, bx, by - p*3, '#FFA020'); // ridge highlight
+      drawPixelRect(ctx, bx, by - p*2, p*2, p, '#D05800');
+      drawPixel(ctx, bx, by - p*2, '#FF7700');
+      drawPixel(ctx, bx, by - p, '#C04800');
+      // Soil crumbs
+      drawPixel(ctx, bx - p*2, by - p*5, '#A08868');
+      drawPixel(ctx, bx + p*2, by - p*5, '#A08868');
+      drawPixel(ctx, bx - p*2, by - p*3, '#907858');
+      break;
+    }
+    case 'lettuce': {
+      drawShadow(ctx, bx, by, p, 2.2);
+      // Outer leaves - darker
+      drawPixelRect(ctx, bx - p*4, by - p*4, p*9, p, '#5A9B5A');
+      drawPixelRect(ctx, bx - p*3, by - p*5, p*7, p, '#4A9B4A');
+      drawPixelRect(ctx, bx - p*4, by - p*3, p*9, p*2, '#5A9B5A');
+      // Mid leaves
+      drawPixelRect(ctx, bx - p*3, by - p*6, p*7, p, '#6BBF6B');
+      drawPixelRect(ctx, bx - p*2, by - p*7, p*5, p, '#7BC47B');
+      // Inner leaves - lighter
+      drawPixelRect(ctx, bx - p*2, by - p*5, p*5, p*2, '#8ED88E');
+      drawPixelRect(ctx, bx - p, by - p*7, p*3, p, '#A5E8A5');
+      // Heart - pale center
+      drawPixel(ctx, bx, by - p*6, '#C0F0C0');
+      drawPixel(ctx, bx, by - p*5, '#D8F8D8');
+      // Leaf vein details
+      drawPixel(ctx, bx - p*3, by - p*4, '#3A9B3A');
+      drawPixel(ctx, bx + p*3, by - p*4, '#3A9B3A');
+      drawPixel(ctx, bx - p*2, by - p*3, '#4A9B4A');
+      drawPixel(ctx, bx + p*2, by - p*3, '#4A9B4A');
+      // Leaf edge ruffles
+      drawPixel(ctx, bx - p*4, by - p*5, '#5A9B5A');
+      drawPixel(ctx, bx + p*4, by - p*5, '#5A9B5A');
+      drawPixel(ctx, bx - p*3, by - p*2, '#5A9B5A');
+      drawPixel(ctx, bx + p*3, by - p*2, '#5A9B5A');
+      break;
+    }
+    case 'cucumber': {
+      drawShadow(ctx, bx, by, p, 1.6);
+      // Tall vine/stem
+      drawPixelRect(ctx, bx, by - p*11, p, p*6, '#1E6B1E');
+      drawPixel(ctx, bx, by - p*12, '#2D7A2D');
+      // Tendrils
+      drawPixel(ctx, bx + p, by - p*11, '#3A8B3A');
+      drawPixel(ctx, bx + p*2, by - p*10, '#4A9B4A');
+      drawPixel(ctx, bx - p, by - p*10, '#3A8B3A');
+      drawPixel(ctx, bx - p*2, by - p*9, '#4A9B4A');
+      // Leaves - broad
+      drawPixel(ctx, bx - p*3, by - p*9, '#2D7A2D');
+      drawPixelRect(ctx, bx - p*2, by - p*9, p*2, p, '#3A8B3A');
+      drawPixel(ctx, bx + p*2, by - p*11, '#2D7A2D');
+      drawPixelRect(ctx, bx + p*2, by - p*10, p*2, p, '#3A8B3A');
+      // Yellow flower
+      drawPixel(ctx, bx - p*2, by - p*11, '#FFD966');
+      drawPixel(ctx, bx - p*3, by - p*10, '#FFD040');
+      // Cucumber fruit - elongated with bumps
+      drawPixelRect(ctx, bx - p, by - p*5, p*3, p, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*5, '#3A8B3A'); // highlight
+      drawPixelRect(ctx, bx - p, by - p*4, p*3, p, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*4, '#1E6B1E'); // dark
+      drawPixelRect(ctx, bx - p, by - p*3, p*3, p, '#2D7A2D');
+      drawPixel(ctx, bx, by - p*3, '#3A8B3A'); // bump highlight
+      drawPixelRect(ctx, bx - p, by - p*2, p*3, p, '#3A8B3A');
+      drawPixel(ctx, bx - p, by - p*2, '#1E6B1E'); // dark
+      drawPixelRect(ctx, bx, by - p, p*2, p, '#2D7A2D');
+      // Bumps/noppen
+      drawPixel(ctx, bx, by - p*5, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*3, '#3A8B3A');
+      drawPixel(ctx, bx - p, by - p*4, '#3A8B3A');
+      drawPixel(ctx, bx, by - p*2, '#3A8B3A');
+      break;
+    }
+    case 'onion': {
+      drawShadow(ctx, bx, by, p, 1.5);
+      // Green shoots - two stalks
+      drawPixelRect(ctx, bx - p, by - p*9, p, p*5, '#3A8B3A');
+      drawPixelRect(ctx, bx + p, by - p*10, p, p*6, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*10, '#4A9B4A');
+      drawPixel(ctx, bx + p, by - p*11, '#3A8B3A');
+      drawPixel(ctx, bx, by - p*8, '#2D7A2D');
+      // Bulb - layered with shading
+      drawPixelRect(ctx, bx - p*2, by - p*4, p*5, p, '#D8C080');
+      drawPixelRect(ctx, bx - p*2, by - p*3, p*5, p, '#D0B070');
+      drawPixel(ctx, bx + p*2, by - p*3, '#C8A868'); // dark side
+      drawPixelRect(ctx, bx - p*2, by - p*2, p*5, p, '#C8A868');
+      drawPixel(ctx, bx - p*2, by - p*2, '#C09858'); // darker
+      drawPixelRect(ctx, bx - p, by - p, p*3, p, '#C09858');
+      // Papery skin highlight
+      drawPixel(ctx, bx + p, by - p*4, '#E0D098');
+      drawPixel(ctx, bx, by - p*4, '#E8D8A0');
+      // Root wisps
+      drawPixel(ctx, bx - p, by, '#A08868');
+      drawPixel(ctx, bx, by, '#A08868');
+      drawPixel(ctx, bx + p, by, '#A08868');
+      break;
+    }
+    case 'spring_onion': {
+      drawShadow(ctx, bx, by, p, 0.9);
+      // Long green shaft with leaf detail
+      drawPixelRect(ctx, bx, by - p*13, p, p*10, '#2D7A2D');
+      drawPixel(ctx, bx, by - p*14, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*12, '#4A9B4A');
+      drawPixel(ctx, bx - p, by - p*13, '#4A9B4A');
+      // Leaf tips spreading
+      drawPixel(ctx, bx - p, by - p*14, '#6BBF6B');
+      drawPixel(ctx, bx + p, by - p*14, '#6BBF6B');
+      drawPixel(ctx, bx - p*2, by - p*13, '#4A9B4A');
+      drawPixel(ctx, bx + p*2, by - p*13, '#4A9B4A');
+      // Darker center line (leaf fold)
+      drawPixel(ctx, bx, by - p*10, '#1E6B1E');
+      drawPixel(ctx, bx, by - p*8, '#1E6B1E');
+      // White/light green base
+      drawPixelRect(ctx, bx - p, by - p*3, p*3, p, '#F0F4E8');
+      drawPixelRect(ctx, bx - p, by - p*2, p*3, p*2, '#F4F4F0');
+      drawPixelRect(ctx, bx, by, p, p, '#EDE8E0');
+      // Roots
+      drawPixel(ctx, bx - p, by + p, '#D0C0A8');
+      drawPixel(ctx, bx, by + p, '#D0C0A8');
+      drawPixel(ctx, bx + p, by + p, '#D0C0A8');
+      break;
+    }
+    case 'bush_bean': {
+      drawShadow(ctx, bx, by, p, 2.2);
+      // Dense bushy foliage - multiple layers
+      drawPixelRect(ctx, bx - p*3, by - p*7, p*7, p, '#2D7A2D');
+      drawPixelRect(ctx, bx - p*4, by - p*6, p*9, p, '#3A8B3A');
+      drawPixelRect(ctx, bx - p*4, by - p*5, p*9, p*2, '#2D7A2D');
+      drawPixelRect(ctx, bx - p*3, by - p*8, p*7, p, '#4A9B4A');
+      drawPixelRect(ctx, bx - p*2, by - p*9, p*5, p, '#6BBF6B');
+      // Leaf texture highlights
+      drawPixel(ctx, bx - p*2, by - p*7, '#4A9B4A');
+      drawPixel(ctx, bx + p*2, by - p*6, '#4A9B4A');
+      drawPixel(ctx, bx, by - p*8, '#6BBF6B');
+      drawPixel(ctx, bx - p*3, by - p*5, '#1E6B1E');
+      drawPixel(ctx, bx + p*3, by - p*5, '#1E6B1E');
+      // Stems
+      drawPixelRect(ctx, bx - p, by - p*3, p, p*2, '#1E6B1E');
+      drawPixelRect(ctx, bx + p, by - p*3, p, p*2, '#1E6B1E');
+      // Hanging bean pods - detailed
+      drawPixelRect(ctx, bx - p*3, by - p*4, p, p*3, '#7CB830');
+      drawPixel(ctx, bx - p*3, by - p*4, '#8ED040'); // highlight
+      drawPixelRect(ctx, bx + p*3, by - p*5, p, p*3, '#7CB830');
+      drawPixelRect(ctx, bx + p, by - p*4, p, p*3, '#6AA820');
+      drawPixel(ctx, bx + p, by - p*4, '#7CB830'); // highlight
+      drawPixelRect(ctx, bx - p, by - p*3, p, p*2, '#7CB830');
+      // Small white flowers
+      drawPixel(ctx, bx - p*2, by - p*8, '#F4F4F0');
+      drawPixel(ctx, bx + p, by - p*9, '#F4F4F0');
+      break;
+    }
+    case 'pole_bean': {
+      drawShadow(ctx, bx, by, p, 1.3);
+      // Tall wooden pole/stake
+      drawPixelRect(ctx, bx, by - p*17, p, p*16, '#B89878');
+      drawPixel(ctx, bx, by - p*17, '#A88868'); // darker top
+      // Cross piece
+      drawPixelRect(ctx, bx - p*3, by - p*16, p*7, p, '#A88868');
+      drawPixel(ctx, bx - p*3, by - p*16, '#987858');
+      drawPixel(ctx, bx + p*3, by - p*16, '#987858');
+      // Vine wrapping - denser
+      drawPixel(ctx, bx - p, by - p*15, '#2D7A2D');
+      drawPixel(ctx, bx + p, by - p*14, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*13, '#2D7A2D');
+      drawPixel(ctx, bx + p, by - p*12, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*11, '#2D7A2D');
+      drawPixel(ctx, bx + p, by - p*10, '#3A8B3A');
+      drawPixel(ctx, bx - p, by - p*9, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*8, '#3A8B3A');
+      drawPixel(ctx, bx - p, by - p*7, '#3A8B3A');
+      // Leaves - bigger, more detailed
+      drawPixel(ctx, bx - p*2, by - p*14, '#4A9B4A');
+      drawPixel(ctx, bx - p*3, by - p*13, '#6BBF6B');
+      drawPixel(ctx, bx + p*2, by - p*12, '#4A9B4A');
+      drawPixel(ctx, bx + p*3, by - p*11, '#6BBF6B');
+      drawPixel(ctx, bx - p*2, by - p*10, '#6BBF6B');
+      drawPixel(ctx, bx + p*2, by - p*8, '#4A9B4A');
+      drawPixel(ctx, bx - p*2, by - p*7, '#6BBF6B');
+      drawPixel(ctx, bx + p*2, by - p*7, '#4A9B4A');
+      // Hanging pods - more
+      drawPixelRect(ctx, bx + p*2, by - p*13, p, p*3, '#7CB830');
+      drawPixel(ctx, bx + p*2, by - p*13, '#8ED040');
+      drawPixelRect(ctx, bx - p*2, by - p*11, p, p*3, '#7CB830');
+      drawPixelRect(ctx, bx + p*2, by - p*9, p, p*2, '#6AA820');
+      drawPixelRect(ctx, bx - p*2, by - p*8, p, p*2, '#7CB830');
+      drawPixelRect(ctx, bx + p, by - p*6, p, p*2, '#6AA820');
+      // Small white flowers
+      drawPixel(ctx, bx - p, by - p*15, '#F4F4F0');
+      drawPixel(ctx, bx + p*2, by - p*10, '#EDE8E0');
+      break;
+    }
+    case 'spinach': {
+      drawShadow(ctx, bx, by, p, 2);
+      // Flat rosette of dark green leaves - more layers
+      drawPixelRect(ctx, bx - p*3, by - p*3, p*7, p, '#3A8B3A');
+      drawPixelRect(ctx, bx - p*4, by - p*2, p*9, p, '#2D7A2D');
+      drawPixelRect(ctx, bx - p*3, by - p*4, p*7, p, '#3A8B3A');
+      drawPixelRect(ctx, bx - p*2, by - p*5, p*5, p, '#2D8A2D');
+      drawPixelRect(ctx, bx - p, by - p*6, p*3, p, '#3A8B3A');
+      drawPixelRect(ctx, bx - p*3, by - p, p*7, p, '#3A8B3A');
+      // Leaf veins - detailed
+      drawPixel(ctx, bx, by - p*5, '#1E6B1E');
+      drawPixel(ctx, bx - p*2, by - p*4, '#1E6B1E');
+      drawPixel(ctx, bx + p*2, by - p*4, '#1E6B1E');
+      drawPixel(ctx, bx - p*3, by - p*3, '#1E6B1E');
+      drawPixel(ctx, bx + p*3, by - p*3, '#1E6B1E');
+      // Highlights on upper leaves
+      drawPixel(ctx, bx + p, by - p*5, '#3A8B3A');
+      drawPixel(ctx, bx - p, by - p*4, '#2D8A2D');
+      drawPixel(ctx, bx + p, by - p*3, '#2D8A2D');
+      // Dark center rosette
+      drawPixel(ctx, bx, by - p*4, '#145014');
+      break;
+    }
+    case 'chard': {
+      drawShadow(ctx, bx, by, p, 1.7);
+      // Thick RED stems (signature!) - softer
+      drawPixelRect(ctx, bx - p*2, by - p*7, p, p*6, '#E05555');
+      drawPixel(ctx, bx - p*2, by - p*7, '#F07070'); // highlight
+      drawPixelRect(ctx, bx, by - p*6, p, p*5, '#CC4040');
+      drawPixelRect(ctx, bx + p*2, by - p*8, p, p*7, '#E86060');
+      drawPixel(ctx, bx + p*2, by - p*8, '#F07070'); // highlight
+      // Additional stem
+      drawPixelRect(ctx, bx - p, by - p*5, p, p*4, '#E05555');
+      drawPixelRect(ctx, bx + p, by - p*7, p, p*6, '#CC4040');
+      // Broad dark green leaves - bigger
+      drawPixelRect(ctx, bx - p*3, by - p*10, p*3, p*3, '#2D7A2D');
+      drawPixelRect(ctx, bx + p, by - p*11, p*3, p*3, '#3A8B3A');
+      drawPixelRect(ctx, bx - p*2, by - p*11, p*5, p, '#3A8B3A');
+      drawPixel(ctx, bx - p*4, by - p*9, '#2D8A2D');
+      drawPixel(ctx, bx + p*4, by - p*10, '#2D8A2D');
+      // Leaf veins
+      drawPixel(ctx, bx - p*2, by - p*9, '#1A5A1A');
+      drawPixel(ctx, bx + p*2, by - p*10, '#1A5A1A');
+      // Leaf tops
+      drawPixel(ctx, bx, by - p*12, '#2D8A2D');
+      drawPixel(ctx, bx - p, by - p*11, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*12, '#2D8A2D');
+      // Leaf highlight
+      drawPixel(ctx, bx - p*3, by - p*10, '#3A8B3A');
+      drawPixel(ctx, bx + p*3, by - p*10, '#3A8B3A');
+      break;
+    }
+    case 'kohlrabi': {
+      drawShadow(ctx, bx, by, p, 2.2);
+      // Big round bulb - shaded
+      drawPixelRect(ctx, bx - p*2, by - p*5, p*5, p, '#6BBF6B');
+      drawPixelRect(ctx, bx - p*3, by - p*4, p*7, p*2, '#7BC47B');
+      drawPixel(ctx, bx - p*3, by - p*4, '#5A9B5A'); // dark left
+      drawPixel(ctx, bx + p*3, by - p*4, '#5A9B5A'); // dark right
+      drawPixelRect(ctx, bx - p*3, by - p*2, p*7, p, '#6BBF6B');
+      drawPixelRect(ctx, bx - p*2, by - p, p*5, p, '#8ED88E');
+      // Shine highlight
+      drawPixel(ctx, bx + p, by - p*5, '#A5E8A5');
+      drawPixel(ctx, bx + p*2, by - p*4, '#C0F0C0');
+      // Texture lines on bulb
+      drawPixel(ctx, bx, by - p*4, '#5A9B5A');
+      drawPixel(ctx, bx - p, by - p*3, '#5A9B5A');
+      drawPixel(ctx, bx + p, by - p*3, '#5A9B5A');
+      // Leaves sticking out top - bigger
+      drawPixel(ctx, bx - p*3, by - p*8, '#3A8B3A');
+      drawPixel(ctx, bx - p*2, by - p*7, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*6, '#2D7A2D');
+      drawPixel(ctx, bx, by - p*8, '#4A9B4A');
+      drawPixel(ctx, bx + p, by - p*7, '#2D7A2D');
+      drawPixel(ctx, bx + p*2, by - p*6, '#2D7A2D');
+      drawPixel(ctx, bx + p*3, by - p*8, '#3A8B3A');
+      drawPixel(ctx, bx - p*4, by - p*7, '#6BBF6B');
+      drawPixel(ctx, bx + p*4, by - p*7, '#6BBF6B');
+      // Leaf veins
+      drawPixel(ctx, bx - p*2, by - p*8, '#1E6B1E');
+      drawPixel(ctx, bx + p*2, by - p*8, '#1E6B1E');
+      break;
+    }
+    case 'radish': {
+      drawShadow(ctx, bx, by, p, 1.2);
+      // Green leaves - more
+      drawPixel(ctx, bx - p*2, by - p*7, '#3A8B3A');
+      drawPixel(ctx, bx - p, by - p*7, '#4A9B4A');
+      drawPixel(ctx, bx, by - p*8, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*7, '#4A9B4A');
+      drawPixel(ctx, bx + p*2, by - p*7, '#3A8B3A');
+      drawPixel(ctx, bx, by - p*7, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*6, '#2D7A2D');
+      drawPixel(ctx, bx + p, by - p*6, '#2D7A2D');
+      // Leaf vein
+      drawPixel(ctx, bx, by - p*6, '#1E6B1E');
+      // Red bulb - shaded (softer)
+      drawPixelRect(ctx, bx - p, by - p*4, p*3, p, '#E05555');
+      drawPixel(ctx, bx + p, by - p*4, '#CC4040'); // dark side
+      drawPixelRect(ctx, bx - p*2, by - p*3, p*5, p*2, '#E05555');
+      drawPixel(ctx, bx - p*2, by - p*3, '#B83030'); // dark
+      drawPixel(ctx, bx + p*2, by - p*3, '#B83030'); // dark
+      // Highlight
+      drawPixel(ctx, bx, by - p*4, '#F06060');
+      drawPixel(ctx, bx + p, by - p*3, '#F06060');
+      // White tip
+      drawPixel(ctx, bx - p, by - p, '#F4F0E8');
+      drawPixel(ctx, bx, by - p, '#F8F4F0');
+      drawPixel(ctx, bx + p, by - p, '#F4F0E8');
+      // Soil crumbs
+      drawPixel(ctx, bx - p*2, by - p*2, '#A08868');
+      drawPixel(ctx, bx + p*3, by - p*2, '#A08868');
+      break;
+    }
+    case 'garlic': {
+      drawShadow(ctx, bx, by, p, 1.2);
+      // Long green shoots - two
+      drawPixelRect(ctx, bx, by - p*12, p, p*8, '#2D7A2D');
+      drawPixel(ctx, bx, by - p*13, '#3A8B3A');
+      drawPixelRect(ctx, bx + p, by - p*11, p, p*5, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*12, '#4A9B4A');
+      drawPixel(ctx, bx - p, by - p*10, '#4A9B4A');
+      drawPixel(ctx, bx - p, by - p*12, '#6BBF6B');
+      // Leaf fold detail
+      drawPixel(ctx, bx, by - p*9, '#1E6B1E');
+      drawPixel(ctx, bx, by - p*7, '#1E6B1E');
+      // White bulb - bigger, with clove detail
+      drawPixelRect(ctx, bx - p*2, by - p*4, p*5, p, '#F4F4F0');
+      drawPixelRect(ctx, bx - p*2, by - p*3, p*5, p, '#F0F0E8');
+      drawPixelRect(ctx, bx - p*3, by - p*2, p*7, p, '#E8E8E0');
+      drawPixelRect(ctx, bx - p*2, by - p, p*5, p, '#E0E0D8');
+      // Clove separation lines
+      drawPixel(ctx, bx, by - p*4, '#D8D8D0');
+      drawPixel(ctx, bx - p, by - p*3, '#D8D8D0');
+      drawPixel(ctx, bx + p, by - p*3, '#D8D8D0');
+      drawPixel(ctx, bx, by - p*2, '#D0D0C8');
+      drawPixel(ctx, bx - p*2, by - p*2, '#D8D8D0');
+      drawPixel(ctx, bx + p*2, by - p*2, '#D8D8D0');
+      // Papery highlight
+      drawPixel(ctx, bx + p, by - p*4, '#FAFAF8');
+      // Roots
+      drawPixel(ctx, bx - p, by, '#D0C0A8');
+      drawPixel(ctx, bx, by, '#D0C0A8');
+      drawPixel(ctx, bx + p, by, '#D0C0A8');
+      break;
+    }
+    case 'asian_greens': {
+      drawShadow(ctx, bx, by, p, 1.7);
+      // Pointed upright leaves - pak choi style
+      drawPixel(ctx, bx, by - p*9, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*8, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*8, '#3A8B3A');
+      drawPixelRect(ctx, bx - p*2, by - p*7, p*5, p, '#2D7A2D');
+      drawPixelRect(ctx, bx - p*3, by - p*6, p*7, p, '#2D7A2D');
+      drawPixelRect(ctx, bx - p*2, by - p*5, p*5, p, '#3A8B3A');
+      drawPixelRect(ctx, bx - p*3, by - p*4, p*7, p*2, '#2D7A2D');
+      drawPixelRect(ctx, bx - p*2, by - p*2, p*5, p, '#2D7A2D');
+      // White/pale stems (pak choi detail)
+      drawPixel(ctx, bx, by - p*3, '#D0E0C8');
+      drawPixel(ctx, bx, by - p*2, '#C8D8B8');
+      drawPixel(ctx, bx - p, by - p*2, '#D0E0C8');
+      drawPixel(ctx, bx + p, by - p*2, '#D0E0C8');
+      // Serrated edge hints
+      drawPixel(ctx, bx - p*4, by - p*6, '#6BBF6B');
+      drawPixel(ctx, bx + p*4, by - p*6, '#6BBF6B');
+      drawPixel(ctx, bx - p*3, by - p*7, '#4A9B4A');
+      drawPixel(ctx, bx + p*3, by - p*7, '#4A9B4A');
+      // Leaf veins
+      drawPixel(ctx, bx, by - p*7, '#1E6B1E');
+      drawPixel(ctx, bx, by - p*5, '#1E6B1E');
+      drawPixel(ctx, bx - p, by - p*6, '#1E6B1E');
+      drawPixel(ctx, bx + p, by - p*6, '#1E6B1E');
+      break;
+    }
+    case 'arugula': {
+      drawShadow(ctx, bx, by, p, 1.5);
+      // Narrow jagged leaves in rosette - more detailed
+      drawPixel(ctx, bx, by - p*8, '#3A8B3A');
+      drawPixel(ctx, bx, by - p*9, '#4A9B4A');
+      drawPixel(ctx, bx - p, by - p*7, '#2D7A2D');
+      drawPixel(ctx, bx + p, by - p*7, '#2D7A2D');
+      drawPixel(ctx, bx - p*2, by - p*6, '#4A9B4A');
+      drawPixel(ctx, bx + p*2, by - p*6, '#4A9B4A');
+      drawPixelRect(ctx, bx - p*2, by - p*5, p*5, p, '#2D7A2D');
+      drawPixelRect(ctx, bx - p*3, by - p*4, p*7, p, '#3A8B3A');
+      drawPixelRect(ctx, bx - p*2, by - p*3, p*5, p, '#2D7A2D');
+      drawPixelRect(ctx, bx - p*2, by - p*2, p*5, p, '#3A8B3A');
+      // Jagged leaf edges (arugula signature)
+      drawPixel(ctx, bx - p*4, by - p*4, '#6BBF6B');
+      drawPixel(ctx, bx + p*4, by - p*4, '#6BBF6B');
+      drawPixel(ctx, bx - p*3, by - p*5, '#4A9B4A');
+      drawPixel(ctx, bx + p*3, by - p*5, '#4A9B4A');
+      drawPixel(ctx, bx - p*3, by - p*3, '#6BBF6B');
+      drawPixel(ctx, bx + p*3, by - p*3, '#6BBF6B');
+      // Leaf veins
+      drawPixel(ctx, bx, by - p*5, '#1E6B1E');
+      drawPixel(ctx, bx, by - p*4, '#1E6B1E');
+      drawPixel(ctx, bx - p, by - p*4, '#1E6B1E');
+      drawPixel(ctx, bx + p, by - p*4, '#1E6B1E');
+      // Tiny white flowers
+      drawPixel(ctx, bx + p, by - p*9, '#F4F4F0');
+      drawPixel(ctx, bx - p, by - p*8, '#F4F4F0');
+      break;
+    }
+    case 'herbs': {
+      drawShadow(ctx, bx, by, p, 1.7);
+      // Multiple thin stems with varied heights
+      drawPixelRect(ctx, bx - p*3, by - p*8, p, p*7, '#2D7A2D');
+      drawPixelRect(ctx, bx - p, by - p*9, p, p*8, '#3A8B3A');
+      drawPixelRect(ctx, bx + p, by - p*10, p, p*9, '#2D7A2D');
+      drawPixelRect(ctx, bx + p*3, by - p*7, p, p*6, '#3A8B3A');
+      // Basil-like leaves
+      drawPixel(ctx, bx - p*3, by - p*9, '#9B59B6'); // purple basil (pastel)
+      drawPixel(ctx, bx - p*4, by - p*8, '#6BBF6B');
+      drawPixel(ctx, bx - p*2, by - p*8, '#4A9B4A');
+      // Dill-like feathery top
+      drawPixel(ctx, bx + p, by - p*11, '#4A9B4A');
+      drawPixel(ctx, bx, by - p*10, '#6BBF6B');
+      drawPixel(ctx, bx + p*2, by - p*10, '#6BBF6B');
+      // Parsley clusters
+      drawPixel(ctx, bx - p, by - p*10, '#3A8B3A');
+      drawPixel(ctx, bx - p*2, by - p*9, '#2D7A2D');
+      // Yellow dill flowers
+      drawPixel(ctx, bx + p*3, by - p*8, '#FFD966');
+      drawPixel(ctx, bx + p*4, by - p*7, '#FFD966');
+      drawPixel(ctx, bx + p*2, by - p*8, '#FFD040');
+      // More leaf detail
+      drawPixel(ctx, bx, by - p*8, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*7, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*7, '#4A9B4A');
+      drawPixel(ctx, bx - p*2, by - p*6, '#3A8B3A');
+      break;
+    }
+    case 'marigold': {
+      drawShadow(ctx, bx, by, p, 1.4);
+      // Green stem with leaves
+      drawPixelRect(ctx, bx, by - p*8, p, p*7, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*5, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*6, '#3A8B3A');
+      drawPixel(ctx, bx - p*2, by - p*4, '#4A9B4A');
+      drawPixel(ctx, bx + p*2, by - p*5, '#4A9B4A');
+      // Leaf detail
+      drawPixel(ctx, bx - p, by - p*3, '#2D7A2D');
+      drawPixel(ctx, bx + p, by - p*4, '#2D7A2D');
+      // Big poofy flower - layered petals (warm pastel yellow)
+      drawPixelRect(ctx, bx - p*2, by - p*12, p*5, p*4, '#FFD966');
+      drawPixel(ctx, bx - p*3, by - p*11, '#FFB833');
+      drawPixel(ctx, bx + p*3, by - p*11, '#FFB833');
+      drawPixel(ctx, bx - p*3, by - p*10, '#FFC040');
+      drawPixel(ctx, bx + p*3, by - p*10, '#FFC040');
+      drawPixel(ctx, bx, by - p*13, '#FFB833');
+      drawPixel(ctx, bx - p, by - p*13, '#FFC040');
+      drawPixel(ctx, bx + p, by - p*13, '#FFC040');
+      // Darker petal centers
+      drawPixel(ctx, bx - p, by - p*11, '#FF9900');
+      drawPixel(ctx, bx + p, by - p*11, '#FF9900');
+      // Dark center
+      drawPixel(ctx, bx, by - p*11, '#CC8800');
+      drawPixel(ctx, bx, by - p*10, '#D09000');
+      // Petal highlights
+      drawPixel(ctx, bx + p*2, by - p*12, '#FFD040');
+      drawPixel(ctx, bx - p, by - p*12, '#FFD040');
+      break;
+    }
+    case 'borage': {
+      drawShadow(ctx, bx, by, p, 1.4);
+      // Hairy/fuzzy stem
+      drawPixelRect(ctx, bx, by - p*9, p, p*8, '#2D7A2D');
+      drawPixel(ctx, bx - p, by - p*6, '#3A8B3A');
+      drawPixel(ctx, bx + p, by - p*7, '#3A8B3A');
+      drawPixel(ctx, bx - p, by - p*4, '#3A8B3A');
+      // Stem hairs/fuzz
+      drawPixel(ctx, bx + p, by - p*4, '#5A9B5A');
+      drawPixel(ctx, bx - p, by - p*5, '#5A9B5A');
+      drawPixel(ctx, bx + p, by - p*6, '#5A9B5A');
+      drawPixel(ctx, bx - p, by - p*8, '#5A9B5A');
+      // Leaves
+      drawPixel(ctx, bx - p*2, by - p*7, '#2D7A2D');
+      drawPixel(ctx, bx + p*2, by - p*8, '#2D7A2D');
+      drawPixel(ctx, bx - p*2, by - p*5, '#3A8B3A');
+      // Star-shaped blue flower cluster (soft pastel blue)
+      drawPixel(ctx, bx, by - p*12, '#7B8CFF');
+      drawPixel(ctx, bx - p, by - p*11, '#6B7CFF');
+      drawPixel(ctx, bx + p, by - p*11, '#6B7CFF');
+      drawPixel(ctx, bx, by - p*10, '#6B7CFF');
+      drawPixel(ctx, bx, by - p*11, '#FFFFFF'); // white center
+      drawPixel(ctx, bx - p*2, by - p*11, '#7B8CFF');
+      drawPixel(ctx, bx + p*2, by - p*11, '#7B8CFF');
+      // Second flower
+      drawPixel(ctx, bx + p*2, by - p*9, '#7B8CFF');
+      drawPixel(ctx, bx + p*3, by - p*8, '#6B7CFF');
+      drawPixel(ctx, bx + p*2, by - p*8, '#FFFFFF');
+      drawPixel(ctx, bx + p, by - p*9, '#6B7CFF');
+      // Third flower bud
+      drawPixel(ctx, bx - p*2, by - p*10, '#5A6CFF');
+      drawPixel(ctx, bx - p, by - p*10, '#7B8CFF');
+      break;
+    }
+    case 'nasturtium': {
+      drawShadow(ctx, bx, by, p, 2);
+      // Trailing vines
+      drawPixelRect(ctx, bx - p*2, by - p*4, p, p*3, '#2D7A2D');
+      drawPixelRect(ctx, bx + p*2, by - p*5, p, p*3, '#2D7A2D');
+      drawPixelRect(ctx, bx, by - p*3, p, p*2, '#1E6B1E');
+      // Round leaves (signature shield shape)
+      drawPixelRect(ctx, bx - p*4, by - p*6, p*3, p*2, '#1E6B1E');
+      drawPixel(ctx, bx - p*4, by - p*7, '#2D7A2D');
+      drawPixel(ctx, bx - p*2, by - p*7, '#3A8B3A');
+      drawPixelRect(ctx, bx + p*2, by - p*7, p*3, p*2, '#2D7A2D');
+      drawPixel(ctx, bx + p*3, by - p*8, '#3A8B3A');
+      drawPixel(ctx, bx + p*2, by - p*8, '#2D7A2D');
+      // Leaf vein detail (radial)
+      drawPixel(ctx, bx - p*3, by - p*6, '#2D7A2D');
+      drawPixel(ctx, bx + p*3, by - p*7, '#2D7A2D');
+      // Orange-red flowers - bigger, layered (softer)
+      drawPixelRect(ctx, bx - p*2, by - p*10, p*5, p*3, '#FF6B35');
+      drawPixel(ctx, bx - p*3, by - p*9, '#FF7B45');
+      drawPixel(ctx, bx + p*3, by - p*9, '#FF7B45');
+      drawPixel(ctx, bx - p*3, by - p*8, '#FF6B35');
+      drawPixel(ctx, bx + p*3, by - p*8, '#FF6B35');
+      drawPixel(ctx, bx, by - p*11, '#FF5520');
+      drawPixel(ctx, bx - p, by - p*11, '#FF6B35');
+      drawPixel(ctx, bx + p, by - p*11, '#FF6B35');
+      // Petal highlights
+      drawPixel(ctx, bx + p*2, by - p*10, '#FF8855');
+      drawPixel(ctx, bx - p, by - p*10, '#FF8855');
+      // Yellow center + spur
+      drawPixel(ctx, bx, by - p*9, '#FFD966');
+      drawPixel(ctx, bx, by - p*10, '#FFD040');
+      drawPixel(ctx, bx + p, by - p*9, '#FFD966');
+      break;
+    }
+  }
+}
+
+// ============================================================
+// Canvas setup & rendering
+// ============================================================
+function calcCanvasSize() {
+  const gridW = (COLS + ROWS) * (TILE_W / 2);
+  const gridH = (COLS + ROWS) * (TILE_H / 2);
+  const w = gridW + PADDING_SIDE * 2;
+  const h = SKY_H + gridH + PADDING_TOP + PADDING_BOTTOM + 100;
+  return { w, h, gridW, gridH };
+}
+
+const { w: CW, h: CH } = calcCanvasSize();
+const originXOffset = ROWS * (TILE_W / 2) + PADDING_SIDE;
+const originYOffset = SKY_H + PADDING_TOP;
+
+const c1 = document.getElementById('bed1');
+const c2 = document.getElementById('bed2');
+c1.width = c2.width = CW;
+c1.height = c2.height = CH;
+const ctx1 = c1.getContext('2d');
+const ctx2 = c2.getContext('2d');
+
+// Butterflies
+const butterflies = [];
+for (let i = 0; i < 3; i++) {
+  butterflies.push({
+    x: Math.random() * CW, y: SKY_H + Math.random() * 60,
+    vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.2,
+    color: ['#F8C0D8','#D8C8F0','#F8E8B8'][i % 3],
+    phase: Math.random() * Math.PI * 2, wanderTimer: 0
+  });
+}
+
+function drawButterfly(ctx, bf, time) {
+  const wingOpen = Math.sin(time * 5 + bf.phase) > 0;
+  const pp = 3;
+  const bx = Math.round(bf.x), by = Math.round(bf.y);
+  ctx.fillStyle = '#6B5B3B';
+  ctx.fillRect(bx, by, pp, pp * 3);
+  ctx.fillStyle = bf.color;
+  if (wingOpen) {
+    ctx.fillRect(bx - pp*2, by, pp*2, pp*2);
+    ctx.fillRect(bx + pp, by, pp*2, pp*2);
+  } else {
+    ctx.fillRect(bx - pp, by, pp, pp*2);
+    ctx.fillRect(bx + pp, by, pp, pp*2);
+  }
+}
+
+function drawBed(ctx, bedIdx, time) {
+  const ox = originXOffset;
+  const oy = originYOffset;
+
+  // Sky gradient
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, SKY_H + 30);
+  skyGrad.addColorStop(0, '#A8D0F0');
+  skyGrad.addColorStop(0.5, '#C8E0F4');
+  skyGrad.addColorStop(1, '#FFF8F0');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, CW, SKY_H + 30);
+
+  // Pixel-art clouds (soft, blocky)
+  function drawPixelCloud(cx, cy, w, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#FFFFFF';
+    // Bottom row (widest)
+    for (let i = -w; i <= w; i++) ctx.fillRect(cx + i*8, cy, 8, 8);
+    // Middle row
+    for (let i = -w+1; i <= w-1; i++) ctx.fillRect(cx + i*8, cy - 8, 8, 8);
+    // Top row (narrowest)
+    for (let i = -Math.floor(w/2); i <= Math.floor(w/2); i++) ctx.fillRect(cx + i*8, cy - 16, 8, 8);
+    // Bump on top
+    ctx.fillRect(cx - 8, cy - 24, 8, 8);
+    ctx.fillRect(cx, cy - 24, 8, 8);
+    // Light blue tint on bottom
+    ctx.fillStyle = '#D8ECFF';
+    for (let i = -w; i <= w; i += 2) ctx.fillRect(cx + i*8, cy, 8, 8);
+    ctx.restore();
+  }
+  drawPixelCloud(80, 30, 4, 0.55);
+  drawPixelCloud(CW * 0.45, 18, 5, 0.45);
+  drawPixelCloud(CW * 0.7, 42, 3, 0.5);
+  drawPixelCloud(CW * 0.25, 55, 3, 0.35);
+
+  // Grass background
+  ctx.fillStyle = '#C8E8C0';
+  ctx.fillRect(0, SKY_H + 10, CW, CH - SKY_H);
+
+  // Grass edge blend
+  const grassGrad = ctx.createLinearGradient(0, SKY_H, 0, SKY_H + 40);
+  grassGrad.addColorStop(0, '#C8E8C0');
+  grassGrad.addColorStop(1, 'rgba(200,232,192,0)');
+  ctx.fillStyle = grassGrad;
+  ctx.fillRect(0, SKY_H, CW, 40);
+
+  // ---- Hochbeet wood border (back edges first) ----
+  drawWoodBorder(ctx, ox, oy, 'back');
+
+  // Draw soil tiles + plants (back to front)
+  const SOIL_COLORS = ['#A08868', '#987858', '#A89070'];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const { x: sx, y: sy } = isoToScreen(c, r, ox, oy);
+      const ci = ((c * 7 + r * 13) % 3);
+      drawTile(ctx, sx, sy, SOIL_COLORS[ci], '#8B6B4B');
+
+      const plant = beds[bedIdx][r][c];
+      if (plant) {
+        const anim = time * 1.5 + c * 0.7 + r * 1.1;
+        drawPlantSprite(ctx, sx, sy, plant, anim);
+      }
+    }
+  }
+
+  // ---- Hochbeet wood border (front edges) ----
+  drawWoodBorder(ctx, ox, oy, 'front');
+
+  // Butterflies
+  for (const bf of butterflies) {
+    drawButterfly(ctx, bf, time);
+  }
+}
+
+function drawWoodBorder(ctx, ox, oy, pass) {
+  const WOOD = '#B89878';
+  const WOOD_DARK = '#987858';
+  const WOOD_LIGHT = '#D0B898';
+  const BOARD_H = 32;
+
+  const corners = [
+    isoToScreen(0, 0, ox, oy),
+    isoToScreen(COLS, 0, ox, oy),
+    isoToScreen(COLS, ROWS, ox, oy),
+    isoToScreen(0, ROWS, ox, oy),
+  ];
+
+  const edges = pass === 'back'
+    ? [[corners[0], corners[1]], [corners[3], corners[0]]]
+    : [[corners[1], corners[2]], [corners[2], corners[3]]];
+
+  for (const [from, to] of edges) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const steps = Math.ceil(len / 4);
+
+    // Wood plank face
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const px = from.x + dx * t;
+      const py = from.y + dy * t;
+
+      ctx.fillStyle = WOOD;
+      ctx.fillRect(Math.round(px - 3), Math.round(py - BOARD_H), 6, BOARD_H + 3);
+    }
+
+    // Top edge highlight
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y - BOARD_H);
+    ctx.lineTo(to.x, to.y - BOARD_H);
+    ctx.strokeStyle = WOOD_LIGHT;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Bottom edge
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y + 3);
+    ctx.lineTo(to.x, to.y + 3);
+    ctx.strokeStyle = WOOD_DARK;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Corner posts
+    for (const pt of [from, to]) {
+      ctx.fillStyle = WOOD_DARK;
+      ctx.fillRect(Math.round(pt.x - 7), Math.round(pt.y - BOARD_H - 7), 14, BOARD_H + 14);
+      ctx.fillStyle = WOOD;
+      ctx.fillRect(Math.round(pt.x - 6), Math.round(pt.y - BOARD_H - 6), 12, BOARD_H + 12);
+      ctx.fillStyle = WOOD_LIGHT;
+      ctx.fillRect(Math.round(pt.x - 4), Math.round(pt.y - BOARD_H - 4), 4, 4);
+    }
+  }
+}
+
+// Animation loop
+let animId;
+function animate(time) {
+  const t = time / 1000;
+
+  // Update butterflies
+  for (const bf of butterflies) {
+    bf.wanderTimer -= 0.016;
+    if (bf.wanderTimer <= 0) {
+      bf.vx += (Math.random() - 0.5) * 0.3;
+      bf.vy += (Math.random() - 0.5) * 0.15;
+      bf.vx = Math.max(-0.5, Math.min(0.5, bf.vx));
+      bf.vy = Math.max(-0.3, Math.min(0.3, bf.vy));
+      bf.wanderTimer = 1 + Math.random() * 2;
+    }
+    bf.x += bf.vx;
+    bf.y += bf.vy;
+    if (bf.x < -20 || bf.x > CW + 20 || bf.y < 20 || bf.y > CH - 80) {
+      bf.x = Math.random() * CW;
+      bf.y = SKY_H + Math.random() * 60;
+    }
+  }
+
+  ctx1.clearRect(0, 0, CW, CH);
+  ctx2.clearRect(0, 0, CW, CH);
+  drawBed(ctx1, 0, t);
+  drawBed(ctx2, 1, t);
+  animId = requestAnimationFrame(animate);
+}
+animId = requestAnimationFrame(animate);
+
+// ============================================================
+// Palette
+// ============================================================
+const paletteEl = document.getElementById('palette');
+
+// Eraser button
+const eraserBtn = document.createElement('button');
+eraserBtn.className = 'eraser';
+eraserBtn.textContent = '🧹';
+eraserBtn.title = 'Entfernen';
+eraserBtn.addEventListener('click', () => {
+  selectedPlant = null;
+  updatePaletteSelection();
+});
+paletteEl.appendChild(eraserBtn);
+
+function drawMiniPreview(type) {
+  const cv = document.createElement('canvas');
+  cv.width = 60; cv.height = 60;
+  const c = cv.getContext('2d');
+  c.scale(0.55, 0.55);
+  drawPlantSprite(c, 55, 80, type, 0);
+  return cv;
+}
+
+for (const key of PLANT_KEYS) {
+  const btn = document.createElement('button');
+  btn.dataset.plant = key;
+  btn.appendChild(drawMiniPreview(key));
+  const label = document.createElement('span');
+  label.textContent = PLANTS[key].name;
+  btn.appendChild(label);
+  btn.addEventListener('click', () => {
+    selectedPlant = key;
+    updatePaletteSelection();
+  });
+  paletteEl.appendChild(btn);
+}
+
+function updatePaletteSelection() {
+  paletteEl.querySelectorAll('button').forEach(b => {
+    b.classList.toggle('selected', b.dataset.plant === selectedPlant);
+  });
+  eraserBtn.classList.toggle('selected', selectedPlant === null);
+}
+updatePaletteSelection();
+
+// ============================================================
+// Click handling
+// ============================================================
+function handleClick(e, canvas, bedIdx) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  const { col, row } = screenToIso(mx, my, originXOffset, originYOffset);
+  if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
+
+  if (selectedPlant) {
+    beds[bedIdx][row][col] = selectedPlant;
+  } else {
+    beds[bedIdx][row][col] = null;
+  }
+  saveState();
+}
+
+c1.addEventListener('click', e => handleClick(e, c1, 0));
+c2.addEventListener('click', e => handleClick(e, c2, 1));
+// Touch
+c1.addEventListener('touchend', e => { e.preventDefault(); const t = e.changedTouches[0]; handleClick(t, c1, 0); });
+c2.addEventListener('touchend', e => { e.preventDefault(); const t = e.changedTouches[0]; handleClick(t, c2, 1); });
+
+// ============================================================
+// Tooltip on hover
+// ============================================================
+const tooltip = document.getElementById('tooltip');
+
+function handleHover(e, canvas, bedIdx) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+  const { col, row } = screenToIso(mx, my, originXOffset, originYOffset);
+
+  if (col >= 0 && col < COLS && row >= 0 && row < ROWS && beds[bedIdx][row][col]) {
+    const plant = beds[bedIdx][row][col];
+    tooltip.textContent = PLANTS[plant].emoji + ' ' + PLANTS[plant].name;
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top = (e.clientY - 28) + 'px';
+  } else {
+    tooltip.style.display = 'none';
+  }
+}
+
+c1.addEventListener('mousemove', e => handleHover(e, c1, 0));
+c2.addEventListener('mousemove', e => handleHover(e, c2, 1));
+c1.addEventListener('mouseleave', () => tooltip.style.display = 'none');
+c2.addEventListener('mouseleave', () => tooltip.style.display = 'none');
+
+// ============================================================
+// Responsive sizing
+// ============================================================
+function resize() {
+  const maxW = (window.innerWidth - 20) / 2;
+  const scale = Math.min(1, maxW / CW);
+  c1.style.width = c2.style.width = (CW * scale) + 'px';
+  c1.style.height = c2.style.height = (CH * scale) + 'px';
+}
+window.addEventListener('resize', resize);
+resize();
+</script>
+</body>
+</html>

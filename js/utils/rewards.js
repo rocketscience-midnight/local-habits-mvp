@@ -172,16 +172,30 @@ export async function checkWeeklyRewards() {
     const rarity = streakWeeksToRarity(streakWeeks);
     const plantType = pickPlantType(rarity);
 
+    // Determine maxGrowth based on plant type
+    const growthSpeeds = {
+      'bush': 4, 'mushroom': 3, 'grass': 3, 'clover': 3,      // fast
+      'tulip': 5, 'fern': 5, 'daisy': 5,                       // normal  
+      'sunflower': 7, 'cherry': 10, 'appletree': 12           // slow
+    };
+    const maxGrowth = growthSpeeds[plantType] || 5;
+
     const plant = await gardenRepo.addGardenPlant({
       plantType,
       rarity,
-      growthStage: 1,
+      growthStage: 1,               // starts as seed
+      totalGrowth: 1,               // starts at 1  
+      maxGrowth: maxGrowth,
       habitId: habit.id,
       habitName: habit.name,
       weekEarned: lastWeekISO,
-      placed: 0,
+      placed: 0,                    // in inventory (seed)
       gridCol: null,
       gridRow: null,
+      plantedDate: null,            // not planted yet
+      isAdopted: false,
+      originalHabitName: null,
+      adoptedDate: null
     });
 
     newPlants.push(plant);
@@ -245,6 +259,149 @@ export async function updatePlantGrowth() {
       await gardenRepo.gardenPlants.update(plant.id, { growthStage: newStage });
     }
   }
+}
+
+/**
+ * Get current season based on calendar month
+ */
+function getCurrentSeason() {
+  const month = new Date().getMonth() + 1; // 1-12
+  if (month >= 3 && month <= 5) return 'spring';
+  if (month >= 6 && month <= 8) return 'summer'; 
+  if (month >= 9 && month <= 11) return 'autumn';
+  return 'winter';
+}
+
+/**
+ * Get growth modifier based on current season
+ */
+function getSeasonalGrowthModifier(season) {
+  const modifiers = {
+    spring: 1.2,   // +20% growth
+    summer: 1.0,   // normal
+    autumn: 1.1,   // +10% growth  
+    winter: 0.9    // -10% growth
+  };
+  return modifiers[season] || 1.0;
+}
+
+/**
+ * Grow plants for a specific habit (individual growth system)
+ * Called after each habit completion
+ */
+export async function growPlantsForHabit(habitId) {
+  if (!habitId) return;
+  
+  const plants = await gardenRepo.getAllGardenPlants();
+  const plantsToGrow = plants.filter(p => 
+    p.habitId === habitId && 
+    p.placed > 0 && 
+    p.totalGrowth < p.maxGrowth
+  );
+  
+  if (plantsToGrow.length === 0) return;
+  
+  const season = getCurrentSeason();
+  const growthModifier = getSeasonalGrowthModifier(season);
+  
+  for (const plant of plantsToGrow) {
+    // Calculate growth points to add (seasonal modifier + randomness)
+    const baseGrowth = 1;
+    const seasonalGrowth = Math.random() < growthModifier ? baseGrowth + 1 : baseGrowth;
+    const finalGrowth = Math.min(seasonalGrowth, plant.maxGrowth - plant.totalGrowth);
+    
+    const newTotalGrowth = plant.totalGrowth + finalGrowth;
+    const newStage = Math.min(5, Math.floor((newTotalGrowth / plant.maxGrowth) * 4) + 1);
+    
+    await gardenRepo.gardenPlants.update(plant.id, { 
+      totalGrowth: newTotalGrowth,
+      growthStage: newStage
+    });
+  }
+}
+
+/**
+ * Adopt orphaned plants when a habit is deleted
+ * Automatically assigns them to the habit with fewest plants
+ */
+export async function adoptOrphanedPlants(deletedHabitId) {
+  if (!deletedHabitId) return;
+  
+  // Get orphaned plants
+  const orphanedPlants = (await gardenRepo.getAllGardenPlants())
+    .filter(p => p.habitId === deletedHabitId);
+  
+  if (orphanedPlants.length === 0) return;
+  
+  // Get all remaining habits
+  const allHabits = await habitRepo.getAll();
+  if (allHabits.length === 0) {
+    // No habits left - plants become truly orphaned
+    for (const plant of orphanedPlants) {
+      await gardenRepo.gardenPlants.update(plant.id, {
+        habitId: null,
+        isAdopted: true,
+        originalHabitName: plant.habitName,
+        adoptedDate: new Date().toISOString()
+      });
+    }
+    return;
+  }
+  
+  // Count plants per habit
+  const allPlants = await gardenRepo.getAllGardenPlants();
+  const plantCounts = {};
+  for (const habit of allHabits) {
+    plantCounts[habit.id] = allPlants.filter(p => p.habitId === habit.id).length;
+  }
+  
+  // Find habit with fewest plants
+  const targetHabit = allHabits.reduce((min, habit) => 
+    (plantCounts[habit.id] || 0) < (plantCounts[min.id] || 0) ? habit : min
+  );
+  
+  // Adopt all orphaned plants
+  const originalHabitName = orphanedPlants[0]?.habitName;
+  for (const plant of orphanedPlants) {
+    await gardenRepo.gardenPlants.update(plant.id, {
+      habitId: targetHabit.id,
+      habitName: targetHabit.name,
+      isAdopted: true,
+      originalHabitName: originalHabitName,
+      adoptedDate: new Date().toISOString()
+    });
+  }
+  
+  // Show adoption toast
+  if (typeof window !== 'undefined' && orphanedPlants.length > 0) {
+    const message = `🌱 ${orphanedPlants.length} Pflanzen von "${originalHabitName}" wurden zu "${targetHabit.name}" adoptiert!`;
+    showAdoptionToast(message);
+  }
+}
+
+/**
+ * Show adoption toast notification  
+ */
+function showAdoptionToast(message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: #4CAF50; color: white; padding: 12px 24px;
+    border-radius: 8px; z-index: 10000; font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    opacity: 0; transition: opacity 0.3s ease;
+  `;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  // Fade in
+  requestAnimationFrame(() => toast.style.opacity = '1');
+  
+  // Remove after 4 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
 }
 
 /**

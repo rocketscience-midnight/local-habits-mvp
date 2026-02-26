@@ -33,7 +33,8 @@ const gardenRepo = {
     await db.gardenPlants.update(plantId, {
       placed: 1,
       gridCol,
-      gridRow
+      gridRow,
+      plantedDate: new Date().toISOString()
     });
     return true;
   },

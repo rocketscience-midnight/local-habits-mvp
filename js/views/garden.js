@@ -279,10 +279,20 @@ function showPlantTooltip({ plant, wrap, iso, originX, originY, scaleX, scaleY, 
   tip.className = 'garden-tooltip';
   tip.style.left = screenX + 'px';
   tip.style.top = screenY + 'px';
+  // Show adoption info if adopted
+  const adoptionInfo = plant.isAdopted && plant.originalHabitName ? 
+    `<div class="garden-tooltip-detail">Adoptiert von: ${escapeHtml(plant.originalHabitName)}</div>` : '';
+  
+  // Show growth info
+  const growthInfo = plant.maxGrowth ? 
+    `<div class="garden-tooltip-detail">Wachstum: ${plant.totalGrowth || plant.growthStage}/${plant.maxGrowth}</div>` : '';
+
   tip.innerHTML = `
     <div class="garden-tooltip-name">${tooltipEmoji} ${tooltipName}</div>
     <div class="garden-tooltip-rarity" style="color:${rarityColor}">${isDeco ? 'Dekoration' : (RARITY_LABELS[plant.rarity] || plant.rarity)}</div>
-    <div class="garden-tooltip-detail">Verdient durch: ${escapeHtml(plant.habitName)}</div>
+    <div class="garden-tooltip-detail">Gehört zu: ${escapeHtml(plant.habitName)}</div>
+    ${adoptionInfo}
+    ${growthInfo}
     <div class="garden-tooltip-detail">Woche: ${plant.weekEarned}</div>
     <button class="garden-tooltip-remove-btn">↩ Entfernen</button>
   `;

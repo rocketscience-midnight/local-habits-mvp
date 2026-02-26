@@ -15,6 +15,7 @@ import { escapeHtml } from '../utils/sanitize.js';
 import { playPling } from '../utils/sounds.js';
 import { renderWeeklyFocus } from './weeklyFocus.js';
 import { createFAB } from '../components/fab.js';
+import { growPlantsForHabit } from '../utils/rewards.js';
 
 /** Time-of-day categories in display order */
 const TIME_CATEGORIES = [
@@ -212,6 +213,9 @@ async function handleHabitToggle(habit, card, mainContainer) {
   const isMulti = target > 1;
 
   const result = await habitRepo.incrementCompletion(habit.id);
+
+  // Grow plants for this habit (individual growth system)
+  await growPlantsForHabit(habit.id);
 
   // Confetti + sound on completion
   if (result.count > 0) {

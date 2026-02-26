@@ -9,6 +9,7 @@ import { isWeeklyHabit } from '../utils/dates.js';
 import { escapeHtml } from '../utils/sanitize.js';
 import { createModal } from '../components/modal.js';
 import { HABIT_EMOJI_CATEGORIES, renderEmojiPickerHTML, attachEmojiPickerHandlers } from '../components/emojiPicker.js';
+import { adoptOrphanedPlants } from '../utils/rewards.js';
 
 /** Time-of-day options */
 const TIME_OPTIONS = [
@@ -127,6 +128,8 @@ export async function showHabitForm(editId = null, onDone = () => {}) {
   if (editId) {
     overlay.querySelector('#delete-btn').addEventListener('click', async () => {
       if (confirm('Gewohnheit wirklich löschen? Alle Daten gehen verloren.')) {
+        // Adopt orphaned plants before deleting habit
+        await adoptOrphanedPlants(editId);
         await habitRepo.delete(editId);
         close();
         onDone();

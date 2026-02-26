@@ -70,6 +70,41 @@ db.version(7).stores({
   taskCompletions: 'id, taskId, period'
 });
 
+// v8: extend gardenPlants for growth system and adoption
+db.version(8).stores({
+  habits: 'id, name, order, createdAt',
+  completions: 'id, habitId, date, [habitId+date]',
+  gardenPlants: 'id, habitId, weekEarned, placed, [habitId+weekEarned]',
+  weeklyFocus: 'id, weekKey',
+  tasks: 'id, name, frequency, difficulty, order, createdAt',
+  taskCompletions: 'id, taskId, period'
+}).upgrade(tx => {
+  return tx.table('gardenPlants').toCollection().modify(plant => {
+    // Add growth system fields
+    if (plant.maxGrowth === undefined) {
+      // Set maxGrowth based on plant type
+      const growthSpeeds = {
+        'bush': 4, 'mushroom': 3, 'grass': 3, 'clover': 3,      // fast
+        'tulip': 5, 'fern': 5, 'daisy': 5,                       // normal  
+        'sunflower': 7, 'cherry': 10, 'appletree': 12           // slow
+      };
+      plant.maxGrowth = growthSpeeds[plant.plantType] || 5;
+    }
+    if (plant.totalGrowth === undefined) {
+      // Convert existing growthStage to totalGrowth
+      plant.totalGrowth = plant.growthStage || 1;
+    }
+    if (plant.plantedDate === undefined) {
+      plant.plantedDate = plant.weekEarned; // use weekEarned as fallback
+    }
+    
+    // Add adoption system fields  
+    if (plant.isAdopted === undefined) plant.isAdopted = false;
+    if (plant.originalHabitName === undefined) plant.originalHabitName = null;
+    if (plant.adoptedDate === undefined) plant.adoptedDate = null;
+  });
+});
+
 export function uuid() {
   return crypto.randomUUID?.() ||
     'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {

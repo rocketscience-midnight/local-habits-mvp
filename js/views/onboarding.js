@@ -46,18 +46,56 @@ export async function showOnboarding() {
     requestAnimationFrame(() => overlay.classList.add('visible'));
 
     overlay.querySelector('#onboarding-go').addEventListener('click', async () => {
-      // Add starter orchid
-      await gardenRepo.addGardenPlant({
-        plantType: 'orchid',
-        rarity: 'uncommon',
-        growthStage: 2,
-        habitId: 'welcome-gift',
-        habitName: 'Willkommensgeschenk',
-        weekEarned: 'welcome',
-        placed: 0,
-        gridCol: null,
-        gridRow: null,
-      });
+      // Add 3 starter plants in different growth stages
+      const starterPlants = [
+        {
+          plantType: 'daisy',
+          rarity: 'common', 
+          growthStage: 2,
+          totalGrowth: 2,
+          maxGrowth: 5,
+          habitName: 'Willkommensgeschenk',
+          stage: 'Keimling'
+        },
+        {
+          plantType: 'bush',
+          rarity: 'uncommon',
+          growthStage: 3,
+          totalGrowth: 3, 
+          maxGrowth: 4,
+          habitName: 'Willkommensgeschenk',
+          stage: 'Jungpflanze'
+        },
+        {
+          plantType: 'sunflower',
+          rarity: 'rare',
+          growthStage: 4,
+          totalGrowth: 6,
+          maxGrowth: 7, 
+          habitName: 'Willkommensgeschenk',
+          stage: 'Ausgewachsen'
+        }
+      ];
+
+      for (const plant of starterPlants) {
+        await gardenRepo.addGardenPlant({
+          plantType: plant.plantType,
+          rarity: plant.rarity,
+          growthStage: plant.growthStage,
+          totalGrowth: plant.totalGrowth,
+          maxGrowth: plant.maxGrowth,
+          habitId: 'welcome-gift',
+          habitName: plant.habitName,
+          weekEarned: 'welcome',
+          placed: 0,
+          gridCol: null,
+          gridRow: null,
+          plantedDate: null,
+          isAdopted: false,
+          originalHabitName: null,
+          adoptedDate: null
+        });
+      }
 
       // Add starter habits
       await habitRepo.save({
