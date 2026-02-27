@@ -111,6 +111,10 @@ export async function renderGarden(container) {
   const allPlants = await gardenRepo.getAllGardenPlants();
   screen.appendChild(buildCollection(allPlants));
 
+  // Info Footer - shows selected plant details or garden stats
+  const { element: infoFooter, updateFooter } = buildInfoFooter(placedPlants);
+  screen.appendChild(infoFooter);
+
   container.appendChild(screen);
 
   // Check for unseen deco rewards (keep only IDs of existing plants to prevent unbounded growth)
@@ -146,12 +150,12 @@ export async function renderGarden(container) {
     getPlacementMode: () => placementMode,
   });
 
-  // Canvas interaction: placement + tooltips
+  // Canvas interaction: placement + footer updates
   setupCanvasInteraction({
     canvas, wrap, plantGrid, gridCols, gridRows, originX, originY,
     getPlacementMode: () => placementMode,
     setPlacementMode: (val) => { placementMode = val; },
-    placementIndicator, refreshInventory,
+    placementIndicator, refreshInventory, updateFooter,
   });
 
   // Store cleanup reference for router to call
@@ -210,14 +214,14 @@ function buildDebugButtons(container) {
 }
 
 // ============================================================
-// Canvas interaction: placement + tooltips
+// Canvas interaction: placement + footer updates
 // ============================================================
 
 /**
- * Set up click handling on the garden canvas for plant placement and tooltips.
+ * Set up click handling on the garden canvas for plant placement and footer updates.
  */
 function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, originX, originY,
-  getPlacementMode, setPlacementMode, placementIndicator, refreshInventory }) {
+  getPlacementMode, setPlacementMode, placementIndicator, refreshInventory, updateFooter }) {
 
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -227,10 +231,11 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
     const cy = (e.clientY - rect.top) * scaleY;
     const iso = screenToIso(cx, cy, originX, originY);
 
-    // Remove existing tooltip
-    wrap.querySelector('.garden-tooltip')?.remove();
-
-    if (iso.row < 0 || iso.row >= gridRows || iso.col < 0 || iso.col >= gridCols) return;
+    if (iso.row < 0 || iso.row >= gridRows || iso.col < 0 || iso.col >= gridCols) {
+      // Click outside garden - show garden stats
+      updateFooter.showGardenStats();
+      return;
+    }
 
     const key = `${iso.col},${iso.row}`;
     const placementMode = getPlacementMode();
@@ -247,10 +252,12 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
       return;
     }
 
-    // Show tooltip for placed plant
+    // Update footer based on clicked plant/tile
     const plant = plantGrid[key];
     if (plant) {
-      showPlantTooltip({ plant, wrap, iso, originX, originY, scaleX, scaleY, plantGrid, key, refreshInventory });
+      updateFooter.showPlantDetails(plant);
+    } else {
+      updateFooter.showGardenStats();
     }
   });
 
@@ -262,89 +269,7 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
   });
 }
 
-/**
- * Show a tooltip for a placed plant/deco with name, rarity, and remove button.
- */
-function showPlantTooltip({ plant, wrap, iso, originX, originY, scaleX, scaleY, plantGrid, key, refreshInventory }) {
-  const { x, y } = isoToScreen(iso.col, iso.row, originX, originY);
-  const screenX = x / scaleX;
-  const screenY = (y - TILE_H * 2) / scaleY;
 
-  const isDeco = plant.itemType === 'deco';
-  const tooltipEmoji = isDeco ? (DECO_EMOJIS[plant.plantType] || '🎨') : (PLANT_EMOJIS[plant.plantType] || '🌿');
-  const tooltipName = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
-  const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
-
-  const tip = document.createElement('div');
-  tip.className = 'garden-tooltip';
-  
-  // Add to DOM first to measure dimensions (temporarily for measurement)
-  tip.style.visibility = 'hidden';
-  tip.style.position = 'absolute';
-  document.body.appendChild(tip);
-  // Show adoption info if adopted
-  const adoptionInfo = plant.isAdopted && plant.originalHabitName ? 
-    `<div class="garden-tooltip-detail">Adoptiert von: ${escapeHtml(plant.originalHabitName)}</div>` : '';
-  
-  // Show growth info
-  const growthInfo = plant.maxGrowth ? 
-    `<div class="garden-tooltip-detail">Wachstum: ${plant.totalGrowth || plant.growthStage}/${plant.maxGrowth}</div>` : '';
-
-  tip.innerHTML = `
-    <div class="garden-tooltip-name">${tooltipEmoji} ${tooltipName}</div>
-    <div class="garden-tooltip-rarity" style="color:${rarityColor}">${isDeco ? 'Dekoration' : (RARITY_LABELS[plant.rarity] || plant.rarity)}</div>
-    <div class="garden-tooltip-detail">Gehört zu: ${escapeHtml(plant.habitName)}</div>
-    ${adoptionInfo}
-    ${growthInfo}
-    <div class="garden-tooltip-detail">Woche: ${plant.weekEarned}</div>
-    <button class="garden-tooltip-remove-btn">↩ Entfernen</button>
-  `;
-  
-  // Smart positioning to avoid screen edges
-  const tipRect = tip.getBoundingClientRect();
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  
-  let finalX = screenX;
-  let finalY = screenY;
-  
-  // Check right edge - if tooltip would go off screen, move it left
-  if (finalX + tipRect.width > viewportWidth - 10) {
-    finalX = viewportWidth - tipRect.width - 10;
-  }
-  
-  // Check left edge
-  if (finalX < 10) {
-    finalX = 10;
-  }
-  
-  // Check bottom edge - if tooltip would go off screen, move it up
-  if (finalY + tipRect.height > viewportHeight - 10) {
-    finalY = screenY - tipRect.height - 20; // position above the plant
-  }
-  
-  // Check top edge  
-  if (finalY < 10) {
-    finalY = 10;
-  }
-  
-  tip.style.left = finalX + 'px';
-  tip.style.top = finalY + 'px';
-  
-  // Remove from body and add to wrap, make visible
-  document.body.removeChild(tip);
-  tip.style.visibility = 'visible';
-  
-  tip.querySelector('.garden-tooltip-remove-btn').addEventListener('click', async (ev) => {
-    ev.stopPropagation();
-    await gardenRepo.unplacePlant(plant.id);
-    delete plantGrid[key];
-    tip.remove();
-    refreshInventory();
-  });
-  wrap.appendChild(tip);
-  setTimeout(() => tip.remove(), 8000);
-}
 
 // ============================================================
 // Reward popup
@@ -402,4 +327,118 @@ function showDecoRewardPopup(decos, onClose) {
   }));
   const title = `🎁 ${decos.length} neue Deko${decos.length > 1 ? 's' : ''} für deinen Garten!`;
   showRewardModal(title, items, onClose);
+}
+
+// ============================================================
+// Info Footer System
+// ============================================================
+
+/**
+ * Build the info footer that shows garden stats or plant details
+ * @param {Array} placedPlants - Array of all placed plants/decos
+ * @returns {Object} { element, updateFooter }
+ */
+function buildInfoFooter(placedPlants) {
+  const footer = document.createElement('div');
+  footer.className = 'info-footer';
+  
+  // Calculate initial garden stats
+  const stats = calculateGardenStats(placedPlants);
+  
+  // Default content: garden stats
+  function showGardenStats() {
+    footer.innerHTML = `
+      <div class="info-footer-content">
+        <div class="info-footer-stats">
+          🌱 ${stats.totalPlants} Pflanzen • 🌸 ${stats.blooming} blühen • ⭐ ${stats.legendary} legendär
+        </div>
+      </div>
+    `;
+  }
+  
+  // Plant details content
+  function showPlantDetails(plant) {
+    const isDeco = plant.itemType === 'deco';
+    const emoji = isDeco ? (DECO_EMOJIS[plant.plantType] || '🎨') : (PLANT_EMOJIS[plant.plantType] || '🌿');
+    const name = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
+    const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
+    const rarityLabel = isDeco ? 'Dekoration' : (RARITY_LABELS[plant.rarity] || plant.rarity);
+    
+    // Additional info for plants
+    const adoptionInfo = plant.isAdopted && plant.originalHabitName ? 
+      `<span class="info-footer-detail">Adoptiert von: ${escapeHtml(plant.originalHabitName)}</span>` : '';
+    
+    const growthInfo = plant.maxGrowth ? 
+      `<span class="info-footer-detail">Wachstum: ${plant.totalGrowth || plant.growthStage}/${plant.maxGrowth}</span>` : '';
+    
+    footer.innerHTML = `
+      <div class="info-footer-content">
+        <div class="info-footer-main">
+          <div class="info-footer-plant-name">${emoji} ${name}</div>
+          <div class="info-footer-rarity" style="color:${rarityColor}">${rarityLabel}</div>
+        </div>
+        <div class="info-footer-details">
+          <span class="info-footer-detail">Gehört zu: ${escapeHtml(plant.habitName)}</span>
+          ${adoptionInfo}
+          ${growthInfo}
+          <span class="info-footer-detail">Woche: ${plant.weekEarned}</span>
+        </div>
+        <button class="info-footer-remove-btn" data-plant-id="${plant.id}">🗑️ Entfernen</button>
+      </div>
+    `;
+    
+    // Add click handler for remove button
+    const removeBtn = footer.querySelector('.info-footer-remove-btn');
+    removeBtn.addEventListener('click', async () => {
+      if (confirm(`${name} wirklich aus dem Garten entfernen?`)) {
+        await gardenRepo.unplacePlant(plant.id);
+        // Update stats and show garden stats again
+        const allPlants = await gardenRepo.getPlacedPlants();
+        const newStats = calculateGardenStats(allPlants);
+        stats.totalPlants = newStats.totalPlants;
+        stats.blooming = newStats.blooming;
+        stats.legendary = newStats.legendary;
+        showGardenStats();
+        // Refresh inventory to show the plant is available again
+        refreshInventory();
+      }
+    });
+  }
+  
+  // Initial state: show garden stats
+  showGardenStats();
+  
+  // Return both the element and the update function
+  return {
+    element: footer,
+    updateFooter: {
+      showGardenStats,
+      showPlantDetails
+    }
+  };
+}
+
+/**
+ * Calculate garden statistics from placed plants
+ * @param {Array} placedPlants - Array of placed plants/decos
+ * @returns {Object} Stats object with counts
+ */
+function calculateGardenStats(placedPlants) {
+  const plants = placedPlants.filter(p => p.itemType !== 'deco');
+  const totalPlants = plants.length;
+  
+  // Count blooming plants (high growth stages or specific plant types that are considered "blooming")
+  const blooming = plants.filter(p => {
+    // Consider plants with growth stage 4+ as blooming, or certain plant types
+    return p.growthStage >= 4 || p.plantType.includes('blume') || p.plantType.includes('rose');
+  }).length;
+  
+  // Count legendary plants
+  const legendary = plants.filter(p => p.rarity === 'legendary').length;
+  
+  return {
+    totalPlants,
+    blooming,
+    legendary
+  };
 }
