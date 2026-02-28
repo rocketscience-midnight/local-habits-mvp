@@ -237,8 +237,6 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
     const cy = (clientY - rect.top) * scaleY;
     const iso = screenToIso(cx, cy, originX, originY);
 
-    console.log('Canvas click:', { cx, cy, iso, plantGrid: Object.keys(plantGrid) }); // Debug log
-
     if (iso.row < 0 || iso.row >= gridRows || iso.col < 0 || iso.col >= gridCols) {
       // Click outside garden - close any open popup
       hidePlantPopup();
@@ -262,7 +260,6 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
 
     // Show popup only for plants
     const plant = plantGrid[key];
-    console.log('Plant at', key, ':', plant); // Debug log
     if (plant) {
       showPlantPopup(plant, clientX, clientY, refreshInventory, plantGrid);
     } else {

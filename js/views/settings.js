@@ -4,12 +4,33 @@
  */
 
 import habitRepo from '../repo/habitRepo.js';
-import { playSound } from '../utils/sounds.js';
+import { playSound, getAvailableAudioFiles } from '../utils/sounds.js';
 import { loadDemoData, clearDemoData } from '../utils/demoData.js';
 import { showOnboarding } from './onboarding.js';
 
 export async function renderSettings(container) {
   const currentTheme = localStorage.getItem('theme') || 'light';
+  const currentSoundStyle = localStorage.getItem('soundStyle') || 'glockenspiel';
+  
+  // Check for available audio files
+  const availableAudioFiles = await getAvailableAudioFiles();
+  
+  // Build sound style buttons
+  const soundButtons = [
+    { key: 'pling', label: 'Pling' },
+    { key: 'xylophon', label: 'Xylophon' },
+    { key: 'tropfen', label: 'Tropfen' },
+    { key: 'glockenspiel', label: 'Glockenspiel' },
+  ];
+  
+  // Add success button if audio file is available
+  if (availableAudioFiles.includes('success')) {
+    soundButtons.push({ key: 'success', label: '🎵 Success' });
+  }
+  
+  const soundButtonsHtml = soundButtons.map(btn => 
+    `<button class="btn btn-secondary sound-pick-btn ${currentSoundStyle === btn.key ? 'active' : ''}" data-style="${btn.key}">${btn.label}</button>`
+  ).join('');
 
   container.innerHTML = `
     <div class="settings-screen">
@@ -32,10 +53,7 @@ export async function renderSettings(container) {
         <div class="sound-style-picker" id="sound-style-section">
           <span class="dark-mode-toggle-label" style="margin-bottom:8px;display:block;">Sound-Stil</span>
           <div class="sound-btn-row">
-            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'pling' ? 'active' : ''}" data-style="pling">Pling</button>
-            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'xylophon' ? 'active' : ''}" data-style="xylophon">Xylophon</button>
-            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'tropfen' ? 'active' : ''}" data-style="tropfen">Tropfen</button>
-            <button class="btn btn-secondary sound-pick-btn ${(localStorage.getItem('soundStyle') || 'glockenspiel') === 'glockenspiel' ? 'active' : ''}" data-style="glockenspiel">Glockenspiel</button>
+            ${soundButtonsHtml}
           </div>
         </div>
       </section>

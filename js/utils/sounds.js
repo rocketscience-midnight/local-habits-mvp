@@ -1,9 +1,10 @@
 /**
  * Sound effects - multiple sound styles for completing habits/tasks
- * Pure Web Audio API synthesis (no external files)
+ * Supports both Web Audio API synthesis and real audio files
  */
 
 let audioCtx = null;
+let audioCache = new Map(); // Cache for loaded audio files
 
 function getCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -13,6 +14,73 @@ function getCtx() {
 /** Get current sound style from settings */
 function getStyle() {
   return localStorage.getItem('soundStyle') || 'glockenspiel';
+}
+
+/** Available audio file styles */
+const AUDIO_FILES = {
+  success: './assets/sounds/success.ogg',
+  // Future: different sounds for different types
+};
+
+/**
+ * Load an audio file and cache it
+ * @param {string} url - Audio file URL
+ * @returns {Promise<AudioBuffer>}
+ */
+async function loadAudioFile(url) {
+  if (audioCache.has(url)) {
+    return audioCache.get(url);
+  }
+  
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Audio file not found: ${url}`);
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await getCtx().decodeAudioData(arrayBuffer);
+    
+    audioCache.set(url, audioBuffer);
+    return audioBuffer;
+  } catch (error) {
+    console.warn(`Failed to load audio file: ${url}`, error);
+    return null;
+  }
+}
+
+/**
+ * Play an audio file
+ * @param {string} audioKey - Key from AUDIO_FILES
+ * @param {string} type - Intensity type (affects volume)
+ */
+async function playAudioFile(audioKey, type = 'small') {
+  const url = AUDIO_FILES[audioKey];
+  if (!url) return;
+  
+  try {
+    const audioBuffer = await loadAudioFile(url);
+    if (!audioBuffer) return;
+    
+    const ctx = getCtx();
+    const source = ctx.createBufferSource();
+    const gainNode = ctx.createGain();
+    
+    source.buffer = audioBuffer;
+    source.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    // Adjust volume based on type
+    const volume = type === 'mega' ? 0.8 : type === 'big' ? 0.6 : 0.4;
+    gainNode.gain.value = volume;
+    
+    source.start(0);
+    
+    // For mega type, play multiple times with slight delay
+    if (type === 'mega') {
+      setTimeout(() => playAudioFile(audioKey, 'big'), 300);
+    }
+  } catch (error) {
+    console.warn(`Failed to play audio file: ${audioKey}`, error);
+  }
 }
 
 /**
@@ -27,6 +95,7 @@ export function playPling(type = 'small') {
       case 'xylophon': playXylophon(type); break;
       case 'tropfen': playTropfen(type); break;
       case 'glockenspiel': playGlockenspiel(type); break;
+      case 'success': playAudioFile('success', type); break;
       default: playPlingSound(type);
     }
   } catch (e) { /* silent */ }
@@ -40,8 +109,28 @@ export function playSound(style, type = 'small') {
       case 'xylophon': playXylophon(type); break;
       case 'tropfen': playTropfen(type); break;
       case 'glockenspiel': playGlockenspiel(type); break;
+      case 'success': playAudioFile('success', type); break;
     }
   } catch (e) { /* silent */ }
+}
+
+/**
+ * Check if audio files are available
+ * @returns {Promise<string[]>} Available audio file keys
+ */
+export async function getAvailableAudioFiles() {
+  const available = [];
+  for (const [key, url] of Object.entries(AUDIO_FILES)) {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      if (response.ok) {
+        available.push(key);
+      }
+    } catch {
+      // File not available
+    }
+  }
+  return available;
 }
 
 // ==================== Pling (original) ====================
