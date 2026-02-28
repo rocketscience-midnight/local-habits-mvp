@@ -221,13 +221,23 @@ function buildDebugButtons(container) {
 function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, originX, originY,
   getPlacementMode, setPlacementMode, placementIndicator, refreshInventory }) {
 
-  canvas.addEventListener('click', (e) => {
+  function handleCanvasClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    const cx = (e.clientX - rect.left) * scaleX;
-    const cy = (e.clientY - rect.top) * scaleY;
+    
+    // Handle both mouse and touch events
+    const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : e.changedTouches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : e.changedTouches[0].clientY);
+    
+    const cx = (clientX - rect.left) * scaleX;
+    const cy = (clientY - rect.top) * scaleY;
     const iso = screenToIso(cx, cy, originX, originY);
+
+    console.log('Canvas click:', { cx, cy, iso, plantGrid: Object.keys(plantGrid) }); // Debug log
 
     if (iso.row < 0 || iso.row >= gridRows || iso.col < 0 || iso.col >= gridCols) {
       // Click outside garden - close any open popup
@@ -250,14 +260,19 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
       return;
     }
 
-    // Show popup for clicked tile (plant or empty)
+    // Show popup only for plants
     const plant = plantGrid[key];
+    console.log('Plant at', key, ':', plant); // Debug log
     if (plant) {
-      showPlantPopup(plant, e.clientX, e.clientY, refreshInventory, plantGrid);
+      showPlantPopup(plant, clientX, clientY, refreshInventory, plantGrid);
     } else {
-      showTilePopup(iso.col, iso.row, e.clientX, e.clientY);
+      hidePlantPopup();
     }
-  });
+  }
+
+  // Add both click and touch event listeners
+  canvas.addEventListener('click', handleCanvasClick);
+  canvas.addEventListener('touchend', handleCanvasClick);
 
   // Cancel placement button
   placementIndicator.querySelector('.placement-cancel-btn').addEventListener('click', () => {
@@ -418,69 +433,7 @@ function showPlantPopup(plant, screenX, screenY, refreshInventory, plantGrid) {
   currentPopup = popup;
 }
 
-/**
- * Show popup for empty tile
- * @param {number} col - Grid column
- * @param {number} row - Grid row
- * @param {number} screenX - Click X coordinate
- * @param {number} screenY - Click Y coordinate
- */
-function showTilePopup(col, row, screenX, screenY) {
-  // Remove any existing popup
-  hidePlantPopup();
-  
-  // Create simple tile info popup
-  const popup = document.createElement('div');
-  popup.className = 'plant-popup tile-popup';
-  popup.innerHTML = `
-    <div class="popup-header">
-      <span class="popup-emoji">🌱</span>
-      <div class="popup-title">
-        <h3 class="popup-name">Leere Kachel</h3>
-        <span class="popup-rarity">Bereit zum Bepflanzen</span>
-      </div>
-      <button class="popup-close">×</button>
-    </div>
-    
-    <div class="popup-body">
-      <div class="popup-info">
-        <div class="popup-detail">
-          <span class="detail-icon">📍</span>
-          <span class="detail-text">Position: Spalte ${col + 1}, Reihe ${row + 1}</span>
-        </div>
-        <div class="popup-detail">
-          <span class="detail-icon">🎒</span>
-          <span class="detail-text">Wähle eine Pflanze aus dem Inventar zum Pflanzen</span>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  // Position popup
-  positionPopup(popup, screenX, screenY);
-  
-  // Add to canvas wrapper
-  const canvasWrap = document.querySelector('.garden-canvas-wrap');
-  canvasWrap.appendChild(popup);
-  
-  // Show with animation
-  requestAnimationFrame(() => popup.classList.add('show'));
-  
-  // Setup close handlers
-  const closeBtn = popup.querySelector('.popup-close');
-  closeBtn.addEventListener('click', hidePlantPopup);
-  
-  // ESC key support
-  const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      hidePlantPopup();
-      document.removeEventListener('keydown', handleKeyDown);
-    }
-  };
-  document.addEventListener('keydown', handleKeyDown);
-  
-  currentPopup = popup;
-}
+
 
 /**
  * Hide current plant popup
@@ -568,7 +521,10 @@ function setupPopupHandlers(popup, plant, refreshInventory, plantGrid) {
   const removeBtn = popup.querySelector('.popup-remove-btn');
   
   // Close button
-  closeBtn.addEventListener('click', hidePlantPopup);
+  closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hidePlantPopup();
+  });
   
   // Remove plant button
   removeBtn.addEventListener('click', async () => {
@@ -596,15 +552,19 @@ function setupPopupHandlers(popup, plant, refreshInventory, plantGrid) {
   };
   document.addEventListener('keydown', handleKeyDown);
   
-  // Outside click to close (on canvas)
-  const canvas = document.querySelector('.garden-canvas-wrap canvas');
-  const handleCanvasClick = (e) => {
-    // Only close if click is on canvas, not on popup
-    if (!popup.contains(e.target)) {
+  // Outside click to close - improved detection
+  const handleOutsideClick = (e) => {
+    // Only close if click is not on popup or its descendants
+    if (!popup.contains(e.target) && !e.target.closest('.plant-popup')) {
       hidePlantPopup();
-      canvas.removeEventListener('click', handleCanvasClick);
+      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener('touchend', handleOutsideClick);
     }
   };
-  // Add slight delay to prevent immediate closure from the click that opened it
-  setTimeout(() => canvas.addEventListener('click', handleCanvasClick), 100);
+  
+  // Add longer delay to prevent immediate closure from the click that opened it
+  setTimeout(() => {
+    document.addEventListener('click', handleOutsideClick);
+    document.addEventListener('touchend', handleOutsideClick);
+  }, 300);
 }
