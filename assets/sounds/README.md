@@ -2,31 +2,42 @@
 
 ## How to Add Success Sound:
 
-### 1. Download a CC0 Sound
-**Recommended:** Freesound.org ID 316847 (CC0)
-- Visit: https://freesound.org/s/316847/
-- Download as OGG Vorbis (best web format)
-- Rename to: `success.ogg`
+### 1. Recommended CC0 Sounds (Safe & Gentle):
+**Option A:** Freesound.org ID 140421 (CC0)
+- Visit: https://freesound.org/s/140421/
+- Very gentle UI notification sound
 
-### 2. Alternative Sources:
-- **OpenGameArt.org** - UI sound effects
-- **BBC Sound Effects** - RemArc licence
-- **YouTube Audio Library** - No attribution required section
+**Option B:** Search Terms on Freesound.org:
+- "gentle notification" + CC0 filter
+- "soft completion sound" + CC0 filter  
+- "pleasant ui sound" + CC0 filter
+
+**Option C:** Create Your Own:
+- Use Audacity (free) to create gentle tones
+- 0.5-1 second sine waves at 523-659 Hz (C5-E5)
+- Gentle attack/decay curves
+
+### 2. Download & Setup:
+- Download as OGG Vorbis or WAV
+- Rename to: `success.ogg` or `success.mp3`
+- Place in this directory
 
 ### 3. File Requirements:
 - **Format:** OGG Vorbis (best) or MP3
-- **Duration:** 0.5-2 seconds max  
-- **Size:** Under 50KB recommended
-- **Quality:** 44.1kHz, good compression
+- **Duration:** 0.3-1 seconds (short & sweet)
+- **Volume:** Should be gentle, not startling
+- **Size:** Under 30KB recommended
 
-### 4. License Compatibility:
-- **CC0 (Public Domain)** - Perfect, no attribution needed
-- **CC BY** - Good, just need to credit in app  
-- **MIT/BSD licensed sounds** - Also compatible
+### 4. What to Avoid:
+- ❌ Alarm sounds or beeps
+- ❌ Harsh/loud frequencies  
+- ❌ Long duration sounds (>2 seconds)
+- ❌ Complex music or melodies
 
-## Current Sounds:
-- `success.ogg` - Main completion sound (when added)
-- Future: Different sounds for different action types
+## Current Setup:
+- **Default:** "🌸 Sanft" - Very gentle synthetic sound
+- **Audio File:** "🎵 Audio-Datei" appears when success.ogg is added
+- **Backup Options:** Pling, Tropfen, Xylophon, Glockenspiel
 
 ## Integration:
-The app automatically detects audio files in this directory and adds them as sound style options in Settings.
+The app automatically detects audio files in this directory and adds them as sound style options in Settings. The built-in "Sanft" option is now the default for a pleasant experience.

@@ -10,22 +10,23 @@ import { showOnboarding } from './onboarding.js';
 
 export async function renderSettings(container) {
   const currentTheme = localStorage.getItem('theme') || 'light';
-  const currentSoundStyle = localStorage.getItem('soundStyle') || 'glockenspiel';
+  const currentSoundStyle = localStorage.getItem('soundStyle') || 'gentle';
   
   // Check for available audio files
   const availableAudioFiles = await getAvailableAudioFiles();
   
   // Build sound style buttons
   const soundButtons = [
+    { key: 'gentle', label: '🌸 Sanft' },
     { key: 'pling', label: 'Pling' },
-    { key: 'xylophon', label: 'Xylophon' },
     { key: 'tropfen', label: 'Tropfen' },
+    { key: 'xylophon', label: 'Xylophon' },
     { key: 'glockenspiel', label: 'Glockenspiel' },
   ];
   
   // Add success button if audio file is available
   if (availableAudioFiles.includes('success')) {
-    soundButtons.push({ key: 'success', label: '🎵 Success' });
+    soundButtons.push({ key: 'success', label: '🎵 Audio-Datei' });
   }
   
   const soundButtonsHtml = soundButtons.map(btn => 

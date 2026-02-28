@@ -13,7 +13,7 @@ function getCtx() {
 
 /** Get current sound style from settings */
 function getStyle() {
-  return localStorage.getItem('soundStyle') || 'glockenspiel';
+  return localStorage.getItem('soundStyle') || 'gentle';
 }
 
 /** Available audio file styles */
@@ -68,8 +68,8 @@ async function playAudioFile(audioKey, type = 'small') {
     source.connect(gainNode);
     gainNode.connect(ctx.destination);
     
-    // Adjust volume based on type
-    const volume = type === 'mega' ? 0.8 : type === 'big' ? 0.6 : 0.4;
+    // Adjust volume based on type (much gentler)
+    const volume = type === 'mega' ? 0.3 : type === 'big' ? 0.2 : 0.1;
     gainNode.gain.value = volume;
     
     source.start(0);
@@ -92,11 +92,13 @@ export function playPling(type = 'small') {
   try {
     const style = getStyle();
     switch (style) {
+      case 'pling': playPlingSound(type); break;
       case 'xylophon': playXylophon(type); break;
       case 'tropfen': playTropfen(type); break;
       case 'glockenspiel': playGlockenspiel(type); break;
       case 'success': playAudioFile('success', type); break;
-      default: playPlingSound(type);
+      case 'gentle': playGentleSuccess(type); break;
+      default: playGentleSuccess(type); // Safe default
     }
   } catch (e) { /* silent */ }
 }
@@ -110,6 +112,8 @@ export function playSound(style, type = 'small') {
       case 'tropfen': playTropfen(type); break;
       case 'glockenspiel': playGlockenspiel(type); break;
       case 'success': playAudioFile('success', type); break;
+      case 'gentle': playGentleSuccess(type); break;
+      default: playGentleSuccess(type);
     }
   } catch (e) { /* silent */ }
 }
@@ -139,7 +143,7 @@ function playPlingSound(type) {
   const now = ctx.currentTime;
   const baseFreq = type === 'mega' ? 660 : type === 'big' ? 784 : 880;
   const duration = type === 'mega' ? 0.5 : type === 'big' ? 0.35 : 0.2;
-  const vol = type === 'mega' ? 0.25 : type === 'big' ? 0.2 : 0.15;
+  const vol = type === 'mega' ? 0.08 : type === 'big' ? 0.06 : 0.04; // Much quieter
 
   const env = ctx.createGain();
   env.gain.setValueAtTime(vol, now);
@@ -162,7 +166,7 @@ function playXylophon(type) {
   const now = ctx.currentTime;
   const baseFreq = type === 'mega' ? 440 : type === 'big' ? 523 : 587;
   const duration = type === 'mega' ? 0.6 : type === 'big' ? 0.4 : 0.25;
-  const vol = type === 'mega' ? 0.3 : type === 'big' ? 0.25 : 0.18;
+  const vol = type === 'mega' ? 0.08 : type === 'big' ? 0.06 : 0.04; // Much quieter
 
   const env = ctx.createGain();
   env.gain.setValueAtTime(vol, now);
@@ -192,7 +196,7 @@ function playTropfen(type) {
   const now = ctx.currentTime;
   const startFreq = type === 'mega' ? 600 : type === 'big' ? 800 : 1000;
   const duration = type === 'mega' ? 0.4 : type === 'big' ? 0.3 : 0.18;
-  const vol = type === 'mega' ? 0.25 : type === 'big' ? 0.2 : 0.15;
+  const vol = type === 'mega' ? 0.06 : type === 'big' ? 0.04 : 0.03; // Much quieter
 
   const env = ctx.createGain();
   env.gain.setValueAtTime(vol, now);
@@ -222,17 +226,17 @@ function playTropfen(type) {
 function playGlockenspiel(type) {
   const ctx = getCtx();
   const now = ctx.currentTime;
-  const baseFreq = type === 'mega' ? 1047 : type === 'big' ? 1319 : 1568;
-  const duration = type === 'mega' ? 0.8 : type === 'big' ? 0.6 : 0.4;
-  const vol = type === 'mega' ? 0.15 : type === 'big' ? 0.12 : 0.1;
+  const baseFreq = type === 'mega' ? 523 : type === 'big' ? 659 : 784; // Lower frequencies
+  const duration = type === 'mega' ? 0.6 : type === 'big' ? 0.4 : 0.25; // Shorter duration
+  const vol = type === 'mega' ? 0.08 : type === 'big' ? 0.06 : 0.04; // Much quieter
 
   const env = ctx.createGain();
   env.gain.setValueAtTime(vol, now);
   env.gain.exponentialRampToValueAtTime(0.001, now + duration);
   env.connect(ctx.destination);
 
-  // Multiple harmonics for shimmery bell tone
-  [1, 2.76, 5.4, 8.93].forEach((ratio, i) => {
+  // Fewer harmonics for gentler tone
+  [1, 2, 3].forEach((ratio, i) => {
     const o = ctx.createOscillator(); o.type = 'sine';
     o.frequency.value = baseFreq * ratio;
     const g = ctx.createGain();
@@ -242,5 +246,42 @@ function playGlockenspiel(type) {
     o.start(now); o.stop(now + duration);
   });
 
-  if (type === 'mega') setTimeout(() => playGlockenspiel('big'), 250);
+  if (type === 'mega') setTimeout(() => playGlockenspiel('big'), 200);
+}
+
+// ==================== Gentle Success (new default) ====================
+function playGentleSuccess(type) {
+  const ctx = getCtx();
+  const now = ctx.currentTime;
+  const baseFreq = type === 'mega' ? 523 : type === 'big' ? 587 : 659; // C5, D5, E5 - pleasant frequencies
+  const duration = type === 'mega' ? 0.4 : type === 'big' ? 0.3 : 0.2;
+  const vol = type === 'mega' ? 0.06 : type === 'big' ? 0.04 : 0.03; // Very gentle volume
+
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(0, now);
+  env.gain.linearRampToValueAtTime(vol, now + 0.02); // Soft attack
+  env.gain.exponentialRampToValueAtTime(0.001, now + duration);
+  env.connect(ctx.destination);
+
+  // Simple sine wave with gentle overtone
+  const o1 = ctx.createOscillator(); 
+  o1.type = 'sine'; 
+  o1.frequency.value = baseFreq;
+  o1.connect(env);
+  o1.start(now); 
+  o1.stop(now + duration);
+
+  // Very quiet overtone for warmth
+  const o2 = ctx.createOscillator(); 
+  o2.type = 'sine'; 
+  o2.frequency.value = baseFreq * 2;
+  const g2 = ctx.createGain(); 
+  g2.gain.setValueAtTime(vol * 0.1, now);
+  g2.gain.exponentialRampToValueAtTime(0.001, now + duration * 0.7);
+  o2.connect(g2); 
+  g2.connect(env);
+  o2.start(now); 
+  o2.stop(now + duration * 0.7);
+
+  if (type === 'mega') setTimeout(() => playGentleSuccess('big'), 150);
 }
