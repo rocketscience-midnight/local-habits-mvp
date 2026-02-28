@@ -387,7 +387,14 @@
 }
 
 [data-theme="dark"] .garden-debug-btn {
-  background: #16213E;
+  background: #16213E !important;
+  border-color: #A8D8A8;
+  color: #A8D8A8;
+}
+
+[data-theme="dark"] .garden-debug-btn:active {
+  background: #A8D8A8 !important;
+  color: #16213E;
 }
 
 [data-theme="dark"] .garden-empty {
@@ -497,13 +504,13 @@
 /* ========== Garden Sakura Mode ========== */
 
 [data-theme="sakura"] .garden-debug-btn {
-  background: #252542;
+  background: #252542 !important;
   border-color: #D946EF;
   color: #D946EF;
 }
 
 [data-theme="sakura"] .garden-debug-btn:active {
-  background: #D946EF;
+  background: #D946EF !important;
   color: #F5F0FF;
 }
 
