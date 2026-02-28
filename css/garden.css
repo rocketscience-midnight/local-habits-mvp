@@ -627,8 +627,10 @@
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   z-index: 100;
-  min-width: 280px;
-  max-width: 320px;
+  
+  /* Responsive sizing */
+  min-width: 240px;
+  max-width: min(300px, 90vw);
   
   /* Entry animation */
   opacity: 0;
@@ -637,6 +639,15 @@
   
   /* Prevent canvas touch events */
   pointer-events: auto;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .plant-popup {
+    min-width: 260px;
+    max-width: calc(100vw - 32px);
+    font-size: 14px;
+  }
 }
 
 .plant-popup.show {
@@ -790,6 +801,15 @@
 
 .popup-remove-btn:active {
   transform: scale(0.95);
+}
+
+/* Tile popup (for empty tiles) */
+.tile-popup {
+  border-color: rgba(168, 216, 168, 0.6);
+}
+
+.tile-popup .popup-rarity {
+  color: #8A8A8A;
 }
 
 /* Dark mode styles */

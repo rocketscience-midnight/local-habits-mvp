@@ -250,12 +250,12 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
       return;
     }
 
-    // Show popup for clicked plant
+    // Show popup for clicked tile (plant or empty)
     const plant = plantGrid[key];
     if (plant) {
-      showPlantPopup(plant, e.clientX, e.clientY, refreshInventory);
+      showPlantPopup(plant, e.clientX, e.clientY, refreshInventory, plantGrid);
     } else {
-      hidePlantPopup();
+      showTilePopup(iso.col, iso.row, e.clientX, e.clientY);
     }
   });
 
@@ -339,8 +339,9 @@ let currentPopup = null;
  * @param {number} screenX - Click X coordinate
  * @param {number} screenY - Click Y coordinate
  * @param {Function} refreshInventory - Callback to refresh inventory after plant removal
+ * @param {Object} plantGrid - Plant grid reference to update
  */
-function showPlantPopup(plant, screenX, screenY, refreshInventory) {
+function showPlantPopup(plant, screenX, screenY, refreshInventory, plantGrid) {
   // Remove any existing popup
   hidePlantPopup();
   
@@ -412,7 +413,71 @@ function showPlantPopup(plant, screenX, screenY, refreshInventory) {
   requestAnimationFrame(() => popup.classList.add('show'));
   
   // Setup event handlers
-  setupPopupHandlers(popup, plant, refreshInventory);
+  setupPopupHandlers(popup, plant, refreshInventory, plantGrid);
+  
+  currentPopup = popup;
+}
+
+/**
+ * Show popup for empty tile
+ * @param {number} col - Grid column
+ * @param {number} row - Grid row
+ * @param {number} screenX - Click X coordinate
+ * @param {number} screenY - Click Y coordinate
+ */
+function showTilePopup(col, row, screenX, screenY) {
+  // Remove any existing popup
+  hidePlantPopup();
+  
+  // Create simple tile info popup
+  const popup = document.createElement('div');
+  popup.className = 'plant-popup tile-popup';
+  popup.innerHTML = `
+    <div class="popup-header">
+      <span class="popup-emoji">🌱</span>
+      <div class="popup-title">
+        <h3 class="popup-name">Leere Kachel</h3>
+        <span class="popup-rarity">Bereit zum Bepflanzen</span>
+      </div>
+      <button class="popup-close">×</button>
+    </div>
+    
+    <div class="popup-body">
+      <div class="popup-info">
+        <div class="popup-detail">
+          <span class="detail-icon">📍</span>
+          <span class="detail-text">Position: Spalte ${col + 1}, Reihe ${row + 1}</span>
+        </div>
+        <div class="popup-detail">
+          <span class="detail-icon">🎒</span>
+          <span class="detail-text">Wähle eine Pflanze aus dem Inventar zum Pflanzen</span>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Position popup
+  positionPopup(popup, screenX, screenY);
+  
+  // Add to canvas wrapper
+  const canvasWrap = document.querySelector('.garden-canvas-wrap');
+  canvasWrap.appendChild(popup);
+  
+  // Show with animation
+  requestAnimationFrame(() => popup.classList.add('show'));
+  
+  // Setup close handlers
+  const closeBtn = popup.querySelector('.popup-close');
+  closeBtn.addEventListener('click', hidePlantPopup);
+  
+  // ESC key support
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      hidePlantPopup();
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+  };
+  document.addEventListener('keydown', handleKeyDown);
   
   currentPopup = popup;
 }
@@ -449,15 +514,42 @@ function positionPopup(popup, screenX, screenY) {
   let y = screenY - wrapRect.top;
   
   const buffer = 16;
+  const isMobile = window.innerWidth <= 480;
   
-  // Default: above and centered on click point
-  x = x - popupRect.width / 2;
-  y = y - popupRect.height - buffer;
-  
-  // Adjust if popup would overflow wrapper bounds
-  if (x < buffer) x = buffer;
-  if (x + popupRect.width > wrapRect.width - buffer) x = wrapRect.width - popupRect.width - buffer;
-  if (y < buffer) y = screenY - wrapRect.top + buffer; // Show below instead
+  if (isMobile) {
+    // Mobile: Position popup to the side or below to avoid covering plant
+    const spaceAbove = y;
+    const spaceBelow = wrapRect.height - y;
+    const spaceLeft = x;
+    const spaceRight = wrapRect.width - x;
+    
+    if (spaceBelow > popupRect.height + buffer) {
+      // Show below
+      x = Math.max(buffer, Math.min(x - popupRect.width / 2, wrapRect.width - popupRect.width - buffer));
+      y = y + buffer + 40; // Extra offset to clear plant sprite
+    } else if (spaceRight > popupRect.width + buffer) {
+      // Show to the right
+      x = x + buffer + 30;
+      y = Math.max(buffer, Math.min(y - popupRect.height / 2, wrapRect.height - popupRect.height - buffer));
+    } else if (spaceLeft > popupRect.width + buffer) {
+      // Show to the left
+      x = x - popupRect.width - buffer - 30;
+      y = Math.max(buffer, Math.min(y - popupRect.height / 2, wrapRect.height - popupRect.height - buffer));
+    } else {
+      // Show above (fallback)
+      x = Math.max(buffer, Math.min(x - popupRect.width / 2, wrapRect.width - popupRect.width - buffer));
+      y = Math.max(buffer, y - popupRect.height - buffer - 40);
+    }
+  } else {
+    // Desktop: above and centered on click point
+    x = x - popupRect.width / 2;
+    y = y - popupRect.height - buffer;
+    
+    // Adjust if popup would overflow wrapper bounds
+    if (x < buffer) x = buffer;
+    if (x + popupRect.width > wrapRect.width - buffer) x = wrapRect.width - popupRect.width - buffer;
+    if (y < buffer) y = screenY - wrapRect.top + buffer; // Show below instead
+  }
   
   popup.style.left = `${x}px`;
   popup.style.top = `${y}px`;
@@ -469,8 +561,9 @@ function positionPopup(popup, screenX, screenY) {
  * @param {HTMLElement} popup - Popup element
  * @param {Object} plant - Plant data
  * @param {Function} refreshInventory - Refresh callback
+ * @param {Object} plantGrid - Plant grid reference to update
  */
-function setupPopupHandlers(popup, plant, refreshInventory) {
+function setupPopupHandlers(popup, plant, refreshInventory, plantGrid) {
   const closeBtn = popup.querySelector('.popup-close');
   const removeBtn = popup.querySelector('.popup-remove-btn');
   
@@ -484,6 +577,11 @@ function setupPopupHandlers(popup, plant, refreshInventory) {
     
     if (confirm(`${name} wirklich aus dem Garten entfernen?`)) {
       await gardenRepo.unplacePlant(plant.id);
+      
+      // Update local plantGrid to remove sprite immediately
+      const key = `${plant.gridCol},${plant.gridRow}`;
+      delete plantGrid[key];
+      
       hidePlantPopup();
       refreshInventory();
     }
