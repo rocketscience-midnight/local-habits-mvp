@@ -111,7 +111,7 @@ export async function renderGarden(container) {
   const allPlants = await gardenRepo.getAllGardenPlants();
   screen.appendChild(buildCollection(allPlants));
 
-  // Plant popup system - no persistent footer needed
+  // Garden canvas is now a clean viewing area - all interactions through inventory
 
   container.appendChild(screen);
 
@@ -148,7 +148,7 @@ export async function renderGarden(container) {
     getPlacementMode: () => placementMode,
   });
 
-  // Canvas interaction: placement + popup system
+  // Canvas interaction: placement only
   setupCanvasInteraction({
     canvas, wrap, plantGrid, gridCols, gridRows, originX, originY,
     getPlacementMode: () => placementMode,
@@ -216,7 +216,7 @@ function buildDebugButtons(container) {
 // ============================================================
 
 /**
- * Set up click handling on the garden canvas for plant placement and popup display.
+ * Set up click handling on the garden canvas for plant placement only.
  */
 function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, originX, originY,
   getPlacementMode, setPlacementMode, placementIndicator, refreshInventory }) {
@@ -238,8 +238,6 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
     const iso = screenToIso(cx, cy, originX, originY);
 
     if (iso.row < 0 || iso.row >= gridRows || iso.col < 0 || iso.col >= gridCols) {
-      // Click outside garden - close any open popup
-      hidePlantPopup();
       return;
     }
 
@@ -248,23 +246,32 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
 
     if (placementMode) {
       if (!plantGrid[key]) {
-        gardenRepo.placePlant(placementMode.id, iso.col, iso.row).then(() => {
-          plantGrid[key] = { ...placementMode, gridCol: iso.col, gridRow: iso.row, placed: 1 };
-          setPlacementMode(null);
-          placementIndicator.classList.add('hidden');
-          refreshInventory();
-        });
+        if (placementMode.isMoving) {
+          // Moving an existing plant
+          const oldKey = `${placementMode.gridCol},${placementMode.gridRow}`;
+          delete plantGrid[oldKey]; // Remove from old position
+          
+          gardenRepo.placePlant(placementMode.id, iso.col, iso.row).then(() => {
+            plantGrid[key] = { ...placementMode, gridCol: iso.col, gridRow: iso.row, placed: 1, isMoving: undefined };
+            setPlacementMode(null);
+            placementIndicator.classList.add('hidden');
+            placementIndicator.querySelector('.placement-text').textContent = 'Tippe auf eine Grasfläche zum Platzieren';
+            refreshInventory();
+          });
+        } else {
+          // Placing a new plant
+          gardenRepo.placePlant(placementMode.id, iso.col, iso.row).then(() => {
+            plantGrid[key] = { ...placementMode, gridCol: iso.col, gridRow: iso.row, placed: 1 };
+            setPlacementMode(null);
+            placementIndicator.classList.add('hidden');
+            refreshInventory();
+          });
+        }
       }
       return;
     }
 
-    // Show popup only for plants
-    const plant = plantGrid[key];
-    if (plant) {
-      showPlantPopup(plant, clientX, clientY, refreshInventory, plantGrid);
-    } else {
-      hidePlantPopup();
-    }
+    // Garden canvas is now clean viewing area only - no plant interactions
   }
 
   // Add both click and touch event listeners
@@ -339,229 +346,4 @@ function showDecoRewardPopup(decos, onClose) {
   showRewardModal(title, items, onClose);
 }
 
-// ============================================================
-// Plant Popup System
-// ============================================================
-
-let currentPopup = null;
-
-/**
- * Show plant popup near the clicked position
- * @param {Object} plant - Plant data object
- * @param {number} screenX - Click X coordinate
- * @param {number} screenY - Click Y coordinate
- * @param {Function} refreshInventory - Callback to refresh inventory after plant removal
- * @param {Object} plantGrid - Plant grid reference to update
- */
-function showPlantPopup(plant, screenX, screenY, refreshInventory, plantGrid) {
-  // Remove any existing popup
-  hidePlantPopup();
-  
-  const isDeco = plant.itemType === 'deco';
-  const emoji = isDeco ? (DECO_EMOJIS[plant.plantType] || '🎨') : (PLANT_EMOJIS[plant.plantType] || '🌿');
-  const name = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
-  const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
-  const rarityLabel = isDeco ? 'Dekoration' : (RARITY_LABELS[plant.rarity] || plant.rarity);
-  
-  // Growth bar HTML (only for plants with maxGrowth)
-  const growthDisplay = plant.maxGrowth ? `
-    <div class="popup-growth">
-      <span class="growth-label">Wachstum:</span>
-      <div class="growth-bar">
-        <div class="growth-fill" style="width: ${((plant.totalGrowth || plant.growthStage) / plant.maxGrowth) * 100}%"></div>
-        <span class="growth-text">${plant.totalGrowth || plant.growthStage}/${plant.maxGrowth}</span>
-      </div>
-    </div>
-  ` : '';
-  
-  // Adoption info (if applicable)
-  const adoptionInfo = plant.isAdopted && plant.originalHabitName ? `
-    <div class="popup-detail">
-      <span class="detail-icon">🤝</span>
-      <span class="detail-text">Adoptiert von: ${escapeHtml(plant.originalHabitName)}</span>
-    </div>
-  ` : '';
-  
-  // Create popup element
-  const popup = document.createElement('div');
-  popup.className = 'plant-popup';
-  popup.innerHTML = `
-    <div class="popup-header">
-      <span class="popup-emoji">${emoji}</span>
-      <div class="popup-title">
-        <h3 class="popup-name">${name}</h3>
-        <span class="popup-rarity" style="color: ${rarityColor}">${rarityLabel}</span>
-      </div>
-      <button class="popup-close">×</button>
-    </div>
-    
-    <div class="popup-body">
-      <div class="popup-info">
-        <div class="popup-detail">
-          <span class="detail-icon">🏷️</span>
-          <span class="detail-text">Gehört zu: ${escapeHtml(plant.habitName)}</span>
-        </div>
-        
-        ${adoptionInfo}
-        ${growthDisplay}
-      </div>
-      
-      <div class="popup-actions">
-        <button class="popup-remove-btn" data-plant-id="${plant.id}">
-          🗑️ Aus Garten entfernen
-        </button>
-      </div>
-    </div>
-  `;
-  
-  // Position popup
-  positionPopup(popup, screenX, screenY);
-  
-  // Add to canvas wrapper
-  const canvasWrap = document.querySelector('.garden-canvas-wrap');
-  canvasWrap.appendChild(popup);
-  
-  // Show with animation
-  requestAnimationFrame(() => popup.classList.add('show'));
-  
-  // Setup event handlers
-  setupPopupHandlers(popup, plant, refreshInventory, plantGrid);
-  
-  currentPopup = popup;
-}
-
-
-
-/**
- * Hide current plant popup
- */
-function hidePlantPopup() {
-  if (currentPopup) {
-    currentPopup.remove();
-    currentPopup = null;
-  }
-}
-
-/**
- * Position popup smartly within viewport
- * @param {HTMLElement} popup - Popup element
- * @param {number} screenX - Click X coordinate  
- * @param {number} screenY - Click Y coordinate
- */
-function positionPopup(popup, screenX, screenY) {
-  const canvasWrap = document.querySelector('.garden-canvas-wrap');
-  const wrapRect = canvasWrap.getBoundingClientRect();
-  
-  // Add popup temporarily to measure
-  popup.style.visibility = 'hidden';
-  canvasWrap.appendChild(popup);
-  const popupRect = popup.getBoundingClientRect();
-  popup.remove();
-  popup.style.visibility = '';
-  
-  // Convert screen coordinates to canvas wrapper relative coordinates
-  let x = screenX - wrapRect.left;
-  let y = screenY - wrapRect.top;
-  
-  const buffer = 16;
-  const isMobile = window.innerWidth <= 480;
-  
-  if (isMobile) {
-    // Mobile: Position popup to the side or below to avoid covering plant
-    const spaceAbove = y;
-    const spaceBelow = wrapRect.height - y;
-    const spaceLeft = x;
-    const spaceRight = wrapRect.width - x;
-    
-    if (spaceBelow > popupRect.height + buffer) {
-      // Show below
-      x = Math.max(buffer, Math.min(x - popupRect.width / 2, wrapRect.width - popupRect.width - buffer));
-      y = y + buffer + 40; // Extra offset to clear plant sprite
-    } else if (spaceRight > popupRect.width + buffer) {
-      // Show to the right
-      x = x + buffer + 30;
-      y = Math.max(buffer, Math.min(y - popupRect.height / 2, wrapRect.height - popupRect.height - buffer));
-    } else if (spaceLeft > popupRect.width + buffer) {
-      // Show to the left
-      x = x - popupRect.width - buffer - 30;
-      y = Math.max(buffer, Math.min(y - popupRect.height / 2, wrapRect.height - popupRect.height - buffer));
-    } else {
-      // Show above (fallback)
-      x = Math.max(buffer, Math.min(x - popupRect.width / 2, wrapRect.width - popupRect.width - buffer));
-      y = Math.max(buffer, y - popupRect.height - buffer - 40);
-    }
-  } else {
-    // Desktop: above and centered on click point
-    x = x - popupRect.width / 2;
-    y = y - popupRect.height - buffer;
-    
-    // Adjust if popup would overflow wrapper bounds
-    if (x < buffer) x = buffer;
-    if (x + popupRect.width > wrapRect.width - buffer) x = wrapRect.width - popupRect.width - buffer;
-    if (y < buffer) y = screenY - wrapRect.top + buffer; // Show below instead
-  }
-  
-  popup.style.left = `${x}px`;
-  popup.style.top = `${y}px`;
-  popup.style.position = 'absolute';
-}
-
-/**
- * Setup popup event handlers
- * @param {HTMLElement} popup - Popup element
- * @param {Object} plant - Plant data
- * @param {Function} refreshInventory - Refresh callback
- * @param {Object} plantGrid - Plant grid reference to update
- */
-function setupPopupHandlers(popup, plant, refreshInventory, plantGrid) {
-  const closeBtn = popup.querySelector('.popup-close');
-  const removeBtn = popup.querySelector('.popup-remove-btn');
-  
-  // Close button
-  closeBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    hidePlantPopup();
-  });
-  
-  // Remove plant button
-  removeBtn.addEventListener('click', async () => {
-    const isDeco = plant.itemType === 'deco';
-    const name = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
-    
-    if (confirm(`${name} wirklich aus dem Garten entfernen?`)) {
-      await gardenRepo.unplacePlant(plant.id);
-      
-      // Update local plantGrid to remove sprite immediately
-      const key = `${plant.gridCol},${plant.gridRow}`;
-      delete plantGrid[key];
-      
-      hidePlantPopup();
-      refreshInventory();
-    }
-  });
-  
-  // ESC key support
-  const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      hidePlantPopup();
-      document.removeEventListener('keydown', handleKeyDown);
-    }
-  };
-  document.addEventListener('keydown', handleKeyDown);
-  
-  // Outside click to close - improved detection
-  const handleOutsideClick = (e) => {
-    // Only close if click is not on popup or its descendants
-    if (!popup.contains(e.target) && !e.target.closest('.plant-popup')) {
-      hidePlantPopup();
-      document.removeEventListener('click', handleOutsideClick);
-      document.removeEventListener('touchend', handleOutsideClick);
-    }
-  };
-  
-  // Add longer delay to prevent immediate closure from the click that opened it
-  setTimeout(() => {
-    document.addEventListener('click', handleOutsideClick);
-    document.addEventListener('touchend', handleOutsideClick);
-  }, 300);
-}
+// Plant popups have been moved to inventory interactions per Susanne's brilliant idea

@@ -7,6 +7,8 @@ import { RARITY_LABELS, RARITY_COLORS, RARITY_TO_STAGE } from '../utils/rewards.
 import { ALL_DECOS, DECO_NAMES, DECO_EMOJIS, DECO_DIFFICULTY } from '../utils/decoRewards.js';
 import { PLANT_NAMES_DE, PLANT_EMOJIS } from '../garden/plantArt.js';
 import { drawPlantIcon, drawDecoIcon } from './gardenRenderer.js';
+import { createModal } from '../components/modal.js';
+import { escapeHtml } from '../utils/sanitize.js';
 
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
@@ -44,18 +46,25 @@ export function buildInventory({ getPlacementMode, setPlacementMode, placementIn
   inventoryBar.appendChild(inventoryScroll);
 
   function refresh() {
-    gardenRepo.getUnplacedPlants().then(plants => {
-      inventoryTitle.textContent = `Inventar (${plants.length})`;
+    // Show ALL plants (both placed and unplaced)
+    gardenRepo.getAllGardenPlants().then(allPlants => {
+      inventoryTitle.textContent = `Inventar (${allPlants.length})`;
       inventoryScroll.innerHTML = '';
 
-      if (plants.length === 0) {
+      if (allPlants.length === 0) {
         inventoryScroll.innerHTML = '<div class="inventory-empty">Keine Pflanzen im Inventar</div>';
         return;
       }
 
-      for (const plant of plants) {
+      for (const plant of allPlants) {
         const item = document.createElement('div');
         item.className = 'inventory-item';
+        
+        // Different styling for placed vs unplaced plants
+        if (plant.placed) {
+          item.classList.add('inventory-item-placed');
+        }
+        
         item.dataset.plantId = plant.id;
 
         const iconCanvas = document.createElement('canvas');
@@ -67,6 +76,14 @@ export function buildInventory({ getPlacementMode, setPlacementMode, placementIn
         } else {
           const stage = RARITY_TO_STAGE[plant.rarity] ?? plant.growthStage ?? 2;
           drawPlantIcon(iconCanvas, plant.plantType, stage);
+        }
+
+        // Add position indicator for placed plants
+        if (plant.placed && plant.gridCol !== null && plant.gridRow !== null) {
+          const positionBadge = document.createElement('div');
+          positionBadge.className = 'position-badge';
+          positionBadge.textContent = `${plant.gridCol},${plant.gridRow}`;
+          item.appendChild(positionBadge);
         }
 
         const label = document.createElement('div');
@@ -84,16 +101,22 @@ export function buildInventory({ getPlacementMode, setPlacementMode, placementIn
         item.appendChild(label);
 
         item.addEventListener('click', () => {
-          if (getPlacementMode() && getPlacementMode().id === plant.id) {
-            setPlacementMode(null);
-            placementIndicator.classList.add('hidden');
-            refresh();
-            return;
+          if (plant.placed) {
+            // Show popup for placed plants with move/remove options
+            showPlantInteractionPopup(plant, refresh, getPlacementMode, setPlacementMode, placementIndicator);
+          } else {
+            // Existing placement logic for unplaced plants
+            if (getPlacementMode() && getPlacementMode().id === plant.id) {
+              setPlacementMode(null);
+              placementIndicator.classList.add('hidden');
+              refresh();
+              return;
+            }
+            setPlacementMode(plant);
+            placementIndicator.classList.remove('hidden');
+            inventoryScroll.querySelectorAll('.inventory-item').forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
           }
-          setPlacementMode(plant);
-          placementIndicator.classList.remove('hidden');
-          inventoryScroll.querySelectorAll('.inventory-item').forEach(i => i.classList.remove('selected'));
-          item.classList.add('selected');
         });
 
         inventoryScroll.appendChild(item);
@@ -198,4 +221,97 @@ export function buildCollection(allPlants) {
   collection.appendChild(decoGrid);
 
   return collection;
+}
+
+/**
+ * Show interaction popup for placed plants
+ * @param {Object} plant - Plant data object
+ * @param {Function} refresh - Refresh inventory callback
+ * @param {Function} getPlacementMode - Get current placement mode
+ * @param {Function} setPlacementMode - Set placement mode
+ * @param {HTMLElement} placementIndicator - Placement indicator element
+ */
+function showPlantInteractionPopup(plant, refresh, getPlacementMode, setPlacementMode, placementIndicator) {
+  const isDeco = plant.itemType === 'deco';
+  const emoji = isDeco ? (DECO_EMOJIS[plant.plantType] || '🎨') : (PLANT_EMOJIS[plant.plantType] || '🌿');
+  const name = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
+  const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
+  const rarityLabel = isDeco ? 'Dekoration' : (RARITY_LABELS[plant.rarity] || plant.rarity);
+  
+  // Growth bar HTML (only for plants with maxGrowth)
+  const growthDisplay = plant.maxGrowth ? `
+    <div class="popup-growth">
+      <span class="growth-label">Wachstum:</span>
+      <div class="growth-bar">
+        <div class="growth-fill" style="width: ${((plant.totalGrowth || plant.growthStage) / plant.maxGrowth) * 100}%"></div>
+        <span class="growth-text">${plant.totalGrowth || plant.growthStage}/${plant.maxGrowth}</span>
+      </div>
+    </div>
+  ` : '';
+  
+  // Adoption info (if applicable)
+  const adoptionInfo = plant.isAdopted && plant.originalHabitName ? `
+    <div class="popup-detail">
+      <span class="detail-icon">🤝</span>
+      <span class="detail-text">Adoptiert von: ${escapeHtml(plant.originalHabitName)}</span>
+    </div>
+  ` : '';
+
+  const html = `
+    <div class="plant-popup-header">
+      <span class="popup-emoji">${emoji}</span>
+      <div class="popup-title">
+        <h3 class="popup-name">${name}</h3>
+        <span class="popup-rarity" style="color: ${rarityColor}">${rarityLabel}</span>
+      </div>
+    </div>
+    
+    <div class="popup-info">
+      <div class="popup-detail">
+        <span class="detail-icon">📍</span>
+        <span class="detail-text">Position: ${plant.gridCol}, ${plant.gridRow}</span>
+      </div>
+      
+      <div class="popup-detail">
+        <span class="detail-icon">🏷️</span>
+        <span class="detail-text">Gehört zu: ${escapeHtml(plant.habitName)}</span>
+      </div>
+      
+      ${adoptionInfo}
+      ${growthDisplay}
+    </div>
+    
+    <div class="popup-actions">
+      <button class="btn btn-secondary move-plant-btn" data-plant-id="${plant.id}">
+        🔄 Verschieben
+      </button>
+      <button class="btn btn-danger remove-plant-btn" data-plant-id="${plant.id}">
+        🗑️ Entfernen
+      </button>
+    </div>
+  `;
+
+  const { overlay, close } = createModal(html, { 
+    extraClass: 'plant-interaction-popup',
+    title: `${emoji} ${name}` 
+  });
+  
+  // Move plant button
+  overlay.querySelector('.move-plant-btn').addEventListener('click', async () => {
+    // Enter move mode - like placement mode but for moving
+    setPlacementMode({ ...plant, isMoving: true });
+    placementIndicator.classList.remove('hidden');
+    placementIndicator.querySelector('.placement-text').textContent = `${name} an neue Position verschieben`;
+    close();
+    refresh();
+  });
+  
+  // Remove plant button
+  overlay.querySelector('.remove-plant-btn').addEventListener('click', async () => {
+    if (confirm(`${name} wirklich aus dem Garten entfernen?`)) {
+      await gardenRepo.unplacePlant(plant.id);
+      close();
+      refresh();
+    }
+  });
 }
