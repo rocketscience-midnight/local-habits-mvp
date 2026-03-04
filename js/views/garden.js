@@ -13,7 +13,7 @@ import {
   isoToScreen, screenToIso,
 } from '../garden/plantArt.js';
 import { startRenderer } from './gardenRenderer.js';
-import { buildInventory, buildCollection } from './gardenInventory.js';
+import { buildInventory, buildCollection, showPlantInteractionPopup } from './gardenInventory.js';
 import { createModal } from '../components/modal.js';
 
 // ============================================================
@@ -271,7 +271,16 @@ function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, o
       return;
     }
 
-    // Garden canvas is now clean viewing area only - no plant interactions
+    // Clicking on a placed plant opens the interaction popup (move/remove)
+    if (plantGrid[key]) {
+      showPlantInteractionPopup(
+        plantGrid[key],
+        refreshInventory,
+        getPlacementMode,
+        setPlacementMode,
+        placementIndicator
+      );
+    }
   }
 
   // Add both click and touch event listeners

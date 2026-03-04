@@ -78,14 +78,6 @@ export function buildInventory({ getPlacementMode, setPlacementMode, placementIn
           drawPlantIcon(iconCanvas, plant.plantType, stage);
         }
 
-        // Add position indicator for placed plants
-        if (plant.placed && plant.gridCol !== null && plant.gridRow !== null) {
-          const positionBadge = document.createElement('div');
-          positionBadge.className = 'position-badge';
-          positionBadge.textContent = `${plant.gridCol},${plant.gridRow}`;
-          item.appendChild(positionBadge);
-        }
-
         const label = document.createElement('div');
         label.className = 'inventory-item-label';
         if (plant.itemType === 'deco') {
@@ -231,7 +223,7 @@ export function buildCollection(allPlants) {
  * @param {Function} setPlacementMode - Set placement mode
  * @param {HTMLElement} placementIndicator - Placement indicator element
  */
-function showPlantInteractionPopup(plant, refresh, getPlacementMode, setPlacementMode, placementIndicator) {
+export function showPlantInteractionPopup(plant, refresh, getPlacementMode, setPlacementMode, placementIndicator) {
   const isDeco = plant.itemType === 'deco';
   const emoji = isDeco ? (DECO_EMOJIS[plant.plantType] || '🎨') : (PLANT_EMOJIS[plant.plantType] || '🌿');
   const name = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
@@ -268,13 +260,8 @@ function showPlantInteractionPopup(plant, refresh, getPlacementMode, setPlacemen
     
     <div class="popup-info">
       <div class="popup-detail">
-        <span class="detail-icon">📍</span>
-        <span class="detail-text">Position: ${plant.gridCol}, ${plant.gridRow}</span>
-      </div>
-      
-      <div class="popup-detail">
         <span class="detail-icon">🏷️</span>
-        <span class="detail-text">Gehört zu: ${escapeHtml(plant.habitName)}</span>
+        <span class="detail-text">Verdient durch: ${escapeHtml(plant.habitName)}</span>
       </div>
       
       ${adoptionInfo}
