@@ -304,16 +304,16 @@
 
 .collection-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 80px);
-  gap: 6px;
+  grid-template-columns: repeat(auto-fill, 90px);
+  gap: 8px;
 }
 
 .collection-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px 4px;
-  max-width: 80px;
+  padding: 8px 6px;
+  max-width: 90px;
   background: rgba(255, 248, 240, 0.8);
   border-radius: 10px;
   border: 2px solid transparent;

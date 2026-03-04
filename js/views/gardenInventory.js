@@ -61,9 +61,8 @@ function _renderPreviewCanvas(canvas, type, rarity, isDeco) {
   _drawPreviewBackground(ctx, w, h);
 
   const cx = w / 2;
-  // Plant sits on tiles: TILE_H/2 below originY (originY = h/2+18), so plant cy ~= h/2+18+8
-  const cy = h / 2 + 22;
-  const pixelSize = 5;
+  const cy = h / 2 + 28;
+  const pixelSize = 6;
 
   if (isDeco) {
     drawDecoPlaced(ctx, cx, cy, type, 0, pixelSize);
@@ -81,8 +80,8 @@ function _showPreviewTooltip(targetEl, type, rarity, isDeco) {
   tooltip.className = 'collection-preview-tooltip';
 
   const canvas = document.createElement('canvas');
-  canvas.width = 120;
-  canvas.height = 120;
+  canvas.width = 160;
+  canvas.height = 160;
   _renderPreviewCanvas(canvas, type, rarity, isDeco);
   tooltip.appendChild(canvas);
 
@@ -91,8 +90,8 @@ function _showPreviewTooltip(targetEl, type, rarity, isDeco) {
 
   // Position: prefer above-right of item, clamped to viewport
   const rect = targetEl.getBoundingClientRect();
-  const ttW = 120 + 16; // canvas + 2*padding
-  const ttH = 120 + 16;
+  const ttW = 160 + 16; // canvas + 2*padding
+  const ttH = 160 + 16;
   const margin = 8;
 
   let left = rect.right + margin;
@@ -210,8 +209,8 @@ export function buildInventory({ getPlacementMode, setPlacementMode, placementIn
         item.dataset.plantId = plant.id;
 
         const iconCanvas = document.createElement('canvas');
-        iconCanvas.width = 48;
-        iconCanvas.height = 48;
+        iconCanvas.width = 56;
+        iconCanvas.height = 56;
         iconCanvas.className = 'inventory-icon-canvas';
         if (plant.itemType === 'deco') {
           drawDecoIcon(iconCanvas, plant.plantType);
@@ -289,8 +288,8 @@ export function buildCollection(allPlants) {
       item.style.borderColor = owned ? RARITY_COLORS[combo.rarity] : '#E0D8D0';
 
       const iconCanvas = document.createElement('canvas');
-      iconCanvas.width = 48;
-      iconCanvas.height = 48;
+      iconCanvas.width = 56;
+      iconCanvas.height = 56;
       const stage = RARITY_TO_STAGE[combo.rarity];
       drawPlantIcon(iconCanvas, combo.type, stage);
       if (!owned) iconCanvas.style.filter = 'grayscale(1) opacity(0.3)';
@@ -332,8 +331,8 @@ export function buildCollection(allPlants) {
       item.style.borderColor = owned ? DIFF_COLORS[diff] : '#E0D8D0';
 
       const iconCanvas = document.createElement('canvas');
-      iconCanvas.width = 48;
-      iconCanvas.height = 48;
+      iconCanvas.width = 56;
+      iconCanvas.height = 56;
       drawDecoIcon(iconCanvas, deco.type);
       if (!owned) iconCanvas.style.filter = 'grayscale(1) opacity(0.3)';
 
