@@ -194,34 +194,33 @@ export function startRenderer({ canvas, plantGrid, gridCols, gridRows, getPlacem
     });
   }
 
-  // Fence drawing
-  function drawFence(ctx) {
+  // Fence drawing – split into back (behind tiles) and front (in front of tiles)
+  const FENCE_EXT = 0.5;
+  const fenceCorners = [
+    isoToScreen(-FENCE_EXT, -FENCE_EXT, originX, originY),                             // 0: top
+    isoToScreen(gridCols + FENCE_EXT, -FENCE_EXT, originX, originY),                   // 1: right
+    isoToScreen(gridCols + FENCE_EXT, gridRows + FENCE_EXT, originX, originY),         // 2: bottom
+    isoToScreen(-FENCE_EXT, gridRows + FENCE_EXT, originX, originY),                   // 3: left
+  ];
+  const fenceEdges = [
+    [fenceCorners[0], fenceCorners[1]], // 0: top-right (back)
+    [fenceCorners[1], fenceCorners[2]], // 1: bottom-right (front)
+    [fenceCorners[2], fenceCorners[3]], // 2: bottom-left (front, has gate)
+    [fenceCorners[3], fenceCorners[0]], // 3: top-left (back)
+  ];
+
+  function drawFenceEdges(ctx, edgeIndices) {
     const WOOD = gc.wood;
     const WOOD_DARK = gc.woodDark;
     const postW = 6;
     const postH = 20;
     const railH = 3;
-
-    const corners = [
-      isoToScreen(0, 0, originX, originY),
-      isoToScreen(gridCols, 0, originX, originY),
-      isoToScreen(gridCols, gridRows, originX, originY),
-      isoToScreen(0, gridRows, originX, originY),
-    ];
-
-    const edges = [
-      [corners[0], corners[1]],
-      [corners[1], corners[2]],
-      [corners[2], corners[3]],
-      [corners[3], corners[0]],
-    ];
-
     const gateEdge = 2;
     const gateCenter = 0.5;
     const gateWidth = 0.12;
 
-    for (let ei = 0; ei < edges.length; ei++) {
-      const [from, to] = edges[ei];
+    for (const ei of edgeIndices) {
+      const [from, to] = fenceEdges[ei];
       const segments = 8;
       for (let i = 0; i <= segments; i++) {
         const t = i / segments;
@@ -293,7 +292,8 @@ export function startRenderer({ canvas, plantGrid, gridCols, gridRows, getPlacem
     ctx.fillStyle = gc.grass;
     ctx.fillRect(0, skyH, canvasW, canvasH - skyH);
 
-    drawFence(ctx);
+    // Back fence edges (behind tiles): top-right + top-left
+    drawFenceEdges(ctx, [0, 3]);
 
     // Draw tiles (back-to-front)
     const selectedPlant = getSelectedPlant();
@@ -369,6 +369,9 @@ export function startRenderer({ canvas, plantGrid, gridCols, gridRows, getPlacem
         }
       }
     }
+
+    // Front fence edges (in front of tiles): bottom-right + bottom-left
+    drawFenceEdges(ctx, [1, 2]);
 
     // Butterflies
     for (const bf of butterflies) {
