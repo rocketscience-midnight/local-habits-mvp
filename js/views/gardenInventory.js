@@ -139,12 +139,16 @@ export function buildCollection(allPlants) {
   collection.appendChild(collTitle);
 
   const collGrid = document.createElement('div');
-  collGrid.className = 'collection-columns';
+  collGrid.className = 'collection-grid';
 
   for (const rarity of RARITY_ORDER) {
     const combos = ALL_COMBOS.filter(c => c.rarity === rarity);
-    const col = document.createElement('div');
-    col.className = 'collection-col';
+    if (combos.length === 0) continue;
+
+    const rarityLabel = document.createElement('span');
+    rarityLabel.className = 'collection-rarity-label';
+    rarityLabel.textContent = RARITY_LABELS[rarity];
+    collGrid.appendChild(rarityLabel);
 
     for (const combo of combos) {
       const owned = ownedSet.has(`${combo.type}-${combo.rarity}`);
@@ -161,13 +165,12 @@ export function buildCollection(allPlants) {
 
       const label = document.createElement('div');
       label.className = 'collection-item-label';
-      label.innerHTML = `<span style="color:${RARITY_COLORS[combo.rarity]};font-weight:600;">${PLANT_NAMES_DE[combo.type]}</span><br><span style="font-size:9px;color:#8A8A8A;">${RARITY_LABELS[combo.rarity]}</span>`;
+      label.innerHTML = `<span style="color:${RARITY_COLORS[combo.rarity]};font-weight:600;">${PLANT_NAMES_DE[combo.type]}</span>`;
 
       item.appendChild(iconCanvas);
       item.appendChild(label);
-      col.appendChild(item);
+      collGrid.appendChild(item);
     }
-    collGrid.appendChild(col);
   }
   collection.appendChild(collGrid);
 
@@ -181,12 +184,16 @@ export function buildCollection(allPlants) {
   collection.appendChild(decoTitle);
 
   const decoGrid = document.createElement('div');
-  decoGrid.className = 'collection-columns';
+  decoGrid.className = 'collection-grid';
 
   for (const diff of ['medium', 'hard']) {
     const decos = ALL_DECOS.filter(d => DECO_DIFFICULTY[d.type] === diff);
-    const col = document.createElement('div');
-    col.className = 'collection-col';
+    if (decos.length === 0) continue;
+
+    const diffLabel = document.createElement('span');
+    diffLabel.className = 'collection-rarity-label';
+    diffLabel.textContent = DIFF_LABELS[diff];
+    decoGrid.appendChild(diffLabel);
 
     for (const deco of decos) {
       const owned = ownedDecoSet.has(deco.type);
@@ -202,13 +209,12 @@ export function buildCollection(allPlants) {
 
       const label = document.createElement('div');
       label.className = 'collection-item-label';
-      label.innerHTML = `<span style="color:${DIFF_COLORS[diff]};font-weight:600;">${deco.name}</span><br><span style="font-size:9px;color:#8A8A8A;">${DIFF_LABELS[diff]}</span>`;
+      label.innerHTML = `<span style="color:${DIFF_COLORS[diff]};font-weight:600;">${deco.name}</span>`;
 
       item.appendChild(iconCanvas);
       item.appendChild(label);
-      col.appendChild(item);
+      decoGrid.appendChild(item);
     }
-    decoGrid.appendChild(col);
   }
   collection.appendChild(decoGrid);
 
