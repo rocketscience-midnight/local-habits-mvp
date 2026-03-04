@@ -31,6 +31,12 @@
 - **Kosten:** Nichts das Geld kostet ohne Rückfrage
 - **Claude Code:** Nutzt `--dangerously-skip-permissions` (= darf autonom Dateien schreiben im angegebenen Verzeichnis). Arbeitsverzeichnis immer benennen. Ergebnisse werden reviewed bevor committed wird.
 
+## Sub-Agent-Regeln
+
+- **Keine temporären Notiz-Dateien ins Repo committen** (concept.md, verification.md, etc.) – gehören nicht in den Code
+- **`git diff` prüfen vor Commit** – keine Duplikate, keine unbeabsichtigten Änderungen
+- **Jeder Sub-Agent-Commit wird reviewed** bevor er als "fertig" gemeldet wird
+
 ## Grundsätze
 
 - **Kein Over-Engineering** – pragmatisch bleiben
