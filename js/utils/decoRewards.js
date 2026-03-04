@@ -3,6 +3,10 @@
  */
 import gardenRepo from '../repo/gardenRepo.js';
 
+export const STARTER_DECOS = [
+  { type: 'compost', name: 'Komposthaufen', emoji: '🌿' },
+];
+
 const MEDIUM_DECOS = [
   { type: 'pond_small', name: 'Kleiner Teich', emoji: '🪷' },
   { type: 'lantern', name: 'Laterne', emoji: '🏮' },
@@ -25,10 +29,12 @@ const HARD_DECOS = [
 ];
 
 export const ALL_DECOS = [...MEDIUM_DECOS, ...HARD_DECOS];
+const ALL_DECOS_WITH_STARTERS = [...STARTER_DECOS, ...MEDIUM_DECOS, ...HARD_DECOS];
 
-export const DECO_NAMES = Object.fromEntries(ALL_DECOS.map(d => [d.type, d.name]));
-export const DECO_EMOJIS = Object.fromEntries(ALL_DECOS.map(d => [d.type, d.emoji]));
+export const DECO_NAMES = Object.fromEntries(ALL_DECOS_WITH_STARTERS.map(d => [d.type, d.name]));
+export const DECO_EMOJIS = Object.fromEntries(ALL_DECOS_WITH_STARTERS.map(d => [d.type, d.emoji]));
 export const DECO_DIFFICULTY = Object.fromEntries([
+  ...STARTER_DECOS.map(d => [d.type, 'starter']),
   ...MEDIUM_DECOS.map(d => [d.type, 'medium']),
   ...HARD_DECOS.map(d => [d.type, 'hard']),
 ]);

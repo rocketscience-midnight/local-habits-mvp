@@ -193,25 +193,20 @@ export function buildInventory({ getPlacementMode, setPlacementMode, placementIn
   inventoryBar.appendChild(inventoryScroll);
 
   function refresh() {
-    // Show ALL plants (both placed and unplaced)
+    // Show ONLY unplaced plants (placed plants live on the canvas)
     gardenRepo.getAllGardenPlants().then(allPlants => {
-      inventoryTitle.textContent = `Inventar (${allPlants.length})`;
+      const unplaced = allPlants.filter(p => !p.placed);
+      inventoryTitle.textContent = `Inventar (${unplaced.length})`;
       inventoryScroll.innerHTML = '';
 
-      if (allPlants.length === 0) {
-        inventoryScroll.innerHTML = '<div class="inventory-empty">Keine Pflanzen im Inventar</div>';
+      if (unplaced.length === 0) {
+        inventoryScroll.innerHTML = '<div class="inventory-empty">Alle Pflanzen im Garten platziert 🌱</div>';
         return;
       }
 
-      for (const plant of allPlants) {
+      for (const plant of unplaced) {
         const item = document.createElement('div');
         item.className = 'inventory-item';
-        
-        // Different styling for placed vs unplaced plants
-        if (plant.placed) {
-          item.classList.add('inventory-item-placed');
-        }
-        
         item.dataset.plantId = plant.id;
 
         const iconCanvas = document.createElement('canvas');
@@ -228,7 +223,7 @@ export function buildInventory({ getPlacementMode, setPlacementMode, placementIn
         const label = document.createElement('div');
         label.className = 'inventory-item-label';
         if (plant.itemType === 'deco') {
-          const diffColor = DECO_DIFFICULTY[plant.plantType] === 'hard' ? '#E84545' : '#F5A623';
+          const diffColor = DECO_DIFFICULTY[plant.plantType] === 'hard' ? '#E84545' : DECO_DIFFICULTY[plant.plantType] === 'medium' ? '#F5A623' : '#6BBF6B';
           label.innerHTML = `<span style="color:${diffColor};font-size:10px;font-weight:700;">${DECO_NAMES[plant.plantType] || plant.plantType}</span>`;
         } else {
           const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
@@ -240,22 +235,17 @@ export function buildInventory({ getPlacementMode, setPlacementMode, placementIn
         item.appendChild(label);
 
         item.addEventListener('click', () => {
-          if (plant.placed) {
-            // Show popup for placed plants with move/remove options
-            showPlantInteractionPopup(plant, refresh, getPlacementMode, setPlacementMode, placementIndicator);
-          } else {
-            // Existing placement logic for unplaced plants
-            if (getPlacementMode() && getPlacementMode().id === plant.id) {
-              setPlacementMode(null);
-              placementIndicator.classList.add('hidden');
-              refresh();
-              return;
-            }
-            setPlacementMode(plant);
-            placementIndicator.classList.remove('hidden');
-            inventoryScroll.querySelectorAll('.inventory-item').forEach(i => i.classList.remove('selected'));
-            item.classList.add('selected');
+          // Placement logic for unplaced plants
+          if (getPlacementMode() && getPlacementMode().id === plant.id) {
+            setPlacementMode(null);
+            placementIndicator.classList.add('hidden');
+            refresh();
+            return;
           }
+          setPlacementMode(plant);
+          placementIndicator.classList.remove('hidden');
+          inventoryScroll.querySelectorAll('.inventory-item').forEach(i => i.classList.remove('selected'));
+          item.classList.add('selected');
         });
 
         inventoryScroll.appendChild(item);
@@ -365,20 +355,16 @@ export function buildCollection(allPlants) {
 }
 
 /**
- * Show interaction popup for placed plants
+ * Show info popup for a placed plant (long-press only – no move/remove buttons).
  * @param {Object} plant - Plant data object
- * @param {Function} refresh - Refresh inventory callback
- * @param {Function} getPlacementMode - Get current placement mode
- * @param {Function} setPlacementMode - Set placement mode
- * @param {HTMLElement} placementIndicator - Placement indicator element
  */
-export function showPlantInteractionPopup(plant, refresh, getPlacementMode, setPlacementMode, placementIndicator) {
+export function showPlantInteractionPopup(plant) {
   const isDeco = plant.itemType === 'deco';
   const emoji = isDeco ? (DECO_EMOJIS[plant.plantType] || '🎨') : (PLANT_EMOJIS[plant.plantType] || '🌿');
   const name = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
   const rarityColor = RARITY_COLORS[plant.rarity] || '#8ED88E';
   const rarityLabel = isDeco ? 'Dekoration' : (RARITY_LABELS[plant.rarity] || plant.rarity);
-  
+
   // Growth bar HTML (only for plants with maxGrowth)
   const growthDisplay = plant.maxGrowth ? `
     <div class="popup-growth">
@@ -389,7 +375,7 @@ export function showPlantInteractionPopup(plant, refresh, getPlacementMode, setP
       </div>
     </div>
   ` : '';
-  
+
   // Adoption info (if applicable)
   const adoptionInfo = plant.isAdopted && plant.originalHabitName ? `
     <div class="popup-detail">
@@ -406,50 +392,22 @@ export function showPlantInteractionPopup(plant, refresh, getPlacementMode, setP
         <span class="popup-rarity" style="color: ${rarityColor}">${rarityLabel}</span>
       </div>
     </div>
-    
+
     <div class="popup-info">
       <div class="popup-detail">
         <span class="detail-icon">🏷️</span>
-        <span class="detail-text">Verdient durch: ${escapeHtml(plant.habitName)}</span>
+        <span class="detail-text">Verdient durch: ${escapeHtml(plant.habitName || '–')}</span>
       </div>
-      
       ${adoptionInfo}
       ${growthDisplay}
     </div>
-    
-    <div class="popup-actions">
-      <button class="btn btn-secondary move-plant-btn" data-plant-id="${plant.id}">
-        🔄 Verschieben
-      </button>
-      <button class="btn btn-danger remove-plant-btn" data-plant-id="${plant.id}">
-        🗑️ Entfernen
-      </button>
-    </div>
+
+    <div class="popup-hint">Tippe auf die Pflanze im Garten um sie zu verschieben.</div>
   `;
 
-  const { overlay, close } = createModal(html, { 
+  const { overlay } = createModal(html, {
     extraClass: 'plant-interaction-popup',
-    title: `${emoji} ${name}` 
+    title: `${emoji} ${name}`,
   });
-  // Fallback für Browser ohne CSS :has() Support – kein dunkler Backdrop
   overlay.classList.add('plant-popup-overlay');
-  
-  // Move plant button
-  overlay.querySelector('.move-plant-btn').addEventListener('click', async () => {
-    // Enter move mode - like placement mode but for moving
-    setPlacementMode({ ...plant, isMoving: true });
-    placementIndicator.classList.remove('hidden');
-    placementIndicator.querySelector('.placement-text').textContent = `${name} an neue Position verschieben`;
-    close();
-    refresh();
-  });
-  
-  // Remove plant button
-  overlay.querySelector('.remove-plant-btn').addEventListener('click', async () => {
-    if (confirm(`${name} wirklich aus dem Garten entfernen?`)) {
-      await gardenRepo.unplacePlant(plant.id);
-      close();
-      refresh();
-    }
-  });
 }

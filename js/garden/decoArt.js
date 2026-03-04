@@ -12,9 +12,9 @@ import { DECO_DIFFICULTY } from '../utils/decoRewards.js';
 
 function drawDecoPlaced(ctx, cx, cy, decoType, animOffset, pixelSize = PIXEL) {
   const p = pixelSize;
-  const isMedium = DECO_DIFFICULTY[decoType] === 'medium';
-  const shadowW = isMedium ? p * 3 : p * 5;
-  const shadowH = isMedium ? p * 1.5 : p * 2;
+  const isHard = DECO_DIFFICULTY[decoType] === 'hard';
+  const shadowW = isHard ? p * 5 : p * 3;
+  const shadowH = isHard ? p * 2 : p * 1.5;
   ctx.save();
   ctx.globalAlpha = 0.18;
   ctx.fillStyle = '#2D2D2D';
@@ -24,6 +24,7 @@ function drawDecoPlaced(ctx, cx, cy, decoType, animOffset, pixelSize = PIXEL) {
   ctx.restore();
 
   switch (decoType) {
+    case 'compost': drawDecoCompost(ctx, cx, cy, p, animOffset); break;
     case 'pond_small': drawDecoPond(ctx, cx, cy, p, animOffset); break;
     case 'lantern': drawDecoLantern(ctx, cx, cy, p, animOffset); break;
     case 'bench': drawDecoBench(ctx, cx, cy, p); break;
@@ -40,6 +41,55 @@ function drawDecoPlaced(ctx, cx, cy, decoType, animOffset, pixelSize = PIXEL) {
     case 'windmill': drawDecoWindmill(ctx, cx, cy, p, animOffset); break;
     case 'bridge': drawDecoBridge(ctx, cx, cy, p); break;
   }
+}
+
+// --- Starter decos ---
+
+function drawDecoCompost(ctx, cx, cy, p, animOffset) {
+  const BROWN_D  = '#6B4226';
+  const BROWN    = '#8B5E3C';
+  const BROWN_L  = '#A5714A';
+  const BROWN_LL = '#C09060';
+  const GREEN    = '#5A9B5A';
+  const GREEN_L  = '#7BBF6B';
+  const GRAY     = '#B0B0B0';
+
+  // Heap body – widens at base, tapers to top
+  drawPixelRect(ctx, cx - p*3, cy,       p*7, p,  BROWN_D);  // ground shadow
+  drawPixelRect(ctx, cx - p*3, cy - p,   p*7, p,  BROWN_D);  // base row
+  drawPixelRect(ctx, cx - p*3, cy - p*2, p*7, p,  BROWN);    // mid-low
+  drawPixelRect(ctx, cx - p*2, cy - p*3, p*5, p,  BROWN_L);  // mid
+  drawPixelRect(ctx, cx - p,   cy - p*4, p*3, p,  BROWN_L);  // upper
+  drawPixel(ctx,     cx,       cy - p*5,            BROWN_LL); // tip
+
+  // Texture variation
+  drawPixel(ctx, cx - p*2, cy - p*2, BROWN_LL);
+  drawPixel(ctx, cx + p*2, cy - p*2, BROWN_D);
+  drawPixel(ctx, cx,       cy - p*3, BROWN_D);
+
+  // Green leaves / plant scraps poking out
+  drawPixel(ctx, cx - p,   cy - p*4, GREEN);
+  drawPixel(ctx, cx + p,   cy - p*4, GREEN_L);
+  drawPixel(ctx, cx - p*2, cy - p*3, GREEN_L);
+  drawPixel(ctx, cx + p,   cy - p*3, GREEN);
+  drawPixel(ctx, cx - p*2, cy - p*2, GREEN);
+
+  // Animated steam / smell wisps drifting upward
+  const t1 = (animOffset * 0.8)     % (Math.PI * 2);
+  const t2 = (animOffset * 0.7 + 1) % (Math.PI * 2);
+  const t3 = (animOffset * 0.9 + 2) % (Math.PI * 2);
+  const dy1 = Math.sin(t1) * p;
+  const dy2 = Math.sin(t2) * p;
+  const dy3 = Math.sin(t3) * p;
+
+  ctx.save();
+  ctx.globalAlpha = 0.45;
+  drawPixel(ctx, cx - p, cy - p*6 + dy1, GRAY);
+  ctx.globalAlpha = 0.35;
+  drawPixel(ctx, cx + p, cy - p*6 + dy2, GRAY);
+  ctx.globalAlpha = 0.25;
+  drawPixel(ctx, cx,     cy - p*7 + dy3, GRAY);
+  ctx.restore();
 }
 
 // --- Medium decos ---

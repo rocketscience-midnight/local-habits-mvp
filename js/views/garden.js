@@ -37,6 +37,9 @@ export function cleanupGarden() {
 export async function renderGarden(container) {
   container.innerHTML = '';
 
+  // Ensure starter decos exist (one-time seed, safe to re-run)
+  await gardenRepo.seedStarterDecos();
+
   // Check for weekly rewards, then update growth for current-week plants
   const newPlants = await checkWeeklyRewards();
   await updatePlantGrowth();
@@ -56,6 +59,7 @@ export async function renderGarden(container) {
 
   // State
   let placementMode = null;
+  let selectedPlant = null;          // tap-to-select state
   let placedPlants = await gardenRepo.getPlacedPlants();
 
   // Build placed plants map: "col,row" -> plant
@@ -146,13 +150,16 @@ export async function renderGarden(container) {
     gridCols,
     gridRows,
     getPlacementMode: () => placementMode,
+    getSelectedPlant: () => selectedPlant,
   });
 
-  // Canvas interaction: placement only
+  // Canvas interaction: placement + tap-to-select
   setupCanvasInteraction({
     canvas, wrap, plantGrid, gridCols, gridRows, originX, originY,
     getPlacementMode: () => placementMode,
     setPlacementMode: (val) => { placementMode = val; },
+    getSelectedPlant: () => selectedPlant,
+    setSelectedPlant: (val) => { selectedPlant = val; },
     placementIndicator, refreshInventory,
   });
 
@@ -216,81 +223,206 @@ function buildDebugButtons(container) {
 // ============================================================
 
 /**
- * Set up click handling on the garden canvas for plant placement only.
+ * Set up click/touch handling for the garden canvas.
+ * Supports:
+ *  - Placement mode (from inventory): tap empty tile → place
+ *  - Tap-to-select (placed plant): select → tap empty → move, tap compost → unplace
+ *  - Long-press (400ms): show info popup
  */
 function setupCanvasInteraction({ canvas, wrap, plantGrid, gridCols, gridRows, originX, originY,
-  getPlacementMode, setPlacementMode, placementIndicator, refreshInventory }) {
+  getPlacementMode, setPlacementMode,
+  getSelectedPlant, setSelectedPlant,
+  placementIndicator, refreshInventory }) {
 
-  function handleCanvasClick(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
+  let longPressTimer = null;
+  let touchStartIso = null;
+  let didLongPress = false;
+  let touchMoved = false;
+
+  /** Update the placement indicator bar for selection state */
+  function updateSelectionIndicator(plant) {
+    if (plant) {
+      const isDeco = plant.itemType === 'deco';
+      const name = isDeco ? (DECO_NAMES[plant.plantType] || plant.plantType) : (PLANT_NAMES_DE[plant.plantType] || plant.plantType);
+      placementIndicator.classList.remove('hidden');
+      placementIndicator.querySelector('.placement-text').textContent =
+        `${name} ausgewählt – tippe auf ein Feld zum Verschieben`;
+    } else {
+      if (!getPlacementMode()) {
+        placementIndicator.classList.add('hidden');
+        placementIndicator.querySelector('.placement-text').textContent = 'Tippe auf eine Grasfläche zum Platzieren';
+      }
+    }
+  }
+
+  /** Resolve canvas coordinates from a mouse or touch event */
+  function getIsoFromEvent(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    
-    // Handle both mouse and touch events
-    const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : e.changedTouches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : e.changedTouches[0].clientY);
-    
-    const cx = (clientX - rect.left) * scaleX;
-    const cy = (clientY - rect.top) * scaleY;
-    const iso = screenToIso(cx, cy, originX, originY);
+    const src = e.changedTouches ? e.changedTouches[0] : (e.touches ? e.touches[0] : e);
+    const cx = (src.clientX - rect.left) * scaleX;
+    const cy = (src.clientY - rect.top) * scaleY;
+    return screenToIso(cx, cy, originX, originY);
+  }
 
-    if (iso.row < 0 || iso.row >= gridRows || iso.col < 0 || iso.col >= gridCols) {
-      return;
-    }
+  /** Main tap/click logic (after confirming it's not a long-press) */
+  function handleTap(iso) {
+    if (iso.row < 0 || iso.row >= gridRows || iso.col < 0 || iso.col >= gridCols) return;
 
     const key = `${iso.col},${iso.row}`;
     const placementMode = getPlacementMode();
+    const selectedPlant = getSelectedPlant();
 
+    // ── Priority 1: Inventory placement mode ─────────────────────────────
     if (placementMode) {
       if (!plantGrid[key]) {
-        if (placementMode.isMoving) {
-          // Moving an existing plant
-          const oldKey = `${placementMode.gridCol},${placementMode.gridRow}`;
-          delete plantGrid[oldKey]; // Remove from old position
-          
-          gardenRepo.placePlant(placementMode.id, iso.col, iso.row).then(() => {
-            plantGrid[key] = { ...placementMode, gridCol: iso.col, gridRow: iso.row, placed: 1, isMoving: undefined };
-            setPlacementMode(null);
-            placementIndicator.classList.add('hidden');
-            placementIndicator.querySelector('.placement-text').textContent = 'Tippe auf eine Grasfläche zum Platzieren';
-            refreshInventory();
-          });
-        } else {
-          // Placing a new plant
-          gardenRepo.placePlant(placementMode.id, iso.col, iso.row).then(() => {
+        gardenRepo.placePlant(placementMode.id, iso.col, iso.row).then(success => {
+          if (success) {
             plantGrid[key] = { ...placementMode, gridCol: iso.col, gridRow: iso.row, placed: 1 };
-            setPlacementMode(null);
-            placementIndicator.classList.add('hidden');
-            refreshInventory();
-          });
-        }
+          }
+          setPlacementMode(null);
+          placementIndicator.classList.add('hidden');
+          refreshInventory();
+        });
       }
       return;
     }
 
-    // Clicking on a placed plant opens the interaction popup (move/remove)
-    if (plantGrid[key]) {
-      showPlantInteractionPopup(
-        plantGrid[key],
-        refreshInventory,
-        getPlacementMode,
-        setPlacementMode,
-        placementIndicator
-      );
+    // ── Priority 2: Tap-to-select (canvas selection mode) ────────────────
+    if (selectedPlant) {
+      // Tap on the compost → return selected plant to inventory (unplace)
+      if (plantGrid[key] && plantGrid[key].plantType === 'compost') {
+        const oldKey = `${selectedPlant.gridCol},${selectedPlant.gridRow}`;
+        delete plantGrid[oldKey];
+        gardenRepo.unplacePlant(selectedPlant.id).then(() => {
+          setSelectedPlant(null);
+          updateSelectionIndicator(null);
+          refreshInventory();
+        });
+        return;
+      }
+
+      // Tap on the same plant → deselect
+      if (plantGrid[key] && plantGrid[key].id === selectedPlant.id) {
+        setSelectedPlant(null);
+        updateSelectionIndicator(null);
+        return;
+      }
+
+      // Tap on another placed plant → change selection
+      if (plantGrid[key]) {
+        setSelectedPlant(plantGrid[key]);
+        updateSelectionIndicator(plantGrid[key]);
+        return;
+      }
+
+      // Tap on empty tile → move selected plant here
+      if (!plantGrid[key]) {
+        const oldKey = `${selectedPlant.gridCol},${selectedPlant.gridRow}`;
+        delete plantGrid[oldKey];
+        gardenRepo.movePlant(selectedPlant.id, iso.col, iso.row).then(success => {
+          if (success) {
+            plantGrid[key] = { ...selectedPlant, gridCol: iso.col, gridRow: iso.row };
+          } else {
+            // Tile was occupied (race condition) – restore
+            plantGrid[oldKey] = selectedPlant;
+          }
+          setSelectedPlant(null);
+          updateSelectionIndicator(null);
+          refreshInventory();
+        });
+        return;
+      }
+
+    } else {
+      // No selection active: tap on a placed plant → select it
+      if (plantGrid[key]) {
+        setSelectedPlant(plantGrid[key]);
+        updateSelectionIndicator(plantGrid[key]);
+        return;
+      }
+      // Tap on empty tile with nothing selected → nothing
     }
   }
 
-  // Add both click and touch event listeners
-  canvas.addEventListener('click', handleCanvasClick);
-  canvas.addEventListener('touchend', handleCanvasClick);
+  /** Long-press action: show info popup */
+  function handleLongPress(iso) {
+    if (iso.row < 0 || iso.row >= gridRows || iso.col < 0 || iso.col >= gridCols) return;
+    const key = `${iso.col},${iso.row}`;
+    if (plantGrid[key]) {
+      showPlantInteractionPopup(plantGrid[key]);
+    }
+  }
 
-  // Cancel placement button
+  // ── Touch events (mobile) ──────────────────────────────────────────────
+  canvas.addEventListener('touchstart', (e) => {
+    touchMoved = false;
+    didLongPress = false;
+    touchStartIso = getIsoFromEvent(e);
+    longPressTimer = setTimeout(() => {
+      if (!touchMoved) {
+        didLongPress = true;
+        handleLongPress(touchStartIso);
+      }
+    }, 400);
+  }, { passive: true });
+
+  canvas.addEventListener('touchmove', () => {
+    touchMoved = true;
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', (e) => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    if (!touchMoved && !didLongPress) {
+      const iso = getIsoFromEvent(e);
+      handleTap(iso);
+    }
+    didLongPress = false;
+    touchMoved = false;
+  }, { passive: true });
+
+  canvas.addEventListener('touchcancel', () => {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    didLongPress = false;
+    touchMoved = false;
+  }, { passive: true });
+
+  // ── Mouse events (desktop) ─────────────────────────────────────────────
+  canvas.addEventListener('mousedown', (e) => {
+    didLongPress = false;
+    touchStartIso = getIsoFromEvent(e);
+    longPressTimer = setTimeout(() => {
+      didLongPress = true;
+      handleLongPress(touchStartIso);
+    }, 400);
+  });
+
+  canvas.addEventListener('mousemove', () => {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+  });
+
+  canvas.addEventListener('click', (e) => {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+    if (!didLongPress) {
+      handleTap(getIsoFromEvent(e));
+    }
+    didLongPress = false;
+  });
+
+  // Cancel placement / selection button
   placementIndicator.querySelector('.placement-cancel-btn').addEventListener('click', () => {
     setPlacementMode(null);
+    setSelectedPlant(null);
     placementIndicator.classList.add('hidden');
+    placementIndicator.querySelector('.placement-text').textContent = 'Tippe auf eine Grasfläche zum Platzieren';
     refreshInventory();
   });
 }

@@ -114,9 +114,11 @@ function drawGroundDetail(ctx, cx, cy, detail) {
  * @param {number} params.gridCols
  * @param {number} params.gridRows
  * @param {Function} params.getPlacementMode - returns current placementMode or null
+ * @param {Function} params.getSelectedPlant - returns currently selected plant or null
  * @returns {{ cleanup: Function }} - call cleanup() to stop animation
  */
-export function startRenderer({ canvas, plantGrid, gridCols, gridRows, getPlacementMode }) {
+export function startRenderer({ canvas, plantGrid, gridCols, gridRows, getPlacementMode, getSelectedPlant }) {
+  if (!getSelectedPlant) getSelectedPlant = () => null;
   const skyH = 80;
   const canvasW = canvas.width;
   const canvasH = canvas.height;
@@ -294,6 +296,7 @@ export function startRenderer({ canvas, plantGrid, gridCols, gridRows, getPlacem
     drawFence(ctx);
 
     // Draw tiles (back-to-front)
+    const selectedPlant = getSelectedPlant();
     for (let r = 0; r < gridRows; r++) {
       for (let c = 0; c < gridCols; c++) {
         const { x, y } = isoToScreen(c, r, originX, originY);
@@ -316,6 +319,28 @@ export function startRenderer({ canvas, plantGrid, gridCols, gridRows, getPlacem
 
         if (plant) {
           const animOff = elapsed * 1.5 + r * 0.7 + c * 1.1;
+
+          // Selection highlight – pulsing glow ring on the tile
+          if (selectedPlant && plant.id === selectedPlant.id) {
+            const pulse = 0.55 + 0.45 * Math.sin(elapsed * 5);
+            ctx.save();
+            ctx.globalAlpha = 0.35 + 0.25 * pulse;
+            ctx.fillStyle = '#FFE44A';
+            ctx.beginPath();
+            ctx.ellipse(x, y + 4, TILE_W * 0.46, TILE_H * 0.42, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            // Pulsing border ring
+            ctx.save();
+            ctx.globalAlpha = 0.7 + 0.3 * pulse;
+            ctx.strokeStyle = '#FFB800';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(x, y + 4, TILE_W * 0.46, TILE_H * 0.42, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+          }
+
           if (plant.itemType === 'deco') {
             drawDecoPlaced(ctx, x, y, plant.plantType, animOff);
           } else {
@@ -323,6 +348,16 @@ export function startRenderer({ canvas, plantGrid, gridCols, gridRows, getPlacem
             drawPlant(ctx, x, y, plant.plantType, stage, animOff, PIXEL, c, r);
           }
         } else {
+          // If a plant is selected, highlight empty tiles as drop targets
+          if (selectedPlant && !placementMode) {
+            const pulse2 = 0.4 + 0.3 * Math.sin(elapsed * 3 + r * 0.5 + c * 0.7);
+            ctx.save();
+            ctx.globalAlpha = 0.12 + 0.08 * pulse2;
+            ctx.fillStyle = '#A0E0A0';
+            ctx.fillRect(x - TILE_W / 2, y - TILE_H / 2, TILE_W, TILE_H);
+            ctx.restore();
+          }
+
           const detail = groundDetailMap[key];
           if (detail && !placementMode) {
             drawGroundDetail(ctx, x, y - 2, detail);

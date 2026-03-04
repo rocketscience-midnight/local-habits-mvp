@@ -3,6 +3,7 @@
  */
 
 import db, { uuid } from './db.js';
+import { STARTER_DECOS } from '../utils/decoRewards.js';
 
 const gardenRepo = {
   /** Direct access to gardenPlants table */
@@ -53,6 +54,47 @@ const gardenRepo = {
 
   async getPlantByHabitAndWeek(habitId, weekEarned) {
     return db.gardenPlants.where({ habitId, weekEarned }).first();
+  },
+
+  /**
+   * Move a placed plant to a new grid position.
+   * Returns false if the target position is occupied by another plant.
+   */
+  async movePlant(plantId, newCol, newRow) {
+    const all = await db.gardenPlants.where('placed').equals(1).toArray();
+    const occupied = all.some(p => p.id !== plantId && p.gridCol === newCol && p.gridRow === newRow);
+    if (occupied) return false;
+    await db.gardenPlants.update(plantId, {
+      placed: 1,
+      gridCol: newCol,
+      gridRow: newRow,
+    });
+    return true;
+  },
+
+  /**
+   * One-time seed: ensure every user has the starter decos (compost heap etc.)
+   * Safe to call on every app start – creates missing ones only.
+   */
+  async seedStarterDecos() {
+    const existing = await db.gardenPlants.toArray();
+    for (const starter of STARTER_DECOS) {
+      const alreadyHas = existing.some(p => p.itemType === 'deco' && p.plantType === starter.type && p.habitId === 'starter');
+      if (!alreadyHas) {
+        await this.addGardenPlant({
+          plantType: starter.type,
+          rarity: 'common',
+          growthStage: 1,
+          itemType: 'deco',
+          habitId: 'starter',
+          habitName: starter.name,
+          weekEarned: new Date().toISOString().slice(0, 10),
+          placed: 0,
+          gridCol: null,
+          gridRow: null,
+        });
+      }
+    }
   },
 };
 
