@@ -303,10 +303,9 @@
 }
 
 .collection-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 80px);
   gap: 6px;
-  max-width: 400px;
 }
 
 .collection-item {
@@ -314,7 +313,7 @@
   flex-direction: column;
   align-items: center;
   padding: 6px 4px;
-  max-width: 70px;
+  max-width: 80px;
   background: rgba(255, 248, 240, 0.8);
   border-radius: 10px;
   border: none;
