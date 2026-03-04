@@ -278,6 +278,8 @@ export function showPlantInteractionPopup(plant, refresh, getPlacementMode, setP
     extraClass: 'plant-interaction-popup',
     title: `${emoji} ${name}` 
   });
+  // Fallback für Browser ohne CSS :has() Support – kein dunkler Backdrop
+  overlay.classList.add('plant-popup-overlay');
   
   // Move plant button
   overlay.querySelector('.move-plant-btn').addEventListener('click', async () => {

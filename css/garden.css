@@ -853,15 +853,32 @@
 }
 
 /* Plant Interaction Popup (from inventory) */
+
+/* Kein dunkler Backdrop für Pflanzen-Popup */
+.modal-overlay:has(.plant-interaction-popup) {
+  background: transparent;
+}
+
+/* Fallback für Browser ohne :has() Support */
+.plant-popup-overlay {
+  background: transparent !important;
+}
+
+/* Kompakteres Popup */
+.plant-interaction-popup {
+  max-width: 320px;
+  padding: 12px;
+}
+
 .plant-interaction-popup .plant-popup-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .plant-interaction-popup .popup-emoji {
-  font-size: 32px;
+  font-size: 28px;
 }
 
 .plant-interaction-popup .popup-title {
@@ -870,13 +887,13 @@
 
 .plant-interaction-popup .popup-name {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }
 
 .plant-interaction-popup .popup-rarity {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -885,15 +902,17 @@
 .plant-interaction-popup .popup-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 4px;
+  padding: 6px 0;
+  margin-bottom: 8px;
 }
 
 .plant-interaction-popup .popup-detail {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  padding: 4px 0;
+  font-size: 13px;
   color: var(--text);
 }
 
@@ -910,13 +929,14 @@
 .plant-interaction-popup .popup-actions {
   display: flex;
   gap: 8px;
+  padding-top: 8px;
 }
 
 .plant-interaction-popup .popup-actions .btn {
   flex: 1;
-  padding: 12px;
+  padding: 8px 12px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -1009,4 +1029,16 @@
 [data-theme="dark"] .plant-interaction-popup .growth-text {
   color: #E8E8E8;
   text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Theme overrides: plant-popup-overlay bleibt immer transparent */
+[data-theme="dark"] .plant-popup-overlay,
+[data-theme="sakura"] .plant-popup-overlay {
+  background: transparent !important;
+}
+
+/* Auch :has()-Variante für Themes absichern */
+[data-theme="dark"] .modal-overlay:has(.plant-interaction-popup),
+[data-theme="sakura"] .modal-overlay:has(.plant-interaction-popup) {
+  background: transparent;
 }
