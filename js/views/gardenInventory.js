@@ -145,11 +145,6 @@ export function buildCollection(allPlants) {
     const combos = ALL_COMBOS.filter(c => c.rarity === rarity);
     if (combos.length === 0) continue;
 
-    const rarityLabel = document.createElement('span');
-    rarityLabel.className = 'collection-rarity-label';
-    rarityLabel.textContent = RARITY_LABELS[rarity];
-    collGrid.appendChild(rarityLabel);
-
     for (const combo of combos) {
       const owned = ownedSet.has(`${combo.type}-${combo.rarity}`);
       const item = document.createElement('div');
@@ -189,11 +184,6 @@ export function buildCollection(allPlants) {
   for (const diff of ['medium', 'hard']) {
     const decos = ALL_DECOS.filter(d => DECO_DIFFICULTY[d.type] === diff);
     if (decos.length === 0) continue;
-
-    const diffLabel = document.createElement('span');
-    diffLabel.className = 'collection-rarity-label';
-    diffLabel.textContent = DIFF_LABELS[diff];
-    decoGrid.appendChild(diffLabel);
 
     for (const deco of decos) {
       const owned = ownedDecoSet.has(deco.type);
