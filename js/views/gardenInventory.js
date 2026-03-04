@@ -5,12 +5,159 @@
 import gardenRepo from '../repo/gardenRepo.js';
 import { RARITY_LABELS, RARITY_COLORS, RARITY_TO_STAGE } from '../utils/rewards.js';
 import { ALL_DECOS, DECO_NAMES, DECO_EMOJIS, DECO_DIFFICULTY } from '../utils/decoRewards.js';
-import { PLANT_NAMES_DE, PLANT_EMOJIS } from '../garden/plantArt.js';
+import { PLANT_NAMES_DE, PLANT_EMOJIS, drawPlant, drawTile } from '../garden/plantArt.js';
+import { drawDecoPlaced } from '../garden/decoArt.js';
 import { drawPlantIcon, drawDecoIcon } from './gardenRenderer.js';
 import { createModal } from '../components/modal.js';
 import { escapeHtml } from '../utils/sanitize.js';
 
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+
+// ============================================================
+// Collection Preview Tooltip
+// ============================================================
+
+let _activeTooltip = null;
+let _longPressTimer = null;
+
+/** Draw a mini garden background on the preview canvas */
+function _drawPreviewBackground(ctx, w, h) {
+  // Grass fill
+  ctx.fillStyle = '#A8D8A8';
+  ctx.fillRect(0, 0, w, h);
+
+  // Draw a small 2×2 isometric tile grid in the lower-center
+  const TILE_W = 64, TILE_H = 32;
+  const originX = w / 2;
+  const originY = h / 2 + 18;
+
+  const tileColors = ['#A8D8A8', '#96CC96', '#B4E0B4'];
+  const edgeColor = '#98C898';
+
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 2; c++) {
+      const tx = originX + (c - r) * (TILE_W / 2);
+      const ty = originY + (c + r) * (TILE_H / 2);
+      const color = tileColors[(c + r) % tileColors.length];
+      drawTile(ctx, tx, ty, color, edgeColor);
+    }
+  }
+
+  // A couple of pixel stones for charm
+  ctx.fillStyle = '#B0A898';
+  ctx.fillRect(originX - 22, originY + 4, 6, 3);
+  ctx.fillStyle = '#C8C0B0';
+  ctx.fillRect(originX - 20, originY + 1, 3, 3);
+  ctx.fillStyle = '#B0A898';
+  ctx.fillRect(originX + 16, originY + 6, 4, 2);
+}
+
+/** Render a plant or deco preview onto a canvas element */
+function _renderPreviewCanvas(canvas, type, rarity, isDeco) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  _drawPreviewBackground(ctx, w, h);
+
+  const cx = w / 2;
+  // Plant sits on tiles: TILE_H/2 below originY (originY = h/2+18), so plant cy ~= h/2+18+8
+  const cy = h / 2 + 22;
+  const pixelSize = 5;
+
+  if (isDeco) {
+    drawDecoPlaced(ctx, cx, cy, type, 0, pixelSize);
+  } else {
+    const stage = RARITY_TO_STAGE[rarity] ?? 3;
+    drawPlant(ctx, cx, cy, type, stage, 0, pixelSize);
+  }
+}
+
+/** Create and show the preview tooltip near the target element */
+function _showPreviewTooltip(targetEl, type, rarity, isDeco) {
+  _removePreviewTooltip();
+
+  const tooltip = document.createElement('div');
+  tooltip.className = 'collection-preview-tooltip';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 120;
+  canvas.height = 120;
+  _renderPreviewCanvas(canvas, type, rarity, isDeco);
+  tooltip.appendChild(canvas);
+
+  document.body.appendChild(tooltip);
+  _activeTooltip = tooltip;
+
+  // Position: prefer above-right of item, clamped to viewport
+  const rect = targetEl.getBoundingClientRect();
+  const ttW = 120 + 16; // canvas + 2*padding
+  const ttH = 120 + 16;
+  const margin = 8;
+
+  let left = rect.right + margin;
+  let top = rect.top;
+
+  // Clamp right edge
+  if (left + ttW > window.innerWidth - margin) {
+    left = rect.left - ttW - margin;
+  }
+  // Clamp left edge
+  if (left < margin) {
+    left = rect.left + (rect.width - ttW) / 2;
+  }
+  // Clamp bottom edge
+  if (top + ttH > window.innerHeight - margin) {
+    top = window.innerHeight - ttH - margin;
+  }
+  // Clamp top edge
+  if (top < margin) top = margin;
+
+  tooltip.style.left = `${Math.round(left)}px`;
+  tooltip.style.top = `${Math.round(top)}px`;
+}
+
+function _removePreviewTooltip() {
+  if (_activeTooltip) {
+    _activeTooltip.remove();
+    _activeTooltip = null;
+  }
+}
+
+/** Attach hover (desktop) and long-press (mobile) preview events to a collection item */
+function _attachPreviewEvents(item, type, rarity, isDeco) {
+  // Desktop hover
+  item.addEventListener('mouseenter', () => {
+    _showPreviewTooltip(item, type, rarity, isDeco);
+  });
+  item.addEventListener('mouseleave', () => {
+    _removePreviewTooltip();
+  });
+
+  // Mobile long-press (400ms)
+  item.addEventListener('touchstart', (e) => {
+    _longPressTimer = setTimeout(() => {
+      _showPreviewTooltip(item, type, rarity, isDeco);
+    }, 400);
+  }, { passive: true });
+
+  item.addEventListener('touchend', () => {
+    clearTimeout(_longPressTimer);
+    _longPressTimer = null;
+    _removePreviewTooltip();
+  }, { passive: true });
+
+  item.addEventListener('touchcancel', () => {
+    clearTimeout(_longPressTimer);
+    _longPressTimer = null;
+    _removePreviewTooltip();
+  }, { passive: true });
+
+  item.addEventListener('touchmove', () => {
+    clearTimeout(_longPressTimer);
+    _longPressTimer = null;
+  }, { passive: true });
+}
 
 const ALL_COMBOS = [
   { type: 'bush', rarity: 'common' }, { type: 'mushroom', rarity: 'common' },
@@ -164,6 +311,9 @@ export function buildCollection(allPlants) {
 
       item.appendChild(iconCanvas);
       item.appendChild(label);
+      if (owned) {
+        _attachPreviewEvents(item, combo.type, combo.rarity, false);
+      }
       collGrid.appendChild(item);
     }
   }
@@ -203,6 +353,9 @@ export function buildCollection(allPlants) {
 
       item.appendChild(iconCanvas);
       item.appendChild(label);
+      if (owned) {
+        _attachPreviewEvents(item, deco.type, null, true);
+      }
       decoGrid.appendChild(item);
     }
   }

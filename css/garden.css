@@ -337,6 +337,33 @@
   color: #BBB;
 }
 
+/* ========== Collection Preview Tooltip ========== */
+.collection-preview-tooltip {
+  position: fixed;
+  z-index: 1000;
+  background: white;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.collection-preview-tooltip canvas {
+  display: block;
+  border-radius: 6px;
+}
+
+[data-theme="dark"] .collection-preview-tooltip {
+  background: #1A2A3A;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+[data-theme="sakura"] .collection-preview-tooltip {
+  background: #FFF0F8;
+  box-shadow: 0 4px 20px rgba(200,100,150,0.2);
+}
+
 /* ========== Garden Dark Mode ========== */
 [data-theme="dark"] .garden-inventory {
   background: rgba(22, 33, 62, 0.95);
